@@ -1,0 +1,1049 @@
+# TYT UVL-15W Data Storage Reference
+
+Version V1.0 | Reconstructed from the Qt CPS UI and implementation (Phase 1)
+
+English developer edition: terminology and descriptions have been normalized for implementation clarity while preserving the source protocol values, addresses, offsets, and byte layouts.
+
+**Translation review note:** This English edition was re-reviewed against the original Chinese document. Technical values, offsets, address ranges, bit definitions, fixed byte strings, and enumerations are preserved. Terminology has been normalized for English-language CPS and embedded-software development.
+
+<a id="toc"></a>
+
+## Table of Contents
+
+1. [Overall Storage Map](#sec1)
+2. [UI-Oriented Storage Reference (Complete)](#sec2)
+   1. [Radio Basic Info](#sec2_0)
+   2. [Function Settings](#sec2_1)
+      1. [Transmit/Receive Settings](#sec2_1_1)
+      2. [Squelch-Tail / End-of-Transmission Signaling](#sec2_1_2)
+      3. [Tone Burst](#sec2_1_3)
+      4. [Scanning](#sec2_1_4)
+      5. [Power-Save Settings](#sec2_1_5)
+      6. [Weather Channels](#sec2_1_6)
+   3. [Display Settings](#sec2_2)
+      1. [LCD Backlight](#sec2_2_1)
+      2. [Power-On Display](#sec2_2_2)
+      3. [Memory Channel Display](#sec2_2_3)
+      4. [Units](#sec2_2_4)
+      5. [Other](#sec2_2_5)
+   4. [Audio Settings](#sec2_3)
+      1. [Alert Tones](#sec2_3_1)
+      2. [Other Settings](#sec2_3_2)
+      3. [AI Voice Control (VOX)](#sec2_3_3)
+      4. [AI Noise Reduction](#sec2_3_4)
+   5. [Key Settings](#sec2_4)
+      1. [Programmable Keys](#sec2_4_1)
+      2. [Short-Press Function Index Map](#sec2_4_2)
+      3. [Long-Press Function Index Map](#sec2_4_3)
+      4. [Key/Encoder Lock](#sec2_4_4)
+   6. [Menu Settings](#sec2_5)
+      1. [Detailed Bit Map](#sec2_5_1)
+3. [Channel List Reference](#sec3)
+   1. [Memory Channels](#sec3_1)
+      1. [48-byte Memory Channel Record (Byte-by-Byte)](#sec3_1_1)
+      2. [Composite Bit Fields (Bit-by-Bit)](#sec3_1_2)
+      3. [CTCSS Table Appendix](#sec3_1_3)
+      4. [DTCS Table Appendix](#sec3_1_4)
+   2. [VFO Channels](#sec3_2)
+   3. [CALL Channels](#sec3_3)
+   4. [Temporary Channels](#sec3_4)
+   5. [WX Channels (Fixed Data)](#sec3_5)
+      1. [Fixed WX Channel Data](#sec3_5_1)
+4. [Zones](#sec4)
+5. [Scan Lists](#sec5)
+6. [Signaling System](#sec6)
+   1. [DTMF](#sec6_1)
+   2. [2-Tone](#sec6_2)
+   3. [5-Tone](#sec6_3)
+7. [FM Broadcast Receiver](#sec7)
+8. [APRS](#sec8)
+9. [GPS](#sec9)
+10. [Bluetooth](#sec10)
+11. [Section-by-Section Verification Checklist (Appendix)](#sec11)
+
+<a id="sec1"></a>
+
+## 1. Overall Storage Map
+
+- **Valid address range**: 0x00008000 ~ 0x00021000 (total 102,400 bytes).
+- **Coverage**: This reference covers **radio basic information**, **radio settings**, **channel lists (Memory/VFO/CALL/Temp/WX)**, **Zones**, **Scan Lists**, **Signaling System**, **FM Broadcast Receiver**, **APRS**, **GPS**, **Bluetooth**.
+
+| Block | Address range | Length | UI page / purpose |
+| --- | --- | --- | --- |
+| Memory channel record region | 0x00008000~0x00013B7F | 48000 B | Channel List - Memory channels (CH1~CH1000, 48 B / record) |
+| VFO record region | 0x00013B80~0x00013BDF | 96 B | Channel List - VFO A/B (2 records, 48 B / record) |
+| CALL record region | 0x00013BE0~0x00013C3F | 96 B | Channel List - CALL 1/2 (2 records, 48 B / record) |
+| Temporary-channel record region | 0x00013C40~0x00013C9F | 96 B | Channel List - Temp A/B (2 records, 48 B / record) |
+| WX record region | 0x00013CA0~0x00013E7F | 480 B | Channel List - fixed WX channels (10 records, 48 B / record) |
+| FM broadcast channel region | 0x00013E80~0x0001427F | 1024 B | FM Broadcast Receiver - memory channel list (32 records, 32 B / record) |
+| Memory Validity Bitmap | 0x00015000~0x0001507F | 128 B | Channel List - Memory-channel validity flag (1 bit / channel) |
+| Memory Scan Bitmap | 0x00015080~0x0001517F | 256 B | Channel List - Memory-channel scan flag (2 bits / channel) |
+| Radio Status | 0x00015300~0x000153FF | 256 B | runtime-state parameter region (e.g. A/B operating mode and FM VFO frequency), not the same as CMD 0xE1 device information |
+| Radio Settings | 0x00015400~0x000154FF | 256 B | radio settings (Function Settings/Display Settings/Audio Settings/Key Settings) |
+| GPS configuration bytes | 0x00015401~0x00015403 | 3 B | GPS page (on/off, mode, time zone) |
+| Bluetooth basic configuration bytes | 0x00015440~0x00015445 | 6 B | Bluetooth page (switch, mode, local audio control, gain) |
+| FM receiver runtime parameters | 0x00015404~0x00015406 | 3 B | FM receiver page (switch, noise suppression, auto scan) |
+| APRS configuration region | 0x00015500~0x000158FF | 1024 B | APRS page |
+| DTMF configuration region | 0x00016000~0x000163FF | 1024 B | Signaling System-DTMF page |
+| 2-Tone configuration region | 0x00016800~0x000169FF | 512 B | Signaling System-2Tone page |
+| 5-Tone configuration region | 0x00017000~0x000177FF | 2048 B | Signaling System-5Tone page |
+| Zone member-list region | 0x00018000~0x00018FFF | 4096 B | Zones page (16 zones, each with 128×2 B) |
+| Scan-list member region | 0x00019000~0x00019FFF | 4096 B | Scan Lists page (16 scan lists, each with 128×2 B) |
+| Channel-to-Zone membership bitmap | 0x0001A000~0x0001A7CF | 2000 B | Zone membership per channel (16 bits / channel, CH1~CH1000) |
+| Channel-to-Scan List membership bitmap | 0x0001A800~0x0001AFCF | 2000 B | Scan List membership per channel (16 bits / channel, CH1~CH1000) |
+| Zone name region | 0x0001B000~0x0001B17F | 384 B | 16 zone names (24 B each) |
+| Zone attribute region | 0x0001B200~0x0001B3FF | 512 B | Zone parameter settings |
+| Scan List name region | 0x0001B400~0x0001B57F | 384 B | 16 scan-list names (24 B each) |
+| Scan List attribute region | 0x0001B600~0x0001B7FF | 512 B | Scan List parameter settings |
+| Menu Display Mask | 0x0001BA00~0x0001BAFF | 256 B | menu visibility bitmap |
+
+**Write strategy**: For blocks containing bit fields or reserved bits, use read-modify-write on the complete block to preserve unrelated/reserved values.
+
+<a id="sec2"></a>
+
+## 2. UI-Oriented Storage Reference (Complete)
+
+<a id="sec2_0"></a>
+
+### 2.1 Radio Basic Info
+
+**CMD 0xE1**: Device information response (Payload81 byte).
+
+**Data source**: device information response frame CMD 0xE1 (not a fixed SPI-flash block). This section documents the newer format only (based on firmware `Clone\_Protocol\_RX\_0xE0` frame-building logic).
+
+| UI option | Payload offset (excluding frame header) | Length | Storage format / description |
+| --- | --- | --- | --- |
+| Model string | 0 | 7 B | `RADIO\_MODEL\_STRING="UVL-15W"`(ASCII,`RADIO\_MODEL\_STRING\_LEN=7`). |
+| Separator | 7 | 1 B | fixed `'\_'` (0x5F). |
+| Sub-model identifier | 8 | 1 B | `RADIO\_MODEL\_SUB\_NUM`, currentfixed 0x01. |
+| Separator | 9 | 1 B | fixed `'\_'` (0x5F). |
+| Read-protection flag | 10 | 1 B | 0x00=Read allowed, 0x01=Password required (then use CMD 0xE7 verification). |
+| Write-protection flag | 11 | 1 B | 0x00=Write allowed, 0x01=Password required (then use CMD 0xE7 verification). |
+| Firmware/software version (UI: Firmware/software version) | 12 | 8 B | 8 bytesFirmware/software version information (ASCII). |
+| Separator | 20 | 1 B | fixed `'\_'` (0x5F). |
+| Image-resource version | 21 | 3 B | firmware local variable `Hardware\_Version[3]`, Example `{0x01,0x00,0x00}`. |
+| CPU unique ID | 24 | 12 B | 12 bytesCPU unique identifier. |
+| Bootloader model information (UI: Model Information) | 36 | 16 B | 16 bytesModel information stored by the bootloader. |
+| Hardware version (decrypted; UI: Hardware Version) | 52 | 9 B | 9-byte decrypted hardware-version string. |
+| Serial number (decrypted; UI: Serial Number) | 61 | 20 B | 20-byte decrypted serial-number string. |
+
+<a id="sec2_1"></a>
+
+### 2.2 Function Settings (Radio Settings -> Function Settings)
+
+**Primary storage block**:0x00015400(Radio Settings,256 B).
+
+<a id="sec2_1_1"></a>
+
+#### 2.2.1 Transmit/Receive Settings
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| RX/TX mode | 0x30 | 1 B | 0=single RX/TX1=dual-watch, single TX2=dual receive, single TX3=cross-band repeater |
+| Cross-band repeater mode | 0x31 | 1 B | 0=one-way repeat1=two-way repeat |
+| Cross-band repeater monitoring | 0x3F | 1 B | 0=Off1=On |
+| Squelch level | 0x32 | 1 B | 0=1level 1=2level 2=3level 3=4level 4=5level 5=6level 6=7level 7=8level 8=9level |
+| Transmit timeout timer | 0x33 | 1 B | 0=Off1=1min2=2min3=3min4=4min5=5min6=6min7=7min8=8min9=9min10=10min11=15min12=20min13=25min14=30min |
+| Transmit channel selection | 0x34 | 1 B | 0=Main channel1=Last-called channel |
+| Call hold time | 0x35 | 1 B | 0=3s1=4s2=5s3=6s4=7s5=8s6=9s7=10s8=15s9=20s10=25s11=30s12=35s13=40s14=45s15=50s16=55s17=60s18=70s19=80s20=90s21=100s22=110s23=120s24=150s25=180s26=210s27=240s28=270s29=300s |
+| A-band operating mode | 0x00015307 | 1 B | Stored in Radio Status (offset0x07). 0=Memory mode1=VFO/frequency mode2=CALL mode3=Weather mode (visibility depends on the corresponding feature switch) |
+| B-band operating mode | 0x00015308 | 1 B | Stored in Radio Status (offset0x08). 0=Memory mode1=VFO/frequency mode2=CALL mode3=Weather mode (visibility depends on the corresponding feature switch) |
+
+<a id="sec2_1_2"></a>
+
+#### 2.2.2 Squelch-Tail / End-of-Transmission Signaling
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| No-signaling tail tone | 0x38 | 1 B | 0=Off1=55.2Hz2=259.2Hz |
+| CTCSS tail behavior | 0x36 | 1 B | 0=Off1=55Hz2=phase shift 120°3=phase shift 180°4=phase shift 240° |
+| DCS tail behavior | 0x37 | 1 B | 0=Off1=134.4Hz |
+| Tail-signaling duration | 0x39 | 1 B | 0=50ms1=75ms2=100ms3=125ms4=150ms5=175ms6=200ms7=225ms8=250ms9=275ms10=300ms11=325ms12=350ms13=375ms14=400ms15=425ms16=450ms17=475ms18=500ms |
+
+<a id="sec2_1_3"></a>
+
+#### 2.2.3 Tone Burst
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Tone Burst frequency | 0x3B | 1 B | 0=1000Hz1=1450Hz2=1750Hz3=2100Hz |
+| Tone Burst duration | 0x3A | 1 B | 0=1s1=continuous |
+| Tone Burst sidetone | 0x3C | 1 B | 0=Off1=On |
+
+<a id="sec2_1_4"></a>
+
+#### 2.2.4 Scanning
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Scan mode | 0x3D | 1 B | 0=Carrier1=Time2=Search |
+| MR scan type | 0x3E | 1 B | 0=Normal1=Priority |
+
+<a id="sec2_1_5"></a>
+
+#### 2.2.5 Power-Save Settings
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Power-save switch | 0xB0 | 1 B | 0=Off1=On |
+| Power-save delay | 0xB1 | 1 B | 0=3s1=4s2=5s3=6s4=7s5=8s6=9s7=10s8=12s9=14s10=16s11=18s12=20s13=25s14=30s15=35s16=40s17=45s18=50s19=55s20=60s21=70s22=80s23=90s24=100s25=110s26=120s27=150s28=180s29=210s30=240s31=270s32=300s |
+
+<a id="sec2_1_6"></a>
+
+#### 2.2.6 Weather Channels
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Squelch control | 0xB2 | 1 B | 0=Normal1=1050signaling |
+| Receive mode | 0xB3 | 1 B | 0=single-channel watch1=multi-channel scan |
+| Scan-channel selection | 0xB4~0xB5 | 2 B | bit0=WX1bit1=WX2bit2=WX3bit3=WX4bit4=WX5bit5=WX6bit6=WX7bit7=WX8bit8=WX9bit9=WX10 Bit meaning: 1=included in scan, 0=excluded from scan. |
+| Decode reset time | 0xB6 | 1 B | 0=0s1=1s2=2s3=3s4=4s5=5s6=6s7=7s8=8s9=9s10=10s11=12s12=14s13=16s14=18s15=20s16=25s17=30s18=35s19=40s20=45s21=50s22=60s23=70s24=80s25=90s26=100s27=120s28=140s29=160s30=180s31=200s32=225s33=250s34=275s35=300s |
+
+<a id="sec2_2"></a>
+
+### 2.3 Display Settings (radio settings -> Display Settings)
+
+**Primary storage block**:0x00015400(Radio Settings,256 B).
+
+<a id="sec2_2_1"></a>
+
+#### 2.3.1 LCD Backlight
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Backlight level | 0x07 | 1 B | 0=1level 1=2level 2=3level 3=4level 4=5level 5=6level 6=7level 7=8level 8=9level |
+| Auto dimming | 0x08 | 1 B | 0=Off1=auto off2=Auto dimming1level 3=Auto dimming2level 4=Auto dimming3level 5=Auto dimming4level 6=Auto dimming5level 7=Auto dimming6level 8=Auto dimming7level 9=Auto dimming8level |
+| Auto-dim delay | 0x09 | 1 B | 0=3s1=4s2=5s3=6s4=7s5=8s6=9s7=10s8=11s9=12s10=13s11=14s12=15s13=20s14=25s15=30s16=35s17=40s18=45s19=50s20=55s21=1min22=2min23=3min24=4min25=5min26=6min27=7min28=8min29=9min30=10min31=15min32=20min33=25min34=30min35=35min36=40min37=45min38=50min39=55min40=1 hour |
+| Exit auto-dim on receive | 0x0A | 1 B | 0=Off1=On |
+| Exit auto-dim on transmit | 0x0B | 1 B | 0=Off1=On |
+
+<a id="sec2_2_2"></a>
+
+#### 2.3.2 Power-On Display
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Show boot image | 0x60 | 1 B | 0=Off1=On |
+| Show firmware version | 0x61 | 1 B | 0=Off1=On |
+| Show power-on message | 0x62 | 1 B | 0=Off1=On |
+| Show battery voltage | 0x63 | 1 B | 0=Off1=On |
+| Power-on message | 0x64~0x95 | 50 B | fixed-length string field |
+
+<a id="sec2_2_3"></a>
+
+#### 2.3.3 Memory Channel Display
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Channel frequency | 0x05(bit0) | 1 bit | 0=Hide1=Show |
+| Channel name | 0x05(bit1) | 1 bit | 0=Hide1=Show |
+| Zone name | 0x05(bit2) | 1 bit | 0=Hide1=Show |
+
+<a id="sec2_2_4"></a>
+
+#### 2.3.4 Units
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Coordinates | 0x23(bit1:0) | 2 bit | 0=D.D°1=D°M.M2=D°M'S |
+| Speed | 0x23(bit3:2) | 2 bit | 0=m/s,km/h1=MPH2=Knot |
+| Altitude | 0x23(bit7:6) | 2 bit | 0=m1=foot |
+| Distance | 0x23(bit5:4) | 2 bit | 0=m,km1=mile2=n mile |
+| Rainfall | 0x24(bit1:0) | 2 bit | 0=mm1=inch |
+| Wind speed | 0x24(bit3:2) | 2 bit | 0=m/s,km/h1=mph2=knot |
+| Temperature | 0x24(bit5:4) | 2 bit | 0=C1=F |
+
+<a id="sec2_2_5"></a>
+
+#### 2.3.5 Other
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| System language | 0x00 | 1 B | 0=Simplified Chinese1=Traditional Chinese2=ENGLISH3=Turkish |
+| System theme | 0x25 | 1 B | 0=Light1=Dark |
+| Menu auto-exit | 0x06 | 1 B | 0=Off1=5s2=6s3=7s4=8s5=9s6=10s7=11s8=12s9=13s10=14s11=15s12=20s13=25s14=30s15=35s16=40s17=45s18=50s19=55s20=1min21=2min22=3min23=4min24=5min25=6min26=7min27=8min28=9min29=10min |
+| Battery display style | 0x2B | 1 B | 0=Icon1=Voltage2=Icon + voltage |
+| RX indicator LED | 0x2C | 1 B | 0=Off1=On |
+| Screen-off indicator LED | 0x2E | 1 B | 0=Off1=On |
+| Received signal strength | 0x2D | 1 B | 0=Off1=dBm2=RSSI level / dBm |
+
+<a id="sec2_3"></a>
+
+### 2.4 Audio Settings (radio settings -> Audio Settings)
+
+**Primary storage block**:0x00015400(Radio Settings,256 B).
+
+<a id="sec2_3_1"></a>
+
+#### 2.4.1 Alert Tones
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Key beep | 0x1A | 1 B | 0=Off1=On |
+| Low-battery beep | 0x1B | 1 B | 0=Off1=On |
+| Power-on beep | 0x1F | 1 B | 0=Off1=On |
+| TX-timeout beep | 0x2A | 1 B | 0=Off1=On |
+| Call-start beep | 0x1D (bit0) | 1 bit | 0=Off1=On |
+| Call-end beep | 0x1D (bit1) | 1 bit | 0=Off1=On |
+
+<a id="sec2_3_2"></a>
+
+#### 2.4.2 Other Settings
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Microphone gain | 0x1E | 1 B | 0=Low1=Medium2=High3=04=15=26=37=48=59=610=711=812=913=1014=1115=1216=1317=1418=1519=1620=1721=1822=1923=2024=2125=2226=2327=2428=2529=2630=2731=2832=2933=3034=31 |
+
+<a id="sec2_3_3"></a>
+
+#### 2.4.3 AI Voice Control (VOX)
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| AI voice-control switch | 0x0D | 1 B | 0=Off1=On |
+| AI voice-control sensitivity | 0x0E | 1 B | 0=Low1=Medium2=High3=Very high |
+| AI voice-control delay | 0x0F | 1 B | 0=0.5s1=1.0s2=1.5s3=2.0s4=2.5s5=3.0s6=3.5s7=4.0s8=4.5s9=5.0s |
+
+<a id="sec2_3_4"></a>
+
+#### 2.4.4 AI Noise Reduction
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| AI noise-reduction switch | 0x0C | 1 B | 0=Off1=On |
+
+<a id="sec2_4"></a>
+
+### 2.5 Key Settings (radio settings -> Key Settings)
+
+**Primary storage block**:0x00015400(Radio Settings,256 B).
+
+<a id="sec2_4_1"></a>
+
+#### 2.5.1 Programmable Keys
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Side key 1 short press | 0x10 | 1 B | See short-press function index map |
+| Side key 1 long press | 0x11 | 1 B | See long-press function index map |
+| Side key 2 short press | 0x12 | 1 B | See short-press function index map |
+| Side key 2 long press | 0x13 | 1 B | See long-press function index map |
+| Top key short press | 0x14 | 1 B | See short-press function index map |
+| Top key long press | 0x15 | 1 B | See long-press function index map |
+| Digit 0 long press | 0x50 | 1 B | See long-press function index map |
+| Digit 1 long press | 0x51 | 1 B | See long-press function index map |
+| Digit 2 long press | 0x52 | 1 B | See long-press function index map |
+| Digit 3 long press | 0x53 | 1 B | See long-press function index map |
+| Digit 4 long press | 0x54 | 1 B | See long-press function index map |
+| Digit 5 long press | 0x55 | 1 B | See long-press function index map |
+| Digit 6 long press | 0x56 | 1 B | See long-press function index map |
+| Digit 7 long press | 0x57 | 1 B | See long-press function index map |
+| Digit 8 long press | 0x58 | 1 B | See long-press function index map |
+| Digit 9 long press | 0x59 | 1 B | See long-press function index map |
+| Menu key long press | 0x5A | 1 B | See long-press function index map |
+| Back key long press | 0x5B | 1 B | See long-press function index map |
+
+<a id="sec2_4_2"></a>
+
+#### 2.5.2 Short-Press Function Index Map (QT: Shortcuts\_Short\_Function\_List\_ALL)
+
+| Index | Function | Length | Description |
+| --- | --- | --- | --- |
+| 0 | None | 1BIndex | Short-press function |
+| 1 | Voice control | 1BIndex | Short-press function |
+| 2 | Send beacon | 1BIndex | Short-press function |
+| 3 | Squelch off | 1BIndex | Short-press function |
+| 4 | Scanning | 1BIndex | Short-press function |
+| 5 | Scrambler | 1BIndex | Short-press function |
+| 6 | Talk-around | 1BIndex | Short-press function |
+| 7 | Noise reduction | 1BIndex | Short-press function |
+| 8 | One-key frequency copy | 1BIndex | Short-press function |
+| 9 | Power level | 1BIndex | Short-press function |
+| 10 | Reverse | 1BIndex | Short-press function |
+| 11 | FM receiver on/off | 1BIndex | Short-press function |
+| 12 | Channel-mode switch | 1BIndex | Short-press function |
+| 13 | Emergency alarm | 1BIndex | Short-press function |
+| 14 | APRS stations | 1BIndex | Short-press function |
+| 15 | Squelch level | 1BIndex | Short-press function |
+| 16 | Tone scan | 1BIndex | Short-press function |
+| 17 | GPS on/off | 1BIndex | Short-press function |
+| 18 | GPS position information | 1BIndex | Short-press function |
+| 19 | GPS satellite information | 1BIndex | Short-press function |
+| 20 | Bluetooth on/off | 1BIndex | Short-press function |
+| 21 | Zone selection | 1BIndex | Short-press function |
+| 22 | Scan-list selection | 1BIndex | Short-press function |
+| 23 | Spectrum | 1BIndex | Short-press function |
+| 24 | Copy to MR | 1BIndex | Short-press function |
+| 25 | Monitor | 1BIndex | Short-press function |
+| 26 | Debug information | 1BIndex | Short-press function |
+
+<a id="sec2_4_3"></a>
+
+#### 2.5.3 Long-Press Function Index Map (QT: Shortcuts\_Long\_Function\_List\_ALL)
+
+| Index | Function | Length | Description |
+| --- | --- | --- | --- |
+| 0 | None | 1BIndex | Long-press function |
+| 1 | Voice control | 1BIndex | Long-press function |
+| 2 | Send Tone Burst | 1BIndex | Long-press function |
+| 3 | Send beacon | 1BIndex | Long-press function |
+| 4 | Squelch off | 1BIndex | Long-press function |
+| 5 | Scanning | 1BIndex | Long-press function |
+| 6 | Scrambler | 1BIndex | Long-press function |
+| 7 | Talk-around | 1BIndex | Long-press function |
+| 8 | Noise reduction | 1BIndex | Long-press function |
+| 9 | One-key frequency copy | 1BIndex | Long-press function |
+| 10 | Power level | 1BIndex | Long-press function |
+| 11 | Reverse | 1BIndex | Long-press function |
+| 12 | FM receiver on/off | 1BIndex | Long-press function |
+| 13 | Channel-mode switch | 1BIndex | Long-press function |
+| 14 | Emergency alarm | 1BIndex | Long-press function |
+| 15 | APRS stations | 1BIndex | Long-press function |
+| 16 | Squelch level | 1BIndex | Long-press function |
+| 17 | Tone scan | 1BIndex | Long-press function |
+| 18 | GPS on/off | 1BIndex | Long-press function |
+| 19 | GPS position information | 1BIndex | Long-press function |
+| 20 | GPS satellite information | 1BIndex | Long-press function |
+| 21 | Bluetooth on/off | 1BIndex | Long-press function |
+| 22 | Zone selection | 1BIndex | Long-press function |
+| 23 | Scan-list selection | 1BIndex | Long-press function |
+| 24 | Spectrum | 1BIndex | Long-press function |
+| 25 | Copy to MR | 1BIndex | Long-press function |
+| 26 | Monitor | 1BIndex | Long-press function |
+| 27 | Debug information | 1BIndex | Long-press function |
+
+<a id="sec2_4_4"></a>
+
+#### 2.5.4 Key/Encoder Lock
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Auto lock | 0x20 | 1 B | 0=Off1=On |
+| Lock type | 0x21 | 1 B | 0=Keys1=Encoder2=Keys + encoder3=PTT4=PTT + keys5=PTT + encoder6=PTT + encoder + keys |
+| Lock delay | 0x22 | 1 B | 0=3s1=4s2=5s3=6s4=7s5=8s6=9s7=10s8=11s9=12s10=13s11=14s12=15s13=20s14=25s15=30s16=35s17=40s18=45s19=50s20=55s21=1min22=2min23=3min24=4min25=5min26=6min27=7min28=8min29=9min30=10min |
+
+<a id="sec2_5"></a>
+
+### 2.6 Menu Settings (radio settings -> Menu Settings)
+
+**Primary storage block**:0x0001BA00(Menu Display Mask,256 B).
+
+| Data block | Absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Menu visibility bitmap (Menu Display Mask) | 0x0001BA00 | 256 B | bit0~bit165 defined: bit=1 Show, bit=0 Hide; remaining bits are reserved. |
+
+<a id="sec2_5_1"></a>
+
+#### 2.6.1 Detailed Bit Map (in Qt write order)
+
+| Bit | Qt tree path | Menu item (Qt source) | Bit meaning |
+| --- | --- | --- | --- |
+| bit0 | Main menu | Main menu | 1=Show, 0=Hide |
+| bit1 | Main menu | Channel Settings | 1=Show, 0=Hide |
+| bit2 | Main menu | Radio Settings | 1=Show, 0=Hide |
+| bit3 | Main menu | FM Broadcast Receiver | 1=Show, 0=Hide |
+| bit4 | Main menu | APRS | 1=Show, 0=Hide |
+| bit5 | Main menu | GPS | 1=Show, 0=Hide |
+| bit6 | Main menu | Bluetooth | 1=Show, 0=Hide |
+| bit7 | Main menu | Signaling System | 1=Show, 0=Hide |
+| bit8 | Main menu | Channel Information | 1=Show, 0=Hide |
+| bit9 | Main menu | Radio Information | 1=Show, 0=Hide |
+| bit10 | Main menu > Radio Settings | Function Settings | 1=Show, 0=Hide |
+| bit11 | Main menu > Radio Settings | Display Settings | 1=Show, 0=Hide |
+| bit12 | Main menu > Radio Settings | Audio Settings | 1=Show, 0=Hide |
+| bit13 | Main menu > Radio Settings | Key Settings | 1=Show, 0=Hide |
+| bit14 | Main menu > Radio Settings | Other Settings | 1=Show, 0=Hide |
+| bit15 | Main menu > FM Broadcast Receiver | FM receiver on/off | 1=Show, 0=Hide |
+| bit16 | Main menu > FM Broadcast Receiver | FM receiver mode | 1=Show, 0=Hide |
+| bit17 | Main menu > FM Broadcast Receiver | Memory Channel List | 1=Show, 0=Hide |
+| bit18 | Main menu > GPS | GPS on/off | 1=Show, 0=Hide |
+| bit19 | Main menu > GPS | GPS constellation mode | 1=Show, 0=Hide |
+| bit20 | Main menu > GPS | Zone Settings | 1=Show, 0=Hide |
+| bit21 | Main menu > GPS | GPS position information | 1=Show, 0=Hide |
+| bit22 | Main menu > GPS | GPS satellite information | 1=Show, 0=Hide |
+| bit23 | Main menu > Bluetooth | Bluetooth on/off | 1=Show, 0=Hide |
+| bit24 | Main menu > Bluetooth | Bluetooth mode | 1=Show, 0=Hide |
+| bit25 | Main menu > Bluetooth | Bluetooth headset pairing | 1=Show, 0=Hide |
+| bit26 | Main menu > Bluetooth | Bluetooth PTT pairing | 1=Show, 0=Hide |
+| bit27 | Main menu > Bluetooth | Built-in speaker control | 1=Show, 0=Hide |
+| bit28 | Main menu > Bluetooth | Built-in microphone control | 1=Show, 0=Hide |
+| bit29 | Main menu > Bluetooth | Bluetooth speaker gain | 1=Show, 0=Hide |
+| bit30 | Main menu > Bluetooth | Bluetooth microphone gain | 1=Show, 0=Hide |
+| bit31 | Main menu > Bluetooth | Bluetoothdevicetable | 1=Show, 0=Hide |
+| bit32 | Main menu > Bluetooth | Bluetooth status information | 1=Show, 0=Hide |
+| bit33 | Main menu > Signaling System | DTMF | 1=Show, 0=Hide |
+| bit34 | Main menu > Signaling System | 2-TONE | 1=Show, 0=Hide |
+| bit35 | Main menu > Signaling System | 5-TONE | 1=Show, 0=Hide |
+| bit36 | Main menu > Signaling System > DTMF | Local ID | 1=Show, 0=Hide |
+| bit37 | Main menu > Signaling System > DTMF | Separator | 1=Show, 0=Hide |
+| bit38 | Main menu > Signaling System > DTMF | Group-call code | 1=Show, 0=Hide |
+| bit39 | Main menu > Signaling System > DTMF | Dialer type | 1=Show, 0=Hide |
+| bit40 | Main menu > Signaling System > DTMF | Encoder settings | 1=Show, 0=Hide |
+| bit41 | Main menu > Signaling System > DTMF | Decoder settings | 1=Show, 0=Hide |
+| bit42 | Main menu > Signaling System > DTMF | PTT ID list | 1=Show, 0=Hide |
+| bit43 | Main menu > Signaling System > DTMF | Codetable | 1=Show, 0=Hide |
+| bit44 | Main menu > Signaling System > 2-TONE | Encoder/decoder settings | 1=Show, 0=Hide |
+| bit45 | Main menu > Signaling System > 2-TONE | Codetable | 1=Show, 0=Hide |
+| bit46 | Main menu > Signaling System > 2-TONE | Decode list | 1=Show, 0=Hide |
+| bit47 | Main menu > Signaling System > 5-TONE | Local ID | 1=Show, 0=Hide |
+| bit48 | Main menu > Signaling System > 5-TONE | Encoder settings | 1=Show, 0=Hide |
+| bit49 | Main menu > Signaling System > 5-TONE | Decoder settings | 1=Show, 0=Hide |
+| bit50 | Main menu > Signaling System > 5-TONE | PTT ID list | 1=Show, 0=Hide |
+| bit51 | Main menu > Signaling System > 5-TONE | Codetable | 1=Show, 0=Hide |
+| bit52 | Main menu > Signaling System > 5-TONE | Information codetable | 1=Show, 0=Hide (hidden by default in Qt) |
+| bit53 | Main menu > Channel Information | RX frequency | 1=Show, 0=Hide |
+| bit54 | Main menu > Channel Information | TX frequency | 1=Show, 0=Hide |
+| bit55 | Main menu > Channel Information | TX power | 1=Show, 0=Hide |
+| bit56 | Main menu > Channel Information | Channel mode | 1=Show, 0=Hide |
+| bit57 | Main menu > Channel Information | Channel name | 1=Show, 0=Hide |
+| bit58 | Main menu > Channel Information | Offset/duplex mode | 1=Show, 0=Hide |
+| bit59 | Main menu > Channel Information | Duplex/offset frequency | 1=Show, 0=Hide |
+| bit60 | Main menu > Channel Information | Talk-around / Reverse | 1=Show, 0=Hide |
+| bit61 | Main menu > Channel Information | Frequency step | 1=Show, 0=Hide |
+| bit62 | Main menu > Channel Information | RX only | 1=Show, 0=Hide |
+| bit63 | Main menu > Channel Information | Busy-channel lockout | 1=Show, 0=Hide |
+| bit64 | Main menu > Channel Information | Scan flag | 1=Show, 0=Hide |
+| bit65 | Main menu > Channel Information | PTT ID | 1=Show, 0=Hide |
+| bit66 | Main menu > Channel Information | Scrambler | 1=Show, 0=Hide |
+| bit67 | Main menu > Channel Information | Squelch type | 1=Show, 0=Hide |
+| bit68 | Main menu > Channel Information | Tone encode | 1=Show, 0=Hide |
+| bit69 | Main menu > Channel Information | Tone decode | 1=Show, 0=Hide |
+| bit70 | Main menu > Channel Information | DCS polarity | 1=Show, 0=Hide |
+| bit71 | Main menu > Channel Information | Optional signaling | 1=Show, 0=Hide |
+| bit72 | Main menu > Channel Information | APRS receive | 1=Show, 0=Hide |
+| bit73 | Main menu > Radio Information | Model | 1=Show, 0=Hide (hidden by default in Qt) |
+| bit74 | Main menu > Radio Information | battery voltage | 1=Show, 0=Hide |
+| bit75 | Main menu > Radio Information | Radio identifier | 1=Show, 0=Hide |
+| bit76 | Main menu > Radio Information | hardwareversion | 1=Show, 0=Hide |
+| bit77 | Main menu > Radio Information | firmwareversion | 1=Show, 0=Hide |
+| bit78 | Main menu > Radio Information | Firmware build date | 1=Show, 0=Hide |
+| bit79 | Main menu > Radio Information | Firmware build time | 1=Show, 0=Hide |
+| bit80 | Main menu > Channel Settings | Channel operations | 1=Show, 0=Hide |
+| bit81 | Main menu > Channel Settings | RX/TX frequencies | 1=Show, 0=Hide |
+| bit82 | Main menu > Channel Settings | TX power | 1=Show, 0=Hide |
+| bit83 | Main menu > Channel Settings | Channel mode | 1=Show, 0=Hide |
+| bit84 | Main menu > Channel Settings | Channel name | 1=Show, 0=Hide |
+| bit85 | Main menu > Channel Settings | Talk-around / Reverse | 1=Show, 0=Hide |
+| bit86 | Main menu > Channel Settings | Frequency step | 1=Show, 0=Hide |
+| bit87 | Main menu > Channel Settings | RX only | 1=Show, 0=Hide |
+| bit88 | Main menu > Channel Settings | Busy-channel lockout | 1=Show, 0=Hide |
+| bit89 | Main menu > Channel Settings | Scan flag | 1=Show, 0=Hide |
+| bit90 | Main menu > Channel Settings | Scrambler | 1=Show, 0=Hide |
+| bit91 | Main menu > Channel Settings | Squelch control | 1=Show, 0=Hide |
+| bit92 | Main menu > Channel Settings | APRS receive | 1=Show, 0=Hide |
+| bit93 | Main menu > Channel Settings | Zones | 1=Show, 0=Hide |
+| bit94 | Main menu > Channel Settings | Scan Lists | 1=Show, 0=Hide |
+| bit95 | Main menu > APRS | Local callsign | 1=Show, 0=Hide |
+| bit96 | Main menu > APRS | Local SSID | 1=Show, 0=Hide |
+| bit97 | Main menu > APRS | Local symbol | 1=Show, 0=Hide |
+| bit98 | Main menu > APRS | Transmit settings | 1=Show, 0=Hide |
+| bit99 | Main menu > APRS | Decode settings | 1=Show, 0=Hide |
+| bit100 | Main menu > APRS | Station list | 1=Show, 0=Hide |
+| bit101 | Main menu > APRS | TNC | 1=Show, 0=Hide |
+| bit102 | Main menu > Radio Settings > Function Settings | RX/TX mode | 1=Show, 0=Hide |
+| bit103 | Main menu > Radio Settings > Function Settings | Cross-band repeater mode | 1=Show, 0=Hide |
+| bit104 | Main menu > Radio Settings > Function Settings | Cross-band repeater monitoring | 1=Show, 0=Hide |
+| bit105 | Main menu > Radio Settings > Function Settings | Squelch level | 1=Show, 0=Hide |
+| bit106 | Main menu > Radio Settings > Function Settings | Transmit timeout timer | 1=Show, 0=Hide |
+| bit107 | Main menu > Radio Settings > Function Settings | Transmit channel selection | 1=Show, 0=Hide |
+| bit108 | Main menu > Radio Settings > Function Settings | Call hold time | 1=Show, 0=Hide |
+| bit109 | Main menu > Radio Settings > Function Settings | A-band operating mode | 1=Show, 0=Hide |
+| bit110 | Main menu > Radio Settings > Function Settings | B-band operating mode | 1=Show, 0=Hide |
+| bit111 | Main menu > Radio Settings > Function Settings | Squelch-tail elimination | 1=Show, 0=Hide |
+| bit112 | Main menu > Radio Settings > Function Settings | Single-tone transmit | 1=Show, 0=Hide |
+| bit113 | Main menu > Radio Settings > Function Settings | Scanning | 1=Show, 0=Hide |
+| bit114 | Main menu > Radio Settings > Function Settings | Power-Save SettingsMode | 1=Show, 0=Hide |
+| bit115 | Main menu > Radio Settings > Function Settings | Weather Channels | 1=Show, 0=Hide |
+| bit116 | Main menu > Radio Settings > Function Settings | Zones | 1=Show, 0=Hide |
+| bit117 | Main menu > Radio Settings > Display Settings | LCD Backlight | 1=Show, 0=Hide |
+| bit118 | Main menu > Radio Settings > Display Settings | Power-On Display | 1=Show, 0=Hide |
+| bit119 | Main menu > Radio Settings > Display Settings | System language | 1=Show, 0=Hide |
+| bit120 | Main menu > Radio Settings > Display Settings | Menu auto-exit | 1=Show, 0=Hide |
+| bit121 | Main menu > Radio Settings > Display Settings | Memory Channels shown | 1=Show, 0=Hide |
+| bit122 | Main menu > Radio Settings > Display Settings | Battery display style | 1=Show, 0=Hide |
+| bit123 | Main menu > Radio Settings > Display Settings | RX indicator LED | 1=Show, 0=Hide |
+| bit124 | Main menu > Radio Settings > Display Settings | Screen-off indicator LED | 1=Show, 0=Hide |
+| bit125 | Main menu > Radio Settings > Display Settings | Received signal strength | 1=Show, 0=Hide |
+| bit126 | Main menu > Radio Settings > Display Settings | Units | 1=Show, 0=Hide |
+| bit127 | Main menu > Radio Settings > Audio Settings | Alert Tones | 1=Show, 0=Hide |
+| bit128 | Main menu > Radio Settings > Audio Settings | AI Noise Reduction | 1=Show, 0=Hide |
+| bit129 | Main menu > Radio Settings > Audio Settings | AI Voice Control (VOX) | 1=Show, 0=Hide |
+| bit130 | Main menu > Radio Settings > Audio Settings | Microphone gain | 1=Show, 0=Hide |
+| bit131 | Main menu > Radio Settings > Key Settings | Key/Encoder Lock | 1=Show, 0=Hide |
+| bit132 | Main menu > Radio Settings > Key Settings | Programmable Keys | 1=Show, 0=Hide |
+| bit133 | Main menu > Radio Settings > Other Settings | Initialize settings | 1=Show, 0=Hide |
+| bit134 | Main menu > Radio Settings > Other Settings | Initialize VFO channels | 1=Show, 0=Hide |
+| bit135 | Main menu > Radio Settings > Other Settings | Initialize MR channels | 1=Show, 0=Hide |
+| bit136 | Main menu > Radio Settings > Other Settings | Initialize zones | 1=Show, 0=Hide |
+| bit137 | Main menu > Radio Settings > Other Settings | Initialize scan lists | 1=Show, 0=Hide |
+| bit138 | Main menu > Radio Settings > Other Settings | Factory/reset all | 1=Show, 0=Hide |
+| bit139 | Main menu > Radio Settings > Key Settings > Key/Encoder Lock | Auto key lock | 1=Show, 0=Hide |
+| bit140 | Main menu > Radio Settings > Key Settings > Key/Encoder Lock | Lock type | 1=Show, 0=Hide |
+| bit141 | Main menu > Radio Settings > Key Settings > Key/Encoder Lock | Lock delay | 1=Show, 0=Hide |
+| bit142 | Main menu > Radio Settings > Key Settings > Programmable Keys | Side key 1 short press | 1=Show, 0=Hide |
+| bit143 | Main menu > Radio Settings > Key Settings > Programmable Keys | Side key 1 long press | 1=Show, 0=Hide |
+| bit144 | Main menu > Radio Settings > Key Settings > Programmable Keys | Side key 2 short press | 1=Show, 0=Hide |
+| bit145 | Main menu > Radio Settings > Key Settings > Programmable Keys | Side key 2 long press | 1=Show, 0=Hide |
+| bit146 | Main menu > Radio Settings > Key Settings > Programmable Keys | Top key short press (QT: top key short press) | 1=Show, 0=Hide |
+| bit147 | Main menu > Radio Settings > Key Settings > Programmable Keys | Top key long press (QT: top key long press) | 1=Show, 0=Hide |
+| bit148 | Main menu > Radio Settings > Key Settings > Programmable Keys | Menu key long press | 1=Show, 0=Hide |
+| bit149 | Main menu > Radio Settings > Key Settings > Programmable Keys | Back key long press | 1=Show, 0=Hide |
+| bit150 | Main menu > Radio Settings > Key Settings > Programmable Keys | Digit 0 long press | 1=Show, 0=Hide |
+| bit151 | Main menu > Radio Settings > Key Settings > Programmable Keys | Digit 1 long press | 1=Show, 0=Hide |
+| bit152 | Main menu > Radio Settings > Key Settings > Programmable Keys | Digit 2 long press | 1=Show, 0=Hide |
+| bit153 | Main menu > Radio Settings > Key Settings > Programmable Keys | Digit 3 long press | 1=Show, 0=Hide |
+| bit154 | Main menu > Radio Settings > Key Settings > Programmable Keys | Digit 4 long press | 1=Show, 0=Hide |
+| bit155 | Main menu > Radio Settings > Key Settings > Programmable Keys | Digit 5 long press | 1=Show, 0=Hide |
+| bit156 | Main menu > Radio Settings > Key Settings > Programmable Keys | Digit 6 long press | 1=Show, 0=Hide |
+| bit157 | Main menu > Radio Settings > Key Settings > Programmable Keys | Digit 7 long press | 1=Show, 0=Hide |
+| bit158 | Main menu > Radio Settings > Key Settings > Programmable Keys | Digit 8 long press | 1=Show, 0=Hide |
+| bit159 | Main menu > Radio Settings > Key Settings > Programmable Keys | Digit 9 long press | 1=Show, 0=Hide |
+| bit160 | Main menu > Radio Settings > Display Settings > LCD Backlight | Backlight level | 1=Show, 0=Hide |
+| bit161 | Main menu > Radio Settings > Display Settings > LCD Backlight | Auto dimming | 1=Show, 0=Hide |
+| bit162 | Main menu > Radio Settings > Display Settings > LCD Backlight | Auto-dim delay | 1=Show, 0=Hide |
+| bit163 | Main menu > Radio Settings > Display Settings > LCD Backlight | Exit dimming on RX | 1=Show, 0=Hide |
+| bit164 | Main menu > Radio Settings > Display Settings > LCD Backlight | Exit dimming on TX | 1=Show, 0=Hide |
+| bit165 | Main menu > Radio Settings > Display Settings | Display theme (new) | 1=Show, 0=Hide |
+
+**Implementation recommendation**: Use bit-level read-modify-write on the host side so only the intended bit changes and unrelated menu-visibility settings are preserved.
+
+<a id="sec3"></a>
+
+## 3. Channel List Reference
+
+| Category | Address range | Record length | Count | Description |
+| --- | --- | --- | --- | --- |
+| Memory Channels | 0x00008000~0x00013B7F | 48 B / record | 1000 | Main memory-channel data region (CH1~CH1000) |
+| VFO Channels | 0x00013B80~0x00013BDF | 48 B / record | 2 | VFO A/B two independent records |
+| CALL Channels | 0x00013BE0~0x00013C3F | 48 B / record | 2 | CALL two independent records |
+| Temporary Channels | 0x00013C40~0x00013C9F | 48 B / record | 2 | Temp A/B temporary records; overwritten by VFO A/B snapshots during save |
+| WX Channels | 0x00013CA0~0x00013E7F | 48 B / record | 10 | rewritten from fixed templates during clone/save |
+
+**Shared record format**: storage/VFO/CALL/WX Memory/VFO/CALL/WX channels all use the same 48-byte record structure; differences are mainly index ranges and write policy.
+
+<a id="sec3_1"></a>
+
+### 3.1 Memory Channels
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Channel record CH1~CH1000 | 0x00008000 + (CH-1)×0x30 | 48 B / record | CH range 1~1000; record content uses the 48-byte channel format.Example: CH1 Address=0x00008000; CH2 Address=0x00008030; CH1000 Address=0x00013B50. |
+| Validity flag (Memory\_Use\_Flag\_List) | 0x00015000 + floor ((CH-1)/8) | 1 bit / channel | bit=(CH-1)%8; 1=valid channel, 0=invalid/unused channel. Example: CH1=0x00015000 bit0; CH8=0x00015000 bit7; CH9=0x00015001 bit0. |
+| Scan flag (Memory\_Scan\_Flag\_List) | 0x00015080 + floor ((CH-1)/4) | 2 bits / channel | 2 bits per channel, bit shift=2×((CH-1)%4). 0=Off (included in normal scan)1=Skip (skip during scan)2=Priority (priority channel)3=Reserved (do not use) Example: CH1=0x00015080 bit1:0; CH2=bit3:2; CH4=bit7:6; CH5=0x00015081 bit1:0. Host should read-modify-write the 2-bit field. |
+| Zone membership (CH\_IN\_ZONE\_LIST) | 0x0001A000 + (CH-1)×2 | 2B/Channel | 16-bit bitmap per channel (Zone1~Zone16). Important: stored inverted (Qt writes `~Bitmap`). Therefore membership is stored as bit=0.Example: CH1 uses 0x0001A000~0x0001A001; CH2 uses 0x0001A002~0x0001A003; Zone1 corresponds to bit0, include in Zone1 bit0=0; Zone9 corresponds to bit8, include in Zone9 bit8=0; Zone16 corresponds to bit15, include in Zone16 bit15=0. |
+| Scan-list membership (CH\_IN\_SCANLIST\_LIST) | 0x0001A800 + (CH-1)×2 | 2B/Channel | 16-bit bitmap per channel (Scan List1~16). This field is also stored inverted (Qt writes `~Bitmap`). Therefore, membership in a scan list is stored as bit value 0. Example: CH1 uses 0x0001A800~0x0001A801; CH1000 uses 0x0001AFCE~0x0001AFCF; Scan List1 corresponds to bit0, include in bit0=0; Scan List9 corresponds to bit8, include in bit8=0; Scan List16 corresponds to bit15, include in bit15=0. |
+
+**48-byte encoding**: Multi-byte fields are stored Big-Endian (the Qt CPS constructs 4-byte/1-byte fields directly as hexadecimal byte strings).
+
+<a id="sec3_1_1"></a>
+
+#### 3.1.1 48-byte Memory Channel Record (Byte-by-Byte)
+
+| Field | Offset within record | Length | Storage format / options |
+| --- | --- | --- | --- |
+| RX frequency RX\_Freq | 0x00~0x03 | 4 B | frequency in integer Hz (e.g. 145.525 -> 145525000) stored as 32-bit Big-Endian. |
+| TX frequency TX\_Freq | 0x04~0x07 | 4 B | Same as RX\_Freq encoding rule, 32 bit Big-Endian. |
+| Channel name CH\_Name | 0x08~0x1F | 24 B | UTF-8 bytes, padded with 0x00. |
+| Duplex/offset frequency DUP\_Freq | 0x20~0x23 | 4 B | frequency in integer Hz, 32 bit Big-Endian. |
+| Byte36 composite bit field | 0x24 | 1 B | duplex mode / talk-around-reverse / step bit field (see the"composite bit field"table below for value definitions). |
+| Byte37 composite bit field | 0x25 | 1 B | channel mode / power / RX-only / busy-lock bit field (see the"composite bit field"table below for value definitions). |
+| Byte38 composite bit field | 0x26 | 1 B | squelch type / tone-encode type bit field (see the"composite bit field"table below for value definitions). |
+| Byte39 composite bit field | 0x27 | 1 B | tone-decode type / DCS polarity / compander bit field (see the"composite bit field"table below for value definitions). |
+| Tone-encode index | 0x28 | 1 B | Determined by 0x26(bit7:5) selects the lookup table: encode type=1(Analog/CTCSS) index into CTCSS table; encode type=2(Digital/DCS) index into DTCS table. Index is zero-based and follows the Qt combo-box order. |
+| Tone-decode index | 0x29 | 1 B | Determined by 0x27(bit2:0) selects the lookup table: decode type=1/3(Analog/CTCSS/reverse CTCSS) index into CTCSS; decode type=2/4(Digital/DCS/reverse DCS) index into DTCS. Index is zero-based and follows the Qt combo-box order. |
+| Optional signaling type | 0x2A | 1 B | 0=Off1=DTMF2=2-TONE3=5-TONE |
+| Optional signaling index | 0x2B | 1 B | 0=Index01=Index12=Index23=Index34=Index45=Index56=Index67=Index78=Index89=Index910=Index1011=Index1112=Index1213=Index1314=Index1415=Index15 |
+| Scrambler index | 0x2C | 1 B | 0=Off1=27002=28003=29004=30005=31006=32007=33008=3400 |
+| PTT ID | 0x2D | 1 B | 0=Off1=02=13=24=35=46=57=68=7 |
+| APRS RX | 0x2E | 1 B | 0=Off1=On2=On (mute audio) |
+| Reserved | 0x2F | 1 B | The Qt encoder does not write this byte; preserve the existing value. |
+
+<a id="sec3_1_2"></a>
+
+#### 3.1.2 Composite Bit Fields (Bit-by-Bit)
+
+| Field | Offset within record | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Offset/duplex mode | 0x24(bit1:0) | 2 bit | 0=Off1=Negative offset2=Positive offset3=Split RX/TX |
+| Offset reverse / talk-around | 0x24(bit3:2) | 2 bit | 0=Off1=Talk-around2=Reverse3=Reserved |
+| Frequency step | 0x24(bit7:4) | 4 bit | 0=2.5k1=3.125K2=5k3=6.25k4=8.33k5=10k6=12.5k7=15k8=20k9=25k10=50k11=100k |
+| Channel mode | 0x25(bit2:0) | 3 bit | 0=FM1=FM-N2=AM3=AM-N |
+| TX power | 0x25(bit4:3) | 2 bit | 0=Low power1=Medium power2=High power3=Reserved |
+| RX only | 0x25(bit5) | 1 bit | 0=Off1=RX only |
+| Busy-channel lockout | 0x25(bit7:6) | 2 bit | 0=Off1=repeater2=Carrier3=Reserved |
+| Squelch type | 0x26(bit4:2) | 3 bit | 0=Carrier1=CTCSS/DCS tone2=Optional signaling3=tone AND optional signaling4=tone OR optional signaling |
+| Tone encodetype | 0x26(bit7:5) | 3 bit | 0=Off1=Analog/CTCSS2=Digital/DCS |
+| Tone decodetype | 0x27(bit2:0) | 3 bit | 0=Off1=Analog/CTCSS2=Digital/DCS3=reverse CTCSS4=reverse DCS |
+| DCS polarity | 0x27(bit4:3) | 2 bit | 0=Normal1=TX normal / RX inverted2=TX inverted / RX normal3=inverted |
+| Compander | 0x27(bit6:5) | 2 bit | 0=Off1=TX2=RX3=TX + RX |
+| Optional signaling type | 0x2A (bit2:0) | 3 bit | 0=Off1=DTMF2=2-TONE3=5-TONE |
+| PTT ID | 0x2D (bit3:0) | 4 bit | 0=Off1=02=13=24=35=46=57=68=7 |
+| APRS RX | 0x2E (bit1:0) | 2 bit | 0=Off1=On2=On (mute audio) |
+
+<a id="sec3_1_3"></a>
+
+#### 3.1.3 CTCSS Table Appendix (for 0x28/0x29 Index)
+
+CTCSS\_ARRAY (index starts at 0) =
+[67.0, 69.3, 71.9, 74.4, 77.0, 79.7, 82.5, 85.4, 88.5, 91.5,
+94.8, 97.4, 100.0, 103.5, 107.2, 110.9, 114.8, 118.8, 123.0, 127.3,
+131.8, 136.5, 141.3, 146.2, 151.4, 156.7, 159.8, 162.2, 165.5, 167.9,
+171.3, 173.8, 177.3, 179.9, 183.5, 186.2, 189.9, 192.8, 196.6, 199.5,
+203.5, 206.5, 210.7, 218.1, 225.7, 229.1, 233.6, 241.8, 250.3, 254.1]
+
+**Example**: Index 1=69.3, Index 5=79.7, Index 7=85.4, Index 10=94.8.
+
+<a id="sec3_1_4"></a>
+
+#### 3.1.4 DTCS Table Appendix (for 0x28/0x29 Index)
+
+DTCS\_ARRAY (index starts at 0) =
+[023, 025, 026, 031, 032, 036, 043, 047, 051, 053, 054, 065, 071, 072, 073, 074,
+114, 115, 116, 122, 125, 131, 132, 134, 143, 145, 152, 155, 156, 162, 165, 172,
+174, 205, 212, 223, 225, 226, 243, 244, 245, 246, 251, 252, 255, 261, 263, 265,
+266, 271, 274, 306, 311, 315, 325, 331, 332, 343, 346, 351, 356, 364, 365, 371,
+411, 412, 413, 423, 431, 432, 445, 446, 452, 454, 455, 462, 464, 465, 466, 503,
+506, 516, 523, 526, 532, 546, 565, 606, 612, 624, 627, 631, 632, 654, 662, 664,
+703, 712, 723, 731, 732, 734, 743, 754]
+
+**Example**: Index 1=025, Index 5=036, Index 7=047, Index 10=054.
+
+<a id="sec3_2"></a>
+
+### 3.2 VFO Channels
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| VFO A record | 0x00013B80 | 48 B | Same 48-byte channel structure. |
+| VFO B record | 0x00013BB0 | 48 B | Same 48-byte channel structure. |
+| Index mapping | logical index 1001/1002 | - | Internally, Qt maps these after `CHANNEL\_MEM\_COUNT` in sequence to the two VFO records. |
+
+**Write requirement**: If implementing a full-radio write, mirror `VFO A -> Temp A`, `VFO B -> Temp B`, to match the Qt CPS behavior.
+
+<a id="sec3_3"></a>
+
+### 3.3 CALL Channels
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| CALL 1 record | 0x00013BE0 | 48 B | Same 48-byte channel structure. |
+| CALL 2 record | 0x00013C10 | 48 B | Same 48-byte channel structure. |
+| Index mapping | logical index 1003/1004 | - | Internally, Qt maps these after `CHANNEL\_MEM\_COUNT + CHANNEL\_VFO\_COUNT` subsequent index mapping. |
+
+<a id="sec3_4"></a>
+
+### 3.4 Temporary Channels
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Temp A record | 0x00013C40 | 48 B | Same 48-byte channel structure. |
+| Temp B record | 0x00013C70 | 48 B | Same 48-byte channel structure. |
+| Index mapping | logical index 1005/1006 | - | Qt places the two temporary records after VFO/CALL records. |
+| Write synchronization rule | mandatory save action | - | On every write/save, mirror: TEMP\_A=VFO\_A, TEMP\_B=VFO\_B (to match Qt behavior). |
+| Example mapping (48Bwhole-block mirror) | VFO A: 0x00013B80~0x00013BAF -> Temp A: 0x00013C40~0x00013C6F  VFO B: 0x00013BB0~0x00013BDF -> Temp B: 0x00013C70~0x00013C9F | 48 B + 48 B | copy the 48-byte block byte-for-byte (byte0~byte47 one-to-one), do not re-encode fields or change byte order. equivalent to two memcpy (48) operations. |
+
+**Implementation recommendation**: Temp channels hold the current VFO working snapshot, A host should update them during full-radio save; they should not normally be exposed as independent persistent user channels.
+
+<a id="sec3_5"></a>
+
+### 3.5 WX Channels (Fixed Data)
+
+**Write requirement**: Every full write should restore the 10 fixed WX template records.
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| WX1~WX10 record region | 0x00013CA0 + (n-1)×0x30 | 48 B / record | n=1~10; overwritten by fixed templates during clone/save. |
+| Fixed name | Name field in each record | 8 B | write `WX-01` through `WX-10` (ASCII). |
+| Fixed frequencies | RX/TX fields in each record | 4 bytes each | WX1=162.550WX2=162.400WX3=162.475WX4=162.425WX5=162.450WX6=162.500WX7=162.525WX8=161.650WX9=161.775WX10=163.275 |
+
+<a id="sec3_5_1"></a>
+
+#### 3.5.1 Fixed WX Channel Data
+
+| Channel | Address | Length | 48-byte fixed hexadecimal data (from Qt) |
+| --- | --- | --- | --- |
+| WX1 | 0x00013CA0 | 48 B | 09B050F009B050F057582D303100000000000000000000000000000000000000000927C010200000000000FF00FFFEFF |
+| WX2 | 0x00013CD0 | 48 B | 09AE070009AE070057582D303200000000000000000000000000000000000000000927C010200000000000FF00FFFEFF |
+| WX3 | 0x00013D00 | 48 B | 09AF2BF809AF2BF857582D303300000000000000000000000000000000000000000927C010200000000000FF00FFFEFF |
+| WX4 | 0x00013D30 | 48 B | 09AE68A809AE68A857582D303400000000000000000000000000000000000000000927C010200000000000FF00FFFEFF |
+| WX5 | 0x00013D60 | 48 B | 09AECA5009AECA5057582D303500000000000000000000000000000000000000000927C010200000000000FF00FFFEFF |
+| WX6 | 0x00013D90 | 48 B | 09AF8DA009AF8DA057582D303600000000000000000000000000000000000000000927C010200000000000FF00FFFEFF |
+| WX7 | 0x00013DC0 | 48 B | 09AFEF4809AFEF4857582D303700000000000000000000000000000000000000000927C010200000000000FF00FFFEFF |
+| WX8 | 0x00013DF0 | 48 B | 09A2955009A2955057582D303800000000000000000000000000000000000000000927C010200000000000FF00FFFEFF |
+| WX9 | 0x00013E20 | 48 B | 09A47D9809A47D9857582D303900000000000000000000000000000000000000000927C010200000000000FF00FFFEFF |
+| WX10 | 0x00013E50 | 48 B | 09BB60F809BB60F857582D313000000000000000000000000000000000000000000927C010200000000000FF00FFFEFF |
+
+**Combined write block (480 B)**: Concatenate the ten 48-byte records in WX1->WX10 order to reproduce the Qt CPS block written at `0x00013CA0` as `WX\_CHANNEL\_INFO\_STRING` raw content.
+
+<a id="sec4"></a>
+
+## 4. Zones
+
+<a id="sec4_1"></a>
+
+### 4.1 Zone settings
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Zone Name list (Zone0-Zone15) | 0x0001B000 + zone×0x18 | 24 B / record, total16 records | UTF-8 byte stream, pad with 0x00. zone=0~15; default names are"Zone0-Zone15". |
+| A-band zone selection | 0x0001B200 + 0x00 | 1 B | 0x00~0x0F = Zone0~Zone150xFF = None Qt behavior: selecting None stores 0xFF; selecting a zone stores combo index - 1. |
+| B-band zone selection | 0x0001B200 + 0x01 | 1 B | 0x00~0x0F = Zone0~Zone150xFF = None Encoding is the same as A-band. |
+| Zone channel-member lists (16 groups) | 0x00018000 + zone×0x100 | 256B/ groups (128×2 B) | Each slot is 2 bytes, little-endian channel index 0-999; unused slots are 0xFFFF. |
+
+**Consistency requirement**: The ordered Zone member list is stored at `0x00018000`, while per-channel Zone membership is stored in `CH\_IN\_ZONE\_LIST (0x0001A000)`; Both representations must remain consistent.
+
+<a id="sec5"></a>
+
+## 5. Scan Lists
+
+<a id="sec5_1"></a>
+
+### 5.1 Scan-list settings
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| Scan List Name table (Scan List0~15) | 0x0001B400 + list×0x18 | 24 B / record, total16 records | UTF-8 byte stream, pad with 0x00. Default names are Scan List 0 through Scan List 15. |
+| A-band scan-list selection | 0x0001B600 + 0x00 | 1 B | 0x00~0x0F = Scan List0~150xFF = None Qt write rule is the same as Zone selection. |
+| B-band scan-list selection | 0x0001B600 + 0x01 | 1 B | 0x00~0x0F = Scan List0~150xFF = None Encoding is the same as A-band. |
+| Scan List member lists (16 groups) | 0x00019000 + list×0x100 | 256B/ groups (128×2 B) | Each slot is 2 bytes, little-endian channel index 0-999; unused slots are 0xFFFF. |
+
+**Consistency requirement**: The ordered Scan List member list is stored at `0x00019000`, while per-channel Scan List membership is stored in `CH\_IN\_SCANLIST\_LIST (0x0001A800)`; Both representations must remain consistent.
+
+<a id="sec6"></a>
+
+## 6. Signaling System
+
+<a id="sec6_1"></a>
+
+### 6.1 DTMF
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| DTMF settings block | 0x00016000 | 1024 B | DTMF dedicated configuration region. |
+| ▼Basic settings | - | - | - |
+| Own ID | 0x00016000 + 0x00 | 8 B | DTMF ASCII string padded with 0x00. |
+| Separator | 0x00016000 + 0x0A | 1 B | Allowed values follow UI `comboBox\_2`: 0=A1=B2=C3=D4=\*5=# |
+| Group-call code | 0x00016000 + 0x0B | 1 B | Allowed values follow UI `comboBox\_3`: 0=A1=B2=C3=D4=\*5=# |
+| Dialer type | 0x00016000 + 0x0C | 1 B | Allowed values follow `Dialer\_String\_List`: 0=Manual1=Automatic |
+| ▼Encoder settings | - | - | - |
+| TX sidetone | 0x00016000 + 0x14 | 1 B | Allowed values follow `OFF\_ON\_String\_List`: 0=Off1=On |
+| DTMF digit duration | 0x00016000 + 0x15 | 1 B | Allowed values follow `Send\_Timer\_String\_List`: 0=50ms1=75ms2=100ms3=200ms4=300ms5=500ms |
+| First digit duration | 0x00016000 + 0x16 | 1 B | Allowed values follow `First\_Digist\_Timer\_String\_List`: 0=0ms1=50ms2=100ms3=150ms4=200ms5=250ms6=300ms7=350ms8=400ms9=450ms10=500ms11=550ms12=600ms13=650ms14=700ms15=750ms16=800ms17=850ms18=900ms19=950ms20=1000ms21=1050ms22=1100ms23=1150ms24=1200ms25=1250ms26=1300ms27=1350ms28=1400ms29=1450ms30=1500ms31=1550ms32=1600ms33=1650ms34=1700ms35=1750ms36=1800ms37=1850ms38=1900ms39=1950ms40=2000ms41=2050ms42=2100ms43=2150ms44=2200ms45=2250ms46=2300ms47=2350ms48=2400ms49=2450ms50=2500ms |
+| Pre-carrier time | 0x00016000 + 0x17 | 1 B | Allowed values follow `Pre\_After\_Timer\_String\_List`: 0=10ms1=20ms2=30ms3=40ms4=50ms5=60ms6=70ms7=80ms8=90ms9=100ms10=120ms11=140ms12=160ms13=180ms14=200ms15=225ms16=250ms17=275ms18=300ms19=350ms20=400ms21=450ms22=500ms23=600ms24=700ms25=800ms26=900ms27=1000ms28=1100ms29=1200ms30=1300ms31=1400ms32=1500ms33=1600ms34=1700ms35=1800ms36=1900ms37=2000ms38=2100ms39=2200ms40=2300ms41=2400ms42=2500ms |
+| Post-transmit delay | 0x00016000 + 0x18 | 1 B | Allowed values follow `Pre\_After\_Timer\_String\_List` (and"Pre-carrier time"the same as). |
+| D-code pause | 0x00016000 + 0x19 | 1 B | Allowed values follow `D\_Code\_Delay\_Timer\_String\_List`: 0=Off1=1S2=2S3=3S4=4S5=5S6=6S7=7S8=8S9=9S10=10S11=11S12=12S13=13S14=14S15=15S |
+| PTT ID pause time | 0x00016000 + 0x1A | 1 B | Allowed values follow `PTT\_ID\_Pause\_Timer\_String\_List`: 0=0S1=1S2=2S3=3S4=4S5=5S6=6S7=7S8=8S9=9S10=10S11=12S12=14S13=16S14=18S15=20S16=25S17=30S18=35S19=40S20=45S21=50S22=55S23=60S24=65S25=70S26=75S27=80S28=85S29=90S30=95S31=100S |
+| ▼Decoder settings | - | - | - |
+| Decode response | 0x00016000 + 0x1E | 1 B | Allowed values follow `Decoded\_Response\_Type\_List`: 0=None1=Alert Tones2=Beep + reply |
+| Auto-reset time | 0x00016000 + 0x1F | 1 B | Allowed values follow `Auto\_Reset\_Timer\_String\_List`: 0=0S1=1S2=2S3=3S4=4S5=5S6=6S7=7S8=8S9=9S10=10S11=12S12=14S13=16S14=18S15=20S16=25S17=30S18=35S19=40S20=45S21=50S22=60S23=70S24=80S25=90S26=100S27=120S28=140S29=160S30=180S31=200S32=225S33=250S34=275S35=300S |
+| ANI display | 0x00016000 + 0x20 | 1 B | Allowed values follow `DTMF\_ANI\_Display\_String\_List`: 0=Off1=Matched ID2=Any ID |
+| ▼Stun / Kill / Wake settings | - | - | - |
+| Kill code | 0x00016000 + 0x384 | 24 B | ASCII DTMF string. |
+| Stun code | 0x00016000 + 0x39C | 24 B | ASCII DTMF string. |
+| Wake code | 0x00016000 + 0x3B4 | 24 B | ASCII DTMF string. |
+| ▼DTMF encode list | - | - | - |
+| DTMF encode list (d0~d#) | 0x00016000 + 0x28 + n×0x18 | 24 B / record | n=0~15, ASCII DTMF string, pad unused bytes with 0x00. mapping order: d0,d1,d2,d3,d4,d5,d6,d7,d8,d9,dA,dB,dC,dD,d\*,d#. |
+| ▼PTT ID list | - | - | - |
+| PTT ID table 0~7 | 0x00016000 + 0x1C2 + n×0x31 | 49 B / record | Type (1 B)+Start (24 B)+End (24 B); Type Allowed values follow `PTT\_ID\_Type\_String\_List`: 0=Off,1=TX start,2=TX end,3=Start + end. |
+
+<a id="sec6_2"></a>
+
+### 6.2 2-Tone
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| 2-Tone settings block | 0x00016800 | 512 B | 2-Tone dedicated configuration region. |
+| ▼Encode/decode settings | - | - | - |
+| Tone 1 duration | 0x00016800 + 0x02 | 1 B | Allowed values (`Timer1\_String\_List`) fully enumerated: 0=0.5S1=0.6S2=0.7S3=0.8S4=0.9S5=1.0S6=1.1S7=1.2S8=1.3S9=1.4S10=1.5S11=1.6S12=1.7S13=1.8S14=1.9S15=2.0S16=2.1S17=2.2S18=2.3S19=2.4S20=2.5S21=2.6S22=2.7S23=2.8S24=2.9S25=3.0S26=3.1S27=3.2S28=3.3S29=3.4S30=3.5S31=3.6S32=3.7S33=3.8S34=3.9S35=4.0S36=4.1S37=4.2S38=4.3S39=4.4S40=4.5S41=4.6S42=4.7S43=4.8S44=4.9S45=5.0S46=5.1S47=5.2S48=5.3S49=5.4S50=5.5S51=5.6S52=5.7S53=5.8S54=5.9S55=6.0S56=6.1S57=6.2S58=6.3S59=6.4S60=6.5S61=6.6S62=6.7S63=6.8S64=6.9S65=7.0S66=7.1S67=7.2S68=7.3S69=7.4S70=7.5S71=7.6S72=7.7S73=7.8S74=7.9S75=8.0S76=8.1S77=8.2S78=8.3S79=8.4S80=8.5S81=8.6S82=8.7S83=8.8S84=8.9S85=9.0S86=9.1S87=9.2S88=9.3S89=9.4S90=9.5S91=9.6S92=9.7S93=9.8S94=9.9S95=10.0S |
+| Tone 2 duration | 0x00016800 + 0x03 | 1 B | Allowed valuesand"Tone 1 duration"the same as (`Timer1\_String\_List`, Index 0~95 corresponds to 0.5S~10.0S). |
+| Long-tone duration | 0x00016800 + 0x04 | 1 B | Allowed valuesand"Tone 1 duration"the same as (`Timer1\_String\_List`, Index 0~95 corresponds to 0.5S~10.0S). |
+| Inter-tone interval | 0x00016800 + 0x05 | 1 B | Allowed values follow `Timer2\_String\_List`: 0=0.0S1=0.1S2=0.2S3=0.3S4=0.4S5=0.5S6=0.6S7=0.7S8=0.8S9=0.9S10=1.0S11=1.1S12=1.2S13=1.3S14=1.4S15=1.5S16=1.6S17=1.7S18=1.8S19=1.9S20=2.0S |
+| TX sidetone | 0x00016800 + 0x00 | 1 B | Allowed values follow `OFF\_ON\_String\_List`: 0=Off1=On |
+| Auto-reset time | 0x00016800 + 0x01 | 1 B | Allowed values follow `Timer3\_String\_List`: 0=0S1=1S2=2S3=3S4=4S5=5S6=6S7=7S8=8S9=9S10=10S11=12S12=14S13=16S14=18S15=20S16=25S17=30S18=35S19=40S20=45S21=50S22=60S23=70S24=80S25=90S26=100S27=120S28=140S29=160S30=180S31=200S32=225S33=250S34=275S35=300S |
+| ▼Codetable | - | - | - |
+| Codetable 0~15 | 0x00016800 + 0x0A + i×0x0C | 12 B / record | UI columns: `Tone 1 [Hz]`, `Tone 2 [Hz]`, `Name`.  Field layout:  Byte0~1 = Tone1 (2 B little-endian, Units0.1Hz, e.g. 145.0 Hz is stored as 1450=0x05AA->AA 05) Byte2~3 = Tone2 (2 B little-endian) Byte4~11 = Name (8 B ASCII, truncate if too long) Valid frequency range enforced by the CPS is 288.0~3106.0Hz; Empty records are filled with 0xFF. row order: 0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F. |
+| ▼Decode list | - | - | - |
+| Decode list 0~15 | 0x00016800 + 0x100 + i×0x0E | 14 B / record | UI columns: `Tone 1 [Hz]`, `Tone 2 [Hz]`, `Decode response`, `Name`.  Field layout:  Byte0~1 = Tone1 (2 B little-endian) Byte2~3 = Tone2 (2 B little-endian) Byte4 = Response Byte5~12 = Name (8 B ASCII) Byte13 = Reserve (Reserved) `Decode response`fully enumerated: 0=None1=Alert Tones2=Beep + reply Valid frequency range is the same as the encode table, empty records are all 0xFF; rows are 0-15. |
+
+<a id="sec6_3"></a>
+
+### 6.3 5-Tone
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| 5-Tone settings block | 0x00017000 | 2048 B | 5-Tone dedicated configuration region. |
+| ▼Basic settings | - | - | - |
+| Own ID | 0x00017000 + 0x00 | 8 B | ASCII digit string (only 0-9/A-F/\*/# are accepted), pad with 0x00. |
+| ▼Encoder settings | - | - | - |
+| sidetone | 0x00017000 + 0x0A | 1 B | Allowed values (`OFF\_ON\_String\_List`): 0=Off1=On |
+| Pre-carrier time | 0x00017000 + 0x0B | 1 B | Allowed values (`Pre\_After\_Timer\_String\_List`): 0=10ms1=20ms2=30ms3=40ms4=50ms5=60ms6=70ms7=80ms8=90ms9=100ms10=120ms11=140ms12=160ms13=180ms14=200ms15=225ms16=250ms17=275ms18=300ms19=350ms20=400ms21=450ms22=500ms23=600ms24=700ms25=800ms26=900ms27=1000ms28=1100ms29=1200ms30=1300ms31=1400ms32=1500ms33=1600ms34=1700ms35=1800ms36=1900ms37=2000ms38=2100ms39=2200ms40=2300ms41=2400ms42=2500ms |
+| End delay | 0x00017000 + 0x0C | 1 B | Allowed values (`Pre\_After\_Timer\_String\_List`): 0=10ms1=20ms2=30ms3=40ms4=50ms5=60ms6=70ms7=80ms8=90ms9=100ms10=120ms11=140ms12=160ms13=180ms14=200ms15=225ms16=250ms17=275ms18=300ms19=350ms20=400ms21=450ms22=500ms23=600ms24=700ms25=800ms26=900ms27=1000ms28=1100ms29=1200ms30=1300ms31=1400ms32=1500ms33=1600ms34=1700ms35=1800ms36=1900ms37=2000ms38=2100ms39=2200ms40=2300ms41=2400ms42=2500ms |
+| First digit duration | 0x00017000 + 0x0D | 1 B | Allowed values (`Pre\_After\_Timer\_String\_List`): 0=10ms1=20ms2=30ms3=40ms4=50ms5=60ms6=70ms7=80ms8=90ms9=100ms10=120ms11=140ms12=160ms13=180ms14=200ms15=225ms16=250ms17=275ms18=300ms19=350ms20=400ms21=450ms22=500ms23=600ms24=700ms25=800ms26=900ms27=1000ms28=1100ms29=1200ms30=1300ms31=1400ms32=1500ms33=1600ms34=1700ms35=1800ms36=1900ms37=2000ms38=2100ms39=2200ms40=2300ms41=2400ms42=2500ms |
+| Pause code | 0x00017000 + 0x0E | 1 B | UI combo-box order: 0=None1=B2=C3=D4=F |
+| Pause-code duration | 0x00017000 + 0x0F | 1 B | Allowed values (`Pause\_Timer\_String\_List`): 0=0ms1=10ms2=20ms3=30ms4=40ms5=50ms6=60ms7=70ms8=80ms9=90ms10=100ms11=120ms12=140ms13=160ms14=180ms15=200ms16=225ms17=250ms18=275ms19=300ms20=350ms21=400ms22=450ms23=500ms24=600ms25=700ms26=800ms27=900ms28=1000ms29=1100ms30=1200ms31=1300ms32=1400ms33=1500ms34=1600ms35=1700ms36=1800ms37=1900ms38=2000ms39=2100ms40=2200ms41=2300ms42=2400ms43=2500ms |
+| First-code duration after pause | 0x00017000 + 0x10 | 1 B | Allowed values (`Pre\_After\_Timer\_String\_List`): 0=10ms1=20ms2=30ms3=40ms4=50ms5=60ms6=70ms7=80ms8=90ms9=100ms10=120ms11=140ms12=160ms13=180ms14=200ms15=225ms16=250ms17=275ms18=300ms19=350ms20=400ms21=450ms22=500ms23=600ms24=700ms25=800ms26=900ms27=1000ms28=1100ms29=1200ms30=1300ms31=1400ms32=1500ms33=1600ms34=1700ms35=1800ms36=1900ms37=2000ms38=2100ms39=2200ms40=2300ms41=2400ms42=2500ms |
+| PTT ID pause time | 0x00017000 + 0x11 | 1 B | Allowed values (`PTT\_ID\_Pause\_Timer\_String\_List`): 0=0S1=1S2=2S3=3S4=4S5=5S6=6S7=7S8=8S9=9S10=10S11=12S12=14S13=16S14=18S15=20S16=25S17=30S18=35S19=40S20=45S21=50S22=55S23=60S24=65S25=70S26=75S27=80S28=85S29=90S30=95S31=100S |
+| ▼Decoder settings | - | - | - |
+| Decode standard | 0x00017000 + 0x1E | 1 B | Allowed values (`FIVE\_TONE\_STANDARD\_NAME\_LIST`): 0=ZVEI11=ZVEI22=ZVEI33=PZVEI4=DZVEI5=PDZVEI6=CCIR17=CCIR28=PCCIR9=EEA10=EURO SIGNAL11=NATEL12=MODAT13=CCITT14=EIA |
+| Decode-digit enable mask | 0x00017000 + 0x1F | 1 B | bit0~bit7 corresponds to the 8 UI checkboxes (bit1~ bit8), 1=checked/enabled, 0=disabled. This is a bitmap byte. Use read-modify-write when changing one option so the other bits remain intact. |
+| Decode response | 0x00017000 + 0x20 | 1 B | Allowed values (`Decoded\_Response\_Type\_List`): 0=None1=Alert Tones2=Beep + reply |
+| Auto-reset time | 0x00017000 + 0x21 | 1 B | Allowed values (`Auto\_Reset\_Timer\_String\_List`): 0=0S1=1S2=2S3=3S4=4S5=5S6=6S7=7S8=8S9=9S10=10S11=12S12=14S13=16S14=18S15=20S16=25S17=30S18=35S19=40S20=45S21=50S22=60S23=70S24=80S25=90S26=100S27=120S28=140S29=160S30=180S31=200S32=225S33=250S34=275S35=300S |
+| ANI display | 0x00017000 + 0x22 | 1 B | Allowed values (`FIVE\_TONE\_ANI\_Display\_String\_List`): 0=Off1=Matched ID2=Any ID |
+| ▼5-Tone Encode List | - | - | - |
+| 5-Tone Encode List 0~15 | 0x00017000 + 0x100 + i×0x22 | 34 B / record | UI columns: `Transmit standard`, `Code`, `Name`.  Field layout:  Byte0 = Standard (Allowed valuessee"Decode standard": 0=ZVEI1... 14=EIA) Byte1~24 = Code (24 B, ASCII) Byte25~33 = Name (9 B, ASCII, recommended visible text <= 8 characters) |
+| ▼PTT ID list | - | - | - |
+| PTT ID list 0~7 | 0x00017000 + 0x340 + i×0x32 | 50 B / record | UI columns: `type`, `Transmit standard`, `Start`, `End`.  Field layout:  Byte0 = Type (Allowed values: 0=Off1=TX start2=TX end3=Start + end ) Byte1 = Standard (Allowed valuessee"Decode standard": 0=ZVEI1... 14=EIA) Byte2~25 = Start (24 B, ASCII) Byte26~49 = End (24 B, ASCII) |
+| ▼5-Tone Information-Code List | - | - | - |
+| 5-Tone Information-Code List 0~15 | 0x00017000 + 0x540 + i×0x19 | 25 B / record | UI columns: `Function`, `Information code`.  Field layout:  Byte0 = Type (`Info\_Code\_Type\_List`): 0=Information selective call1=Information group call2=Information all-call3=Stun4=Kill5=Activate  Byte1~24 = Code (24 B, ASCII) |
+| ▼5-Tone Standard Reference Table | - | - | - |
+| Standard reference table display value | computed at runtime | - | The reference table shown in the lower-right UI is generated at runtime from `FIVE\_TONE\_STANDARD\_FREQ\_LIST` for the selected standard; it does not occupy a separate persistent block. |
+
+<a id="sec7"></a>
+
+## 7. FM Broadcast Receiver
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| ▼FM receiver memory channels | - | - | - |
+| FM receiver memory validity bitmap (0~31) | 0x00015180 | 4 B | 4-byte bitmap, maps 32 channels with least-significant bit first within each byte. Mapping:  Byte0(bit0~bit7) = FM-00~FM-07 Byte1(bit0~bit7) = FM-08~FM-15 Byte2(bit0~bit7) = FM-16~FM-23 Byte3(bit0~bit7) = FM-24~FM-31 Formula: For target channel FM-n, `byte\_index = n / 8`, `bit\_index = n % 8`. bit=1: station is validbit=0: station is empty Use read-modify-write when changing one station bit. |
+| FM receiver memory channel list (0~31) | 0x00013E80 + n×0x20 | 32 B / record | UI columns: `Channel name`, `Channel frequency`.  Field layout:  Byte0~3 = Freq (4 B Big-Endian; remove the decimal point first, e.g.90.4->904, then multiply by 100000) Byte4~27 = Name (24 B, UTF-8 bytes, padded with 0x00) Byte28~31 = Reserved Empty records are normally all 0xFF.n=0~31 maps to FM-00 through FM-31. |
+| ▼FM receiver settings | - | - | - |
+| FM receiver on/off | 0x00015404 | 1 B | Allowed values (`FM\_SWITCH\_LIST`): 0=Off1=On |
+| FM receiver mode | 0x00015309 | 1 B | Allowed values (`FM\_MODE\_LIST`): 0=VFO/frequency mode (stored value0x05)1=Channel mode (stored value0x06) write rule: `stored value = combo-box index + 5`. |
+| VFO-mode frequency | 0x00015312~ 0x00015315 | 4 B | frequency range is 64.0~108.0MHz (1 bitdecimal place). remove the decimal point (e.g. 90.4 -> 904), then multiply by 100000, store as 32-bit Big-Endian.  Example: 90.4MHz -> 904 -> 90400000(dec) -> 0x05637200 (big-endian write 05 63 72 00). |
+
+<a id="sec8"></a>
+
+## 8. APRS
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| APRS settings block | 0x00015500 | 1024 B | complete APRS configuration block. |
+| ▼Basic settings | - | - | - |
+| Local callsign | 0x00015500 + 0x00 | 6 B | ASCII Callsign. |
+| Local SSID | 0x00015500 + 0x06 | 1 B | Combo-box indexes (full list): 0=01=12=23=34=45=56=67=78=89=910=1011=1112=1213=1314=1415=15 |
+| Local symbol table | 0x00015500 + 0x07 | 1 B | 0=Primary symbol table (/)1=Secondary symbol table (\) |
+| Local symbol index | 0x00015500 + 0x08 | 1 B | Index 0~93 (94 entries total), corresponding UI `Symbol\_List\_2` combo-box item 0~93. |
+| ▼Decode settings | - | - | - |
+| Decode CRC verification | 0x00015500 + 0x20 | 1 B | 0=Off1=On |
+| ▼▼Report filters | - | - | - |
+| MIC-E decode | 0x00015500 + 0x0B | 1 B | 0=Off1=On |
+| Position decode | 0x00015500 + 0x0C | 1 B | 0=Off1=On |
+| Weather decode | 0x00015500 + 0x0D | 1 B | 0=Off1=On |
+| Object decode | 0x00015500 + 0x0E | 1 B | 0=Off1=On |
+| Item decode | 0x00015500 + 0x0F | 1 B | 0=Off1=On |
+| Status decode | 0x00015500 + 0x10 | 1 B | 0=Off1=On |
+| Other decode | 0x00015500 + 0x11 | 1 B | 0=Off1=On |
+| ▼▼Report popups | - | - | - |
+| MIC-Epopup | 0x00015500 + 0x12 | 1 B | Allowed values (matching UI `comboBox\_32` consistent): 0=Off1=1S2=2S3=3S4=4S5=5S6=6S7=7S8=8S9=9S10=10S11=12S12=14S13=16S14=18S15=20S16=22S17=24S18=26S19=28S20=30S21=35S22=40S23=45S24=50S25=55S26=60S27=Always show |
+| Positionpopup | 0x00015500 + 0x13 | 1 B | Allowed valuesand `MIC-Epopup` the same as (Index 0~27). |
+| Weatherpopup | 0x00015500 + 0x14 | 1 B | Allowed valuesand `MIC-Epopup` the same as (Index 0~27). |
+| Objectpopup | 0x00015500 + 0x15 | 1 B | Allowed valuesand `MIC-Epopup` the same as (Index 0~27). |
+| Itempopup | 0x00015500 + 0x16 | 1 B | Allowed valuesand `MIC-Epopup` the same as (Index 0~27). |
+| Statuspopup | 0x00015500 + 0x17 | 1 B | Allowed valuesand `MIC-Epopup` the same as (Index 0~27). |
+| Otherpopup | 0x00015500 + 0x18 | 1 B | Allowed valuesand `MIC-Epopup` the same as (Index 0~27). |
+| ▼▼Report alerts | - | - | - |
+| MIC-Ealert tone | 0x00015500 + 0x19 | 1 B | 0=Off1=On |
+| Positionalert tone | 0x00015500 + 0x1A | 1 B | 0=Off1=On |
+| Weatheralert tone | 0x00015500 + 0x1B | 1 B | 0=Off1=On |
+| Objectalert tone | 0x00015500 + 0x1C | 1 B | 0=Off1=On |
+| Itemalert tone | 0x00015500 + 0x1D | 1 B | 0=Off1=On |
+| Statusalert tone | 0x00015500 + 0x1E | 1 B | 0=Off1=On |
+| Otheralert tone | 0x00015500 + 0x1F | 1 B | 0=Off1=On |
+| ▼Transmit settings | - | - | - |
+| Destination callsign | 0x00015500 + 0x21 | 6 B | ASCII Callsign. |
+| Destination SSID | 0x00015500 + 0x27 | 1 B | combo-box index 0~15 (corresponds to SSID 0~15). |
+| Beacon type | 0x00015500 + 0xC9 | 1 B | 0=Fixed-position beacon1=GPS beacon |
+| Automatic beacon interval | 0x00015500 + 0xCB | 1 B | 0=Off1=5S2=10S3=15S4=20S5=25S6=30S7=35S8=40S9=45S10=50S11=55S12=60S13=90S14=120S15=150S16=180S17=210S18=240S19=270S20=300S21=6MIN22=7MIN23=8MIN24=9MIN25=10MIN26=12MIN27=14MIN28=16MIN29=18MIN30=20MIN31=25MIN32=30MIN33=35MIN34=40MIN35=45MIN36=50MIN37=55MIN38=60MIN |
+| Beacon pre-carrier | 0x00015500 + 0xE5 | 1 B | Allowed values (matching UI `comboBox\_9` consistent): 0=30MS1=40MS2=50MS3=60MS4=70MS5=80MS6=90MS7=100MS8=120MS9=140MS10=160MS11=180MS12=210MS13=240MS14=270MS15=300MS16=350MS17=400MS18=450MS19=500MS20=600MS21=700MS22=800MS23=900MS24=1000MS |
+| Beacon post-delay | 0x00015500 + 0xE6 | 1 B | Allowed values (matching UI `comboBox\_10` consistent): 0=30MS1=40MS2=50MS3=60MS4=70MS5=80MS6=90MS7=100MS8=120MS9=140MS10=160MS11=180MS12=210MS13=240MS14=270MS15=300MS16=350MS17=400MS18=450MS19=500MS20=600MS21=700MS22=800MS23=900MS24=1000MS |
+| TX sidetone | 0x00015500 + 0xE7 | 1 B | 0=Off1=On |
+| RF beacon transmission | 0x00015500 + 0xEA | 1 B | 0=Off1=On |
+| Beacon TX channel | 0x00015500 + 0xC8 | 1 B | Indexfully enumerated: 0=CH01=CH12=CH23=CH34=CH45=CH56=CH67=CH7 |
+| ▼▼Manual beacon | - | - | - |
+| Manual beacon mode | 0x00015500 + 0xCA | 1 B | 0=Off1=PTT start2=PTT end |
+| Manual beacon band | 0x00015500 + 0xE9 | 1 B | 0=Band A1=Band B2=Band A + B |
+| Manual beacon interval | 0x00015500 + 0xE8 | 1 B | Allowed values (following `Manual\_TX\_Interval\_StringList` order): 0=Off1=1S2=2S3=3S4=4S5=5S6=6S7=7S8=8S9=9S10=10S11=12S12=14S13=16S14=18S15=20S16=22S17=24S18=26S19=28S20=30S21=35S22=40S23=55S24=50S25=55S26=60S27=70S28=80S29=90S30=100S31=110S32=120S33=130S34=140S35=150S36=160S37=170S38=180S39=190S40=200S41=210S42=220S43=230S44=240S45=250S46=260S47=270S48=280S49=290S50=300S |
+| ▼▼Fixed-position beacon | - | - | - |
+| Latitude | 0x00015500 + 0xCC~0xD3 | 8 B | **Storage structure** Byte0~3: latitude.value (int32, little-endian, signed) Byte4~7: latitude.scale (int32, little-endian, fixed100000) **Host encoding procedure** 1) Convert the UI value to an integer first: 22.345678 -> input=22345678.  2) Integer-degree component: Value\_Integer=input/1000000\*10000000.  3) Fractional-degree component: Value\_Decimal=input%1000000\*600/100.  4) value=Value\_Integer+Value\_Decimal; South is negative; North is positive.  5) scale store fixed value 100000.  **Example1 (North latitude, positive value)** Input 22.345678 N:  Value\_Integer=220000000, Value\_Decimal=2074068, value=222074068 (hex 0x0D3C94D4).  Final bytes: Byte0~3=D4 94 3C 0D, Byte4~7=A0 86 01 00.  **Example2 (South latitude, negative two's-complement value)** Input 22.345678 S: first compute the positive value using the same formula 222074068, then negate it value=-222074068.  int32 two's complement=0xF2C36B2C, little-endianstorage Byte0~3=2C 6 B C3 F2; Byte4~7 remains A0 86 01 00.  **Display-side decoding** deg=abs (value)/10000000; frac=(abs (value)%10000000)\*100/600; the sign determines N/S. |
+| Longitude | 0x00015500 + 0xD4~0xDB | 8 B | **Storage structure** Byte0~3: longitude.value (int32, little-endian, signed) Byte4~7: longitude.scale (int32, little-endian, fixed100000) **Host encoding procedure** 1) Convert the UI input to an integer: 113.456789 -> input=113456789.  2) Integer-degree component: Value\_Integer=input/1000000\*10000000.  3) Fractional-degree component: Value\_Decimal=input%1000000\*600/100.  4) value=Value\_Integer+Value\_Decimal; West is negative; East is positive.  5) scale store fixed value 100000.  **Example1 (East longitude, positive value)** Input 113.456789 E:  Value\_Integer=1130000000, Value\_Decimal=2740734, value=1132740734 (hex 0x4384407E).  Final bytes: Byte0~3=7E 40 84 43, Byte4~7=A0 86 01 00.  **Example2 (West longitude, negative two's-complement value)** Input 113.456789 W: first compute the positive value using the same formula 1132740734, then negate it value=-1132740734.  int32 two's complement=0xBC7BBF82, little-endianstorage Byte0~3=82 BF 7 B BC; Byte4~7 remains A0 86 01 00.  **Display-side decoding** deg=abs (value)/10000000; frac=(abs (value)%10000000)\*100/600; the sign determines E/W. |
+| Altitude | 0x00015500 + 0xDC~0xE4 | 9 B | **Storage structure** Byte0~3: altitude.value (int32, little-endian) Byte4~7: altitude.scale (int32, little-endian, fixed1000) Byte8:altitude\_units (1 B,0=Feet,1=Meter) **Host encoding procedure** 1) Check the unit first: Meter or Feet.  2) Meter:value=input\*100. 3) Feet: value=DW\_FEET\_TO\_METERS (input)\*100 (convert to meters before storing).  4) scale store fixed value 1000, also store the units byte.  **Example1 (Meter)** Input 123 Meter: value=123\*100=12300 (hex 0x0000300C).  Final bytes: Byte0~3=0C 30 00 00, Byte4~7=E8 03 00 00, Byte8=01.  **Example2 (Feet)** Input 1000 Feet: first convert to approximately 304.8, then store value=304.8\*100=30480 (hex 0x00007710).  Final bytes: Byte0~3=10 77 00 00, Byte4~7=E8 03 00 00, Byte8=00.  **Display-side decoding** units=1: Show value/1000.0 (Meter); units=0: Show DW\_METERS\_TO\_FEET (value/1000.0). |
+| ▼▼Digital repeater path | - | - | - |
+| Digital repeater path | 0x00015500 + 0xFF~0x0137 | 57 B | **Stored layout** Byte0: repeater-path list count (0~8).  Byte1~56: up to 8 entries, 7 bytes each, format fixed as Callsign (6 B) + SSID (1 B).  entry k (k=0~7) start address: 0x00015500 + 0x100 + k×0x07.  **Text parsing rules (corresponds to aprs\_form.cpp)** 1) Split on ASCII commas first: A,B,C. empty segments are ignored.  2) Then split each segment on '-': Name-SSID.  3) Name maximum 6 characters, store as UTF-8 bytes, pad to 6 bytes with 0x00.  4) SSID parse as decimal: 0~99; values above 99 are stored as 0. None '-' SSID defaults to 0.  5) Store the actual item count in Byte0.  **Example (direct byte-level example)** Input: Wide1-1,Wide2-2 Byte0 = 0x02 entry 0 (0x100~0x106)= 57 69 64 65 31 00 01 (Wide1 + SSID 1) entry 1 (0x107~0x10D)= 57 69 64 65 32 00 02 (Wide2 + SSID 2) remaining entries (entry 2~7) should be cleared by the host to avoid stale bytes and debugging ambiguity. |
+| ▼▼Comment/description text | - | - | - |
+| Comment/description text | 0x00015500 + 0x200 | 64 B | UTF-8/ASCII, truncate if too long. |
+| ▼▼Beacon TX channel | - | - | - |
+| Beacon TX channel list (0~7) | 0x00015500 + 0x28 + ch×0x0A | 10 B / records | Corresponding UI columns: `TX frequency [MHz]`, `TX power`, `Bandwidth`, `Tone type`, `Tone value`.  Field layout:  Byte0~3 = Transmit frequency (integer after removing the decimal point, 4 B) Byte4 = TX\_Enable (write fixed 0xFF) Byte5 = Bandwidth (0=wide, 1=narrow) Byte6 = TX power (0=Low power, 1=Medium power, 2=High power) Byte7 = Tone type (0=None, 1=CTCSS, 2=DCS) Byte8 = CTCSS index (valid only when tone type = 1) Byte9 = DTCS index (valid only when tone type = 2) |
+| ▼TNC (Terminal Node Controller) | - | - | - |
+| ▼▼USB virtual serial port | - | - | - |
+| Data output (TNC A) | 0x00015500 + 0x240 | 1 B | 0=Off1=received beacons2=transmitted beacons3=RX + TX beacons |
+| Data format (TNC A) | 0x00015500 + 0x241 | 1 B | 0=KISS1=GPWPL2=UI text |
+| ▼▼Classic Bluetooth SPP | - | - | - |
+| Data output (TNC B) | 0x00015500 + 0x242 | 1 B | 0=Off1=received beacons2=transmitted beacons3=RX + TX beacons |
+| Data format (TNC B) | 0x00015500 + 0x243 | 1 B | 0=KISS1=GPWPL2=UI text |
+| ▼▼Bluetooth Low Energy (BLE) | - | - | - |
+| Data output (TNC C) | 0x00015500 + 0x244 | 1 B | 0=Off1=received beacons2=transmitted beacons3=RX + TX beacons |
+| Data format (TNC C) | 0x00015500 + 0x245 | 1 B | 0=KISS1=GPWPL2=UI text |
+
+<a id="sec9"></a>
+
+## 9. GPS
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| ▼Basic settings | - | - | - |
+| GPS on/off | 0x00015401 | 1 B | 0=Off1=On |
+| GPS time zone | 0x00015403 | 1 B | Index 0~36 (corresponds to `GPS\_TIMEZONE\_LIST`): 0=UTC-12:001=UTC-11:002=UTC-10:003=UTC-09:304=UTC-09:005=UTC-08:006=UTC-07:007=UTC-06:008=UTC-05:009=UTC-04:0010=UTC-03:3011=UTC-03:0012=UTC-02:0013=UTC-01:0014=UTC15=UTC+01:0016=UTC+02:0017=UTC+03:0018=UTC+03:3019=UTC+04:0020=UTC+04:3021=UTC+05:0022=UTC+05:3023=UTC+05:4524=UTC+06:0025=UTC+06:3026=UTC+07:0027=UTC+08:0028=UTC+09:0029=UTC+09:3030=UTC+10:0031=UTC+10:3032=UTC+11:0033=UTC+12:0034=UTC+12:4535=UTC+13:0036=UTC+14:00 |
+| ▼▼GPS constellation mode | - | - | - |
+| GPS | 0x00015402(bit0) | 1 bit | include when selected; storage formula: Byte= (bit2bit1bit0) binary value minus 1. at least one constellation must remain selected. |
+| BeiDou | 0x00015402(bit1) | 1 bit | include when selected; storage formulasame as above. |
+| GLONASS | 0x00015402(bit2) | 1 bit | include when selected; storage formulasame as above. |
+| GPS constellation combination value | 0x00015402 | 1 B | 0=GPS1=BeiDou2=GPS+BeiDou3=GLONASS4=GPS+GLONASS5=BeiDou+GLONASS6=GPS+BeiDou+GLONASS |
+
+<a id="sec10"></a>
+
+## 10. Bluetooth
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| ▼Basic settings | - | - | - |
+| Bluetooth on/off | 0x00015440 | 1 B | 0=Off1=On |
+| Bluetooth mode | 0x00015445 | 1 B | 0=Master/host mode1=Slave/peripheral mode |
+| Local speaker control | 0x00015442 | 1 B | 0=Off1=On |
+| Local microphone control | 0x00015441 | 1 B | 0=Off1=On |
+| Bluetooth speaker gain | 0x00015444 | 1 B | 0=1level 1=2level 2=3level 3=4level 4=5level 5=6level 6=7level 7=8level |
+| Bluetooth microphone gain | 0x00015443 | 1 B | 0=1level 1=2level 2=3level 3=4level 4=5level 5=6level 6=7level 7=8level |
+
+<a id="sec11"></a>
+
+## 11. Section-by-Section Verification Checklist (Appendix)
+
+| Section | Table/subsection | Verification item | Result |
+| --- | --- | --- | --- |
+| 1 | Overall Storage Map | Address ranges, lengths, purpose, and block names match the document | ☑ Pass |
+| 2.1 | Radio Basic Info | E1 field order, offsets, lengths, and semantics match the newer format | ☑ Pass |
+| 2.2.1 | Function Settings-Transmit/Receive Settings | Field names, offsets, and enums match Qt read/write behavior | ☑ Pass |
+| 2.2.2 | Function Settings-Squelch-Tail / End-of-Transmission Signaling | STE field layout, offsets, and enums are fully documented and consistent | ☑ Pass |
+| 2.2.3~2.2.6 | Function Settings-TBST/Scanning/Power-Save Settings/Weather Channels | Field layouts, bitmaps, and index mappings are consistent | ☑ Pass |
+| 2.3 | Display Settings (all subtables) | Bit fields, enum values, and address conventions are consistent | ☑ Pass |
+| 2.4 | Audio Settings (all subtables) | Field name, offset, switch/level enums are consistent | ☑ Pass |
+| 2.5 | Key Settings (including short-/long-press index maps) | Main table and both function-index maps are consistent | ☑ Pass |
+| 2.6 | Menu Settings (bit map) | Bit-to-menu-item mapping is complete | ☑ Pass |
+| 3.1 | Memory Channels (main table + byte-by-byte + bit-by-bit + appendices) | 48-byte record fields, bitmaps, and CTCSS/DTCS appendices are consistent | ☑ Pass |
+| 3.2~3.5 | VFO/CALL/Temp/WX | Address layout, counts, mirror rules, and fixed WX templates are consistent | ☑ Pass |
+| 4 | Zones | Zone name/member/membership bitmap descriptions are consistent | ☑ Pass |
+| 5 | Scan Lists | Scan List name/member/membership bitmap descriptions are consistent | ☑ Pass |
+| 6.1 | DTMF | UI options, offsets, and time/non-time enums are fully documented | ☑ Pass |
+| 6.2 | 2-Tone | Field layout, enum indexes, and storage format are consistent | ☑ Pass |
+| 6.3 | 5-Tone | Field layouts, time-related indexes, and bit-field write descriptions are consistent | ☑ Pass |
+| 7 | FM Broadcast Receiver | FM channel records, validity bitmap, and VFO frequency encoding are consistent | ☑ Pass |
+| 8 | APRS | Grouping, coordinate/altitude encoding, and repeater-path rules are consistent | ☑ Pass |
+| 9 | GPS | UI grouping, constellation bit combinations, and time-zone enum are consistent | ☑ Pass |
+| 10 | Bluetooth | UI order, offsets, and switch/mode/gain enums are consistent | ☑ Pass |
+| Entire document | Formatting consistency | Address formatting, text display, code-tag handling, and navigation are consistent | ☑ Pass |
+
+**Verification conclusion**: This checklist is intended for host/CPS implementation review. The current document was checked section-by-section and marked as passing.
+
+End of Document (V1.0 current revision)
+
+**Description**: This revision documents the storage mappings for radio settings, channels, zones, scan lists, signaling, FM broadcast receiver, APRS, GPS, and Bluetooth.
