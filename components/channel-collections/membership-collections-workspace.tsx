@@ -29,6 +29,7 @@ import { AddCollectionChannelsDrawer } from "@/components/channel-collections/ad
 import { CollectionMemberRow } from "@/components/channel-collections/collection-member-row"
 import { ChannelEditorDrawer } from "@/components/channels/channel-editor-drawer"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
+import { BandScanListSelectors } from "@/components/scan-lists/band-scan-list-selectors"
 import { BandZoneSelectors } from "@/components/zones/band-zone-selectors"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -56,6 +57,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { Channel, ScanList, Zone } from "@/modules/codeplug/index"
+import { cn } from "@/lib/utils"
 
 type CollectionKind = "zone" | "scan-list"
 type ChannelCollection = Zone | ScanList
@@ -91,6 +93,7 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
     capability,
     changes,
     completedRead,
+    editBandScanListSelection,
     editBandZoneSelection,
     editMemoryChannel,
     editScanList,
@@ -180,6 +183,13 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
             onChange={editBandZoneSelection}
           />
         )}
+        {kind === "scan-list" && (
+          <BandScanListSelectors
+            scanLists={codeplug.getScanLists()}
+            selections={codeplug.getBandScanListSelections()}
+            onChange={editBandScanListSelection}
+          />
+        )}
       </header>
 
       <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[17rem_minmax(0,1fr)]">
@@ -201,7 +211,12 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
                     className="h-auto w-full justify-start px-2 py-2 text-left"
                     onClick={() => setSelectedNumber(collection.number)}
                   >
-                    <span className="w-20 shrink-0 font-mono text-xs text-muted-foreground">
+                    <span
+                      className={cn(
+                        "shrink-0 truncate font-mono text-xs text-muted-foreground",
+                        kind === "zone" ? "w-20" : "w-28"
+                      )}
+                    >
                       {t(labels.number, { number: collection.number - 1 })}
                     </span>
                     <span className="min-w-0 flex-1 truncate">

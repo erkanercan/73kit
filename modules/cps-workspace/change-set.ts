@@ -53,6 +53,10 @@ type WorkspaceChange =
       readonly kind: "edit-band-zone-selection"
       readonly band: RadioBand
     }
+  | {
+      readonly kind: "edit-band-scan-list-selection"
+      readonly band: RadioBand
+    }
 
 type MemoryChannelStructureChange = {
   readonly kind: "add-memory-channel" | "delete-memory-channel"
@@ -370,6 +374,36 @@ function reconcileBandZoneSelectionChange(
   ])
 }
 
+function reconcileBandScanListSelectionChange(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  band: RadioBand
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) {
+    return Object.freeze([])
+  }
+
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-band-scan-list-selection" || change.band !== band
+  )
+  const baseline = baselineCodeplug.getBandScanListSelections()[band]
+  const working = workingCodeplug.getBandScanListSelections()[band]
+
+  if (numberArraysEqual(baseline, working)) {
+    return Object.freeze(retained)
+  }
+
+  return Object.freeze([
+    ...retained,
+    Object.freeze({
+      kind: "edit-band-scan-list-selection" as const,
+      band,
+    }),
+  ])
+}
+
 function numberArraysEqual(left: readonly number[], right: readonly number[]) {
   return (
     left.length === right.length &&
@@ -443,6 +477,7 @@ function toneEquals(
 }
 
 export {
+  reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,

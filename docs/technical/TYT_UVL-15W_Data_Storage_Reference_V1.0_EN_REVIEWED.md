@@ -94,6 +94,7 @@ English developer edition: terminology and descriptions have been normalized for
 | Zone name region | 0x0001E000~0x0001E17F | 384 B | 16 zone names (24 B each) |
 | A/B Zone selection bitmaps | 0x0001E342~0x0001E349 | 8 B | Two 32-bit little-endian bitmaps; lower 16 bits select Zones 0-15 |
 | Scan List name region | 0x0001E500~0x0001E67F | 384 B | 16 scan-list names (24 B each) |
+| A/B active Scan List selection bitmaps | 0x0001E822~0x0001E829 | 8 B | Two 32-bit little-endian bitmaps; lower 16 bits select Scan Lists 0-15 |
 | Menu Display Mask | 0x0001BA00~0x0001BAFF | 256 B | menu visibility bitmap |
 
 **Write strategy**: For blocks containing bit fields or reserved bits, use read-modify-write on the complete block to preserve unrelated/reserved values.
@@ -809,10 +810,16 @@ minus the read base `0x8000` (`0x16342` and `0x16346`).
 | UI option | Offset / absolute address | Length | Storage format / options |
 | --- | --- | --- | --- |
 | Scan List Name table (Scan List0~15) | 0x0001E500 + list×0x18 | 24 B / record, total16 records | UTF-8 byte stream, pad with 0x00. |
-| A/B active scan-list selection | Not yet hardware-verified | 2 B | Keep read/write support deferred until its physical address is verified. |
+| Band A active Scan List selection | 0x0001E822 | 4 B | Hardware-verified 32-bit little-endian bitmap. Lower bit `n` selects Scan List `n`; a zero lower bitmap means All Scan Lists. Preserve the upper 16 bits. |
+| Band B active Scan List selection | 0x0001E826 | 4 B | Same encoding as Band A. The two bands are independent and each may select multiple Scan Lists. |
 | Scan List member lists (16 groups) | 0x0001A000 + list×0x100 | 256 B/group (128×2 B) | Each slot is a 2-byte big-endian channel index 0-999; unused slots are 0xFFFF. |
 
 **Consistency requirement**: The ordered Scan List member list is stored at `0x0001A000`, while per-channel Scan List membership is stored at `0x0001D000`; both representations must remain consistent.
+
+**Verification note**: Controlled stock-CPS backups confirmed backup offsets
+`0x16822` and `0x16826`, corresponding to physical addresses `0x1E822` and
+`0x1E826`. Observed masks included `0x0001` (Scan List 0) and `0x0003` (Scan
+Lists 0+1) independently on both bands. Unrelated upper bits must be preserved.
 
 <a id="sec6"></a>
 

@@ -3,6 +3,7 @@ import test from "node:test"
 
 import { CODEPLUG_SIZE, createCodeplug } from "../modules/codeplug/index.ts"
 import {
+  reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
   reconcileScanListEditChanges,
   reconcileZoneEditChanges,
@@ -15,6 +16,8 @@ const CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET = 0x15000
 const ZONE_NAMES_OFFSET = 0x16000
 const BAND_A_ZONE_SELECTION_OFFSET = 0x16342
 const BAND_B_ZONE_SELECTION_OFFSET = 0x16346
+const BAND_A_SCAN_LIST_SELECTION_OFFSET = 0x16822
+const BAND_B_SCAN_LIST_SELECTION_OFFSET = 0x16826
 const SCAN_LIST_NAMES_OFFSET = 0x16500
 const MEMBER_LIST_SIZE = 0x100
 const MEMBER_LIST_SLOT_COUNT = 128
@@ -235,6 +238,63 @@ test("decodes and edits independent multi-Zone selections for both bands", () =>
   )
   assert.throws(
     () => baseline.editBandZoneSelection("B", [17]),
+    /between 1 and 16/
+  )
+})
+
+test("decodes and edits independent active Scan Lists for both bands", () => {
+  const bytes = blankMembershipCodeplug()
+  const view = new DataView(bytes.buffer)
+  view.setUint32(BAND_A_SCAN_LIST_SELECTION_OFFSET, 0xabcd0001, true)
+  view.setUint32(BAND_B_SCAN_LIST_SELECTION_OFFSET, 0x12340003, true)
+  const baseline = createCodeplug(bytes)
+
+  assert.deepEqual(baseline.getBandScanListSelections(), {
+    A: [1],
+    B: [1, 2],
+  })
+
+  const edited = baseline
+    .editBandScanListSelection("A", [1, 2])
+    .editBandScanListSelection("B", [1])
+  const editedBytes = edited.toBytes()
+  const editedView = new DataView(editedBytes.buffer)
+
+  assert.deepEqual(edited.getBandScanListSelections(), {
+    A: [1, 2],
+    B: [1],
+  })
+  assert.equal(
+    editedView.getUint32(BAND_A_SCAN_LIST_SELECTION_OFFSET, true),
+    0xabcd0003
+  )
+  assert.equal(
+    editedView.getUint32(BAND_B_SCAN_LIST_SELECTION_OFFSET, true),
+    0x12340001
+  )
+  assert.deepEqual(baseline.toBytes(), bytes)
+
+  const changed = reconcileBandScanListSelectionChange(
+    [],
+    baseline,
+    edited,
+    "A"
+  )
+  assert.deepEqual(changed, [
+    { kind: "edit-band-scan-list-selection", band: "A" },
+  ])
+
+  const reverted = edited.editBandScanListSelection("A", [1])
+  assert.deepEqual(
+    reconcileBandScanListSelectionChange(changed, baseline, reverted, "A"),
+    []
+  )
+  assert.throws(
+    () => baseline.editBandScanListSelection("A", [1, 1]),
+    /same Scan List twice/
+  )
+  assert.throws(
+    () => baseline.editBandScanListSelection("B", [17]),
     /between 1 and 16/
   )
 })

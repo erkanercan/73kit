@@ -240,6 +240,10 @@ const tr = {
   removeChannelFromZone: "Kanal {number, number}, bölgeden çıkar",
   dragZoneMember: "Kanal {number, number} sırasını bölge içinde değiştir",
   scanListsTitle: "Tarama Listeleri",
+  bandAScanLists: "Band A Tarama Listeleri",
+  bandBScanLists: "Band B Tarama Listeleri",
+  allScanLists: "Tüm Hafıza Kanalları",
+  selectedScanListsCount: "{count, number} Tarama Listesi",
   scanListsReadRequiredTitle:
     "Tarama List ayarlarını düzenlemek için telsizi okuyun",
   scanListSlots: "Tarama Listeleri",

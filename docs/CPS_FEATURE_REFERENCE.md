@@ -471,8 +471,7 @@ comparisons proved 32-bit little-endian bitmaps at physical addresses
 are preserved. Selection edits are baseline-aware and reverting a band to its
 original selection removes that pending change.
 
-Active Scan List selection and Channel table/Drawer membership controls remain
-unimplemented.
+Channel table/Drawer membership controls remain unimplemented.
 
 ---
 
@@ -481,7 +480,7 @@ unimplemented.
 - 16 scan lists — P0 / IMPLEMENTED PRODUCT; PROVEN STORAGE
 - 24-byte names — P0 / IMPLEMENTED PRODUCT; PROVEN STORAGE
 - 128 member slots per list — P0 / IMPLEMENTED PRODUCT; PROVEN STORAGE
-- A/B active scan-list selection — P1 / DEFERRED; STORAGE UNPROVEN
+- A/B active scan-list selection — P1 / IMPLEMENTED PRODUCT; PROVEN STORAGE
 - member Off/Skip/Priority semantics — P1 / IMPLEMENTED PRODUCT; PROVEN STORAGE
 
 Like zones, both ordered lists and per-channel membership bitmaps must remain synchronized.
@@ -496,9 +495,14 @@ the Channel Drawer edits that shared field everywhere the Channel is used.
 
 Scan List name and exact member-order changes are tracked against the Baseline
 Backup, so restoring either field removes its pending change. The page and its
-member table scroll internally. A/B active Scan List controls are intentionally
-withheld until controlled stock-CPS backup comparisons identify and verify their
-storage.
+member table scroll internally.
+
+Compact Band A and Band B controls independently select any combination of the
+16 Scan Lists. An empty selection represents All Scan Lists. Controlled
+stock-CPS backup comparisons proved 32-bit little-endian bitmaps at physical
+addresses `0x1E822` and `0x1E826`: lower bit `n` selects Scan List `n`, while
+the upper 16 bits are preserved. Selection edits are baseline-aware and
+reverting a band to its original selection removes that pending change.
 
 ---
 
@@ -979,7 +983,7 @@ Advanced
 - [x] Scan List page
 - [ ] Channel table and Drawer membership controls
 - [x] A/B multi-Zone selection
-- [ ] A/B active Scan List selection
+- [x] A/B active Scan List selection
 - [x] Scan List Off/Skip/Priority display and Drawer editing
 
 ## Epic 7 — Safe writer

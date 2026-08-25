@@ -27,7 +27,12 @@ import {
   decodeBandZoneSelections,
   editBandZoneSelectionBytes,
 } from "./band-zone-selection.ts"
+import {
+  decodeBandScanListSelections,
+  editBandScanListSelectionBytes,
+} from "./band-scan-list-selection.ts"
 import type { BandZoneSelections, RadioBand } from "./band-zone-selection.ts"
+import type { BandScanListSelections } from "./band-scan-list-selection.ts"
 import type {
   CallChannelPatch,
   MemoryChannelPatch,
@@ -52,6 +57,7 @@ class Codeplug {
   readonly #zones: readonly Zone[]
   readonly #scanLists: readonly ScanList[]
   readonly #bandZoneSelections: BandZoneSelections
+  readonly #bandScanListSelections: BandScanListSelections
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -67,6 +73,7 @@ class Codeplug {
     this.#zones = decodeZones(this.#bytes)
     this.#scanLists = decodeScanLists(this.#bytes)
     this.#bandZoneSelections = decodeBandZoneSelections(this.#bytes)
+    this.#bandScanListSelections = decodeBandScanListSelections(this.#bytes)
   }
 
   get byteLength() {
@@ -101,6 +108,10 @@ class Codeplug {
     return this.#bandZoneSelections
   }
 
+  getBandScanListSelections() {
+    return this.#bandScanListSelections
+  }
+
   moveMemoryChannel(fromNumber: number, toNumber: number) {
     return new Codeplug(
       moveMemoryChannelBytes(this.#bytes, fromNumber, toNumber)
@@ -126,6 +137,15 @@ class Codeplug {
   editBandZoneSelection(band: RadioBand, zoneNumbers: readonly number[]) {
     return new Codeplug(
       editBandZoneSelectionBytes(this.#bytes, band, zoneNumbers)
+    )
+  }
+
+  editBandScanListSelection(
+    band: RadioBand,
+    scanListNumbers: readonly number[]
+  ) {
+    return new Codeplug(
+      editBandScanListSelectionBytes(this.#bytes, band, scanListNumbers)
     )
   }
 
@@ -169,6 +189,7 @@ export {
 }
 export type { Channel, SpecialChannel } from "./channel.ts"
 export type { BandZoneSelections, RadioBand } from "./band-zone-selection.ts"
+export type { BandScanListSelections } from "./band-scan-list-selection.ts"
 export type {
   ChannelCollectionPatch,
   ChannelMembershipPatch,
