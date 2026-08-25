@@ -1,4 +1,4 @@
-type ChannelScan = "normal" | "skip" | "priority" | "reserved"
+type ChannelScan = "off" | "skip" | "priority" | "reserved"
 type ChannelDuplex = "off" | "negative" | "positive" | "split"
 type ChannelReverse = "off" | "talk-around" | "reverse" | "reserved"
 type ChannelStepKHz =
@@ -16,7 +16,7 @@ type ChannelStepKHz =
   | 100
   | "unknown"
 type ChannelModulation = "fm" | "fm-narrow" | "am" | "am-narrow" | "unknown"
-type ChannelTransmitPower = "low" | "medium" | "high" | "unknown"
+type ChannelTransmitPower = "low" | "medium" | "high" | "reserved" | "unknown"
 type ChannelBusyLockout = "off" | "repeater" | "carrier" | "reserved"
 type ChannelSquelch =
   | "carrier"
@@ -48,6 +48,8 @@ interface Channel {
   readonly number: number
   readonly valid: boolean
   readonly scan: ChannelScan
+  readonly zoneNames: readonly string[]
+  readonly scanListNames: readonly string[]
   readonly name: string
   readonly receiveFrequencyHz: number
   readonly transmitFrequencyHz: number
@@ -73,6 +75,13 @@ interface Channel {
   readonly aprsReceive: ChannelAprsReceive
 }
 
+interface SpecialChannel extends Omit<
+  Channel,
+  "number" | "valid" | "scan" | "zoneNames" | "scanListNames"
+> {
+  readonly slot: "A" | "B" | 1 | 2
+}
+
 export type {
   Channel,
   ChannelAprsReceive,
@@ -90,4 +99,5 @@ export type {
   ChannelStepKHz,
   ChannelTone,
   ChannelTransmitPower,
+  SpecialChannel,
 }

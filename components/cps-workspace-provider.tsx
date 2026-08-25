@@ -30,8 +30,17 @@ interface CpsWorkspaceContextValue {
   readonly error: WorkspaceError | null
   readonly capability: RadioCapability | "checking"
   readonly busy: boolean
+  readonly changes: readonly WorkspaceChange[]
   readRadio(): Promise<void>
   downloadRawBackup(): void
+  moveMemoryChannel(fromNumber: number, toNumber: number): void
+  resetWorkingCodeplug(): void
+}
+
+interface WorkspaceChange {
+  readonly kind: "move-memory-channel"
+  readonly fromNumber: number
+  readonly toNumber: number
 }
 
 type WorkspaceError =
@@ -71,6 +80,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     React.useState<CompletedRadioRead | null>(null)
   const [progress, setProgress] = React.useState(0)
   const [error, setError] = React.useState<WorkspaceError | null>(null)
+  const [changes, setChanges] = React.useState<readonly WorkspaceChange[]>([])
 
   const busy = phase === "connecting" || phase === "reading"
 
@@ -115,6 +125,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
         return
       }
       setCompletedRead(result)
+      setChanges([])
       setProgress(100)
       setPhase("ready")
     } catch (cause) {
@@ -146,6 +157,56 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     setTimeout(() => URL.revokeObjectURL(url), 0)
   }, [completedRead])
 
+  const moveMemoryChannel = React.useCallback(
+    (fromNumber: number, toNumber: number) => {
+      if (fromNumber === toNumber) {
+        return
+      }
+
+      setCompletedRead((current) => {
+        if (!current) {
+          return current
+        }
+
+        const workingCodeplug = Object.freeze({
+          ...current.workingCodeplug,
+          codeplug: current.workingCodeplug.codeplug.moveMemoryChannel(
+            fromNumber,
+            toNumber
+          ),
+        })
+
+        return Object.freeze({ ...current, workingCodeplug })
+      })
+      setChanges((current) => [
+        ...current,
+        Object.freeze({
+          kind: "move-memory-channel" as const,
+          fromNumber,
+          toNumber,
+        }),
+      ])
+    },
+    []
+  )
+
+  const resetWorkingCodeplug = React.useCallback(() => {
+    setCompletedRead((current) => {
+      if (!current) {
+        return current
+      }
+
+      return Object.freeze({
+        ...current,
+        workingCodeplug: Object.freeze({
+          ...current.workingCodeplug,
+          codeplug: current.baselineBackup.codeplug,
+        }),
+      })
+    })
+    setChanges([])
+  }, [])
+
   React.useEffect(() => {
     mounted.current = true
     const capabilityCheck = window.setTimeout(() => {
@@ -168,8 +229,11 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       error,
       capability,
       busy,
+      changes,
       readRadio,
       downloadRawBackup,
+      moveMemoryChannel,
+      resetWorkingCodeplug,
     }),
     [
       phase,
@@ -179,8 +243,11 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       error,
       capability,
       busy,
+      changes,
       readRadio,
       downloadRawBackup,
+      moveMemoryChannel,
+      resetWorkingCodeplug,
     ]
   )
 
@@ -258,4 +325,9 @@ function getRadioCapability(): RadioCapability {
 }
 
 export { CpsWorkspaceProvider, useCpsWorkspace }
-export type { WorkspaceError, WorkspaceErrorKey, WorkspacePhase }
+export type {
+  WorkspaceChange,
+  WorkspaceError,
+  WorkspaceErrorKey,
+  WorkspacePhase,
+}

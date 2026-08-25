@@ -52,6 +52,7 @@ function RadioOverview() {
   const {
     busy,
     capability,
+    changes,
     completedRead,
     downloadRawBackup,
     error,
@@ -118,6 +119,7 @@ function RadioOverview() {
           phase={phase}
           progress={progress}
           completedRead={completedRead}
+          changeCount={changes.length}
           onDownload={downloadRawBackup}
         />
       </div>
@@ -315,11 +317,13 @@ function WorkspaceCard({
   phase,
   progress,
   completedRead,
+  changeCount,
   onDownload,
 }: {
   phase: "idle" | "connecting" | "reading" | "ready"
   progress: number
   completedRead: ReturnType<typeof useCpsWorkspace>["completedRead"]
+  changeCount: number
   onDownload(): void
 }) {
   const format = useFormatter()
@@ -350,7 +354,10 @@ function WorkspaceCard({
               label={t("workingCodeplug")}
               value={completedRead ? t("readyToInspect") : t("none")}
             />
-            <WorkspaceDetail label={t("pendingChanges")} value="0" />
+            <WorkspaceDetail
+              label={t("pendingChanges")}
+              value={String(changeCount)}
+            />
             <WorkspaceDetail
               label={t("localPersistence")}
               value={completedRead ? t("sessionOnly") : t("noData")}

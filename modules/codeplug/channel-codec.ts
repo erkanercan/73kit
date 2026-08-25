@@ -20,13 +20,23 @@ import type {
   ChannelStepKHz,
   ChannelTone,
   ChannelTransmitPower,
+  SpecialChannel,
 } from "./channel.ts"
 import {
+  CALL_RECORDS_OFFSET,
   CHANNEL_COUNT,
   CHANNEL_RECORD_SIZE,
   CHANNEL_RECORDS_OFFSET,
+  CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET,
+  CHANNEL_ZONE_MEMBERSHIP_OFFSET,
+  MEMBERSHIP_GROUP_COUNT,
+  MEMBERSHIP_NAME_SIZE,
   SCAN_BITMAP_OFFSET,
+  SCAN_LIST_NAMES_OFFSET,
+  SPECIAL_CHANNEL_COUNT,
   VALIDITY_BITMAP_OFFSET,
+  VFO_RECORDS_OFFSET,
+  ZONE_NAMES_OFFSET,
 } from "./memory-map.ts"
 
 const DUPLEX = [
@@ -54,6 +64,7 @@ const TRANSMIT_POWER = [
   "low",
   "medium",
   "high",
+  "reserved",
 ] as const satisfies readonly Exclude<ChannelTransmitPower, "unknown">[]
 const BUSY_LOCKOUT = [
   "off",
@@ -114,7 +125,7 @@ const APRS_RECEIVE = [
   "on-muted",
 ] as const satisfies readonly Exclude<ChannelAprsReceive, "unknown">[]
 const SCAN = [
-  "normal",
+  "off",
   "skip",
   "priority",
   "reserved",
@@ -245,6 +256,56 @@ function decodeChannels(bytes: Uint8Array) {
 
 function decodeChannel(bytes: Uint8Array, index: number): Channel {
   const offset = CHANNEL_RECORDS_OFFSET + index * CHANNEL_RECORD_SIZE
+  return Object.freeze({
+    number: index + 1,
+    valid: readValidity(bytes, index),
+    scan: readScan(bytes, index),
+    zoneNames: decodeMembershipNames(
+      bytes,
+      index,
+      CHANNEL_ZONE_MEMBERSHIP_OFFSET,
+      ZONE_NAMES_OFFSET
+    ),
+    scanListNames: decodeMembershipNames(
+      bytes,
+      index,
+      CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET,
+      SCAN_LIST_NAMES_OFFSET
+    ),
+    ...decodeChannelRecord(bytes, offset),
+  })
+}
+
+function decodeVfoChannels(bytes: Uint8Array) {
+  return decodeSpecialChannels(bytes, VFO_RECORDS_OFFSET, ["A", "B"])
+}
+
+function decodeCallChannels(bytes: Uint8Array) {
+  return decodeSpecialChannels(bytes, CALL_RECORDS_OFFSET, [1, 2])
+}
+
+function decodeSpecialChannels(
+  bytes: Uint8Array,
+  recordsOffset: number,
+  slots: readonly SpecialChannel["slot"][]
+) {
+  return Object.freeze(
+    Array.from({ length: SPECIAL_CHANNEL_COUNT }, (_, index) =>
+      Object.freeze({
+        slot: slots[index],
+        ...decodeChannelRecord(
+          bytes,
+          recordsOffset + index * CHANNEL_RECORD_SIZE
+        ),
+      })
+    )
+  )
+}
+
+function decodeChannelRecord(
+  bytes: Uint8Array,
+  offset: number
+): Omit<Channel, "number" | "valid" | "scan" | "zoneNames" | "scanListNames"> {
   const byte36 = bytes[offset + 0x24]
   const byte37 = bytes[offset + 0x25]
   const byte38 = bytes[offset + 0x26]
@@ -256,10 +317,7 @@ function decodeChannel(bytes: Uint8Array, index: number): Channel {
     index: bytes[offset + 0x2b],
   })
 
-  return Object.freeze({
-    number: index + 1,
-    valid: readValidity(bytes, index),
-    scan: readScan(bytes, index),
+  return {
     name: decodeNullPaddedUtf8(bytes.subarray(offset + 0x08, offset + 0x20)),
     receiveFrequencyHz: readUint32BigEndian(bytes, offset + 0x00),
     transmitFrequencyHz: readUint32BigEndian(bytes, offset + 0x04),
@@ -280,7 +338,35 @@ function decodeChannel(bytes: Uint8Array, index: number): Channel {
     scrambler: lookup(SCRAMBLER, bytes[offset + 0x2c]),
     pttId: lookup(PTT_ID, readBits(bytes[offset + 0x2d], 0, 4)),
     aprsReceive: lookup(APRS_RECEIVE, readBits(bytes[offset + 0x2e], 0, 2)),
-  })
+  }
+}
+
+function decodeMembershipNames(
+  bytes: Uint8Array,
+  channelIndex: number,
+  bitmapOffset: number,
+  namesOffset: number
+) {
+  const membershipOffset = bitmapOffset + channelIndex * 2
+  const storedMembership =
+    bytes[membershipOffset] | (bytes[membershipOffset + 1] << 8)
+  const names: string[] = []
+
+  for (let group = 0; group < MEMBERSHIP_GROUP_COUNT; group += 1) {
+    if (((storedMembership >>> group) & 1) !== 0) {
+      continue
+    }
+
+    const nameOffset = namesOffset + group * MEMBERSHIP_NAME_SIZE
+    const name = decodeNullPaddedUtf8(
+      bytes.subarray(nameOffset, nameOffset + MEMBERSHIP_NAME_SIZE)
+    )
+    if (name) {
+      names.push(name)
+    }
+  }
+
+  return Object.freeze(names)
 }
 
 function readValidity(bytes: Uint8Array, index: number) {
@@ -348,4 +434,4 @@ function lookup<const Values extends readonly unknown[]>(
   return values[index] ?? "unknown"
 }
 
-export { decodeChannels }
+export { decodeCallChannels, decodeChannels, decodeVfoChannels }

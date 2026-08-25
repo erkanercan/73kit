@@ -30,13 +30,13 @@ export default async function RootLayout({
       lang={locale}
       suppressHydrationWarning
       className={cn(
-        "font-sans antialiased",
+        "h-full overflow-hidden font-sans antialiased",
         fontMono.variable,
         geist.variable,
         spaceGroteskHeading.variable
       )}
     >
-      <body>
+      <body className="h-full overflow-hidden">
         <ThemeProvider>
           <CpsWorkspaceProvider>{children}</CpsWorkspaceProvider>
         </ThemeProvider>

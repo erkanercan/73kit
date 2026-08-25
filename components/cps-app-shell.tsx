@@ -29,12 +29,14 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { usePathname } from "@/i18n/navigation"
 
 function CpsAppShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations()
 
   return (
     <SidebarProvider
+      className="h-svh min-h-0 overflow-hidden"
       labels={{
         title: t("sidebarTitle"),
         description: t("sidebarDescription"),
@@ -43,9 +45,12 @@ function CpsAppShell({ children }: { children: React.ReactNode }) {
       }}
     >
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="h-svh min-h-0 overflow-hidden md:h-[calc(100svh-1rem)]">
         <AppHeader />
-        <div id="main-content" className="flex flex-1 flex-col">
+        <div
+          id="main-content"
+          className="flex min-h-0 flex-1 flex-col overflow-auto"
+        >
           {children}
         </div>
         <WorkspaceStatusBar />
@@ -56,6 +61,7 @@ function CpsAppShell({ children }: { children: React.ReactNode }) {
 
 function AppHeader() {
   const { busy, capability, completedRead, readRadio } = useCpsWorkspace()
+  const pathname = usePathname()
   const t = useTranslations()
 
   return (
@@ -68,7 +74,9 @@ function AppHeader() {
       <Breadcrumb className="min-w-0">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbPage>{t("navRadio")}</BreadcrumbPage>
+            <BreadcrumbPage>
+              {pathname === "/channels" ? t("navChannels") : t("navRadio")}
+            </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -116,7 +124,7 @@ function AppHeader() {
 }
 
 function WorkspaceStatusBar() {
-  const { completedRead, phase, sourceRadio } = useCpsWorkspace()
+  const { changes, completedRead, phase, sourceRadio } = useCpsWorkspace()
   const t = useTranslations()
 
   return (
@@ -134,7 +142,7 @@ function WorkspaceStatusBar() {
         <span>
           {t("workingCodeplug")}: {completedRead ? t("ready") : t("none")}
         </span>
-        <span>{t("changesCount", { count: 0 })}</span>
+        <span>{t("changesCount", { count: changes.length })}</span>
         <span>
           {t("localSave", {
             value: completedRead ? t("sessionOnly") : t("noData"),

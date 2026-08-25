@@ -13,7 +13,7 @@ function readBits(value: number, shift: number, width: number) {
 }
 
 function decodeNullPaddedUtf8(bytes: Uint8Array) {
-  const terminator = bytes.indexOf(0)
+  const terminator = bytes.findIndex((byte) => byte === 0 || byte === 0xff)
   return textDecoder.decode(
     terminator === -1 ? bytes : bytes.subarray(0, terminator)
   )

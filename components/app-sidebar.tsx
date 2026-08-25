@@ -28,10 +28,11 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { Link } from "@/i18n/navigation"
+import { Link, usePathname } from "@/i18n/navigation"
 
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { completedRead, phase } = useCpsWorkspace()
+  const pathname = usePathname()
   const t = useTranslations()
   const navigation: NavigationSection[] = [
     {
@@ -41,9 +42,14 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           title: t("navRadio"),
           href: "/",
           icon: RadioIcon,
-          active: true,
+          active: pathname === "/",
         },
-        { title: t("navChannels"), icon: ListIcon, planned: true },
+        {
+          title: t("navChannels"),
+          href: "/channels",
+          icon: ListIcon,
+          active: pathname === "/channels",
+        },
         { title: t("navZones"), icon: MapIcon, planned: true },
         { title: t("navScanLists"), icon: ListChecksIcon, planned: true },
       ],

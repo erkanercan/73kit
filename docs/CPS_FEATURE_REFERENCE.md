@@ -282,6 +282,20 @@ Compare backups or Working Codeplugs semantically for inspection. This optional 
 - Primary storage: `0x00008000 → 0x00013B7F`
 - Capacity: `1000 channels × 48 bytes`
 
+### Channel inspection and ordering UI — P0 / IMPLEMENTED
+
+The Channels workspace provides a virtualized, searchable Memory table, Basic
+and Advanced column visibility, complete channel details, formatted CTCSS/DCS,
+resolved Zone and Scan List membership names, and compact VFO A/B and Call 1/2
+views. Temporary channels remain internal.
+
+Memory rows can be dragged to a new channel number. A row move is an in-memory
+Working Codeplug change: the complete 48-byte record, validity and scan state,
+per-channel Zone and Scan List membership, and every ordered Zone and Scan List
+reference move together. The immutable Baseline Backup remains unchanged and
+the user can reset pending row moves. Other channel-field editing remains Epic
+5 work.
+
 ### Supported channel fields
 
 - RX frequency — P0
@@ -821,14 +835,16 @@ Advanced
 - [x] scan bitmap
 - [x] preserve unknown and reserved bytes
 
-## Epic 4 — Read-only channel UI
+## Epic 4 — Channel inspection and ordering UI
 
-- virtualized 1000-row table
-- search/filter
-- details
-- CTCSS/DCS formatting
-- mode/power
-- zone/scan membership display
+- [x] virtualized 1000-row Memory table
+- [x] used/all filter and name, number, or frequency search
+- [x] Basic/Advanced column visibility and complete details
+- [x] CTCSS/DCS formatting
+- [x] mode/power display
+- [x] Zone/Scan List membership parsing and display
+- [x] compact VFO A/B and Call 1/2 views
+- [x] tracked drag-to-reorder with record and membership-reference remapping
 
 ## Epic 5 — Offline editing model
 
@@ -942,10 +958,10 @@ firmware update commands
 - [ ] Raw Backup Export and CPS Export handling
 - [ ] Backup History
 - [x] Channel parser
-- [ ] read-only 1000-channel table
-- [ ] CTCSS/DCS display
-- [ ] zones parser
-- [ ] scan-list parser
+- [x] virtualized 1000-channel table
+- [x] CTCSS/DCS display
+- [x] read-side Zone names and membership parser
+- [x] read-side Scan List names and membership parser
 
 ## P1 — Main Product
 
