@@ -175,6 +175,7 @@ const tr = {
   pttId: "PTT ID",
   aprsReceive: "APRS RX",
   inspectChannel: "Kanal {number, number} ayrıntılarını incele",
+  inspectSpecialChannel: "{channel} ayrıntılarını incele",
   dragChannel: "Kanal {number, number} konumunu değiştir",
   channelDetailsTitle: "Kanal {number, number}",
   noMatchingChannels: "Eşleşen kanal yok",

@@ -18,18 +18,18 @@ import {
 } from "./channel-codec.ts"
 import type { Channel, ChannelTone } from "./channel.ts"
 import {
+  CALL_RECORDS_OFFSET,
   CHANNEL_COUNT,
   CHANNEL_RECORD_SIZE,
   CHANNEL_RECORDS_OFFSET,
   SCAN_BITMAP_OFFSET,
   VALIDITY_BITMAP_OFFSET,
+  VFO_RECORDS_OFFSET,
 } from "./memory-map.ts"
 
-type MemoryChannelPatch = Partial<
+type ChannelRecordPatch = Partial<
   Pick<
     Channel,
-    | "valid"
-    | "scan"
     | "name"
     | "receiveFrequencyHz"
     | "transmitFrequencyHz"
@@ -52,6 +52,10 @@ type MemoryChannelPatch = Partial<
     | "aprsReceive"
   >
 >
+type MemoryChannelPatch = ChannelRecordPatch &
+  Partial<Pick<Channel, "valid" | "scan">>
+type VfoChannelPatch = Omit<ChannelRecordPatch, "name">
+type CallChannelPatch = ChannelRecordPatch
 
 function editMemoryChannelBytes(
   source: Uint8Array,
@@ -70,6 +74,54 @@ function editMemoryChannelBytes(
   if (patch.scan !== undefined) {
     writeTwoBits(result, SCAN_BITMAP_OFFSET, index, encode(SCAN, patch.scan))
   }
+  writeChannelRecord(result, offset, patch)
+
+  return result
+}
+
+function editVfoChannelBytes(
+  source: Uint8Array,
+  slot: "A" | "B",
+  patch: VfoChannelPatch
+) {
+  if (slot !== "A" && slot !== "B") {
+    throw new RangeError("VFO Channel slot must be A or B")
+  }
+  return editSpecialChannelBytes(
+    source,
+    VFO_RECORDS_OFFSET,
+    slot === "A" ? 0 : 1,
+    patch
+  )
+}
+
+function editCallChannelBytes(
+  source: Uint8Array,
+  slot: 1 | 2,
+  patch: CallChannelPatch
+) {
+  if (slot !== 1 && slot !== 2) {
+    throw new RangeError("Call Channel slot must be 1 or 2")
+  }
+  return editSpecialChannelBytes(source, CALL_RECORDS_OFFSET, slot - 1, patch)
+}
+
+function editSpecialChannelBytes(
+  source: Uint8Array,
+  recordsOffset: number,
+  index: number,
+  patch: ChannelRecordPatch
+) {
+  const result = source.slice()
+  writeChannelRecord(result, recordsOffset + index * CHANNEL_RECORD_SIZE, patch)
+  return result
+}
+
+function writeChannelRecord(
+  result: Uint8Array,
+  offset: number,
+  patch: ChannelRecordPatch
+) {
   if (patch.name !== undefined) {
     writeName(result, offset + 0x08, patch.name)
   }
@@ -168,8 +220,6 @@ function editMemoryChannelBytes(
       encode(APRS_RECEIVE, patch.aprsReceive)
     )
   }
-
-  return result
 }
 
 function writeTone(
@@ -290,5 +340,5 @@ function assertChannelNumber(number: number) {
   }
 }
 
-export { editMemoryChannelBytes }
-export type { MemoryChannelPatch }
+export { editCallChannelBytes, editMemoryChannelBytes, editVfoChannelBytes }
+export type { CallChannelPatch, MemoryChannelPatch, VfoChannelPatch }

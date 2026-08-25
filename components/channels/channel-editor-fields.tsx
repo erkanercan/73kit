@@ -18,7 +18,6 @@ import {
   SCRAMBLER_OPTIONS,
   SQUELCH_OPTIONS,
   STEP_OPTIONS,
-  type EditMemoryChannel,
 } from "@/components/channels/channel-editing"
 import { ChannelToneEditor } from "@/components/channels/channel-tone-editor"
 import {
@@ -45,86 +44,91 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import type { Channel } from "@/modules/codeplug/index"
+import type {
+  Channel,
+  MemoryChannelPatch,
+  SpecialChannel,
+} from "@/modules/codeplug/index"
 
 function ChannelEditorFields({
   channel,
+  showName = true,
   onEdit,
 }: {
-  channel: Channel
-  onEdit: EditMemoryChannel
+  channel: Channel | SpecialChannel
+  showName?: boolean
+  onEdit(patch: MemoryChannelPatch): void
 }) {
   const t = useTranslations()
-  const fieldId = (field: string) => `channel-${channel.number}-${field}`
+  const identifier = "number" in channel ? channel.number : channel.slot
+  const fieldId = (field: string) => `channel-${identifier}-${field}`
 
   return (
     <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <DrawerSelectField
-        id={fieldId("used")}
-        label={t("used")}
-        value={channel.valid ? "used" : "unused"}
-        options={[
-          { value: "used", label: t("used"), original: true },
-          { value: "unused", label: t("unused"), original: false },
-        ]}
-        onCommit={(valid) => onEdit(channel.number, { valid })}
-      />
-      <DrawerTextField
-        key={`${channel.number}-name-${channel.name}`}
-        id={fieldId("name")}
-        label={t("channelName")}
-        value={channel.name}
-        invalidMessage={t("channelNameTooLong")}
-        validate={(value) =>
-          !value.includes("\0") &&
-          new TextEncoder().encode(value).byteLength <= 24
-        }
-        onCommit={(name) => onEdit(channel.number, { name })}
-      />
+      {"number" in channel && (
+        <DrawerSelectField
+          id={fieldId("used")}
+          label={t("used")}
+          value={channel.valid ? "used" : "unused"}
+          options={[
+            { value: "used", label: t("used"), original: true },
+            { value: "unused", label: t("unused"), original: false },
+          ]}
+          onCommit={(valid) => onEdit({ valid })}
+        />
+      )}
+      {showName && (
+        <DrawerTextField
+          key={`${identifier}-name-${channel.name}`}
+          id={fieldId("name")}
+          label={t("channelName")}
+          value={channel.name}
+          invalidMessage={t("channelNameTooLong")}
+          validate={(value) =>
+            !value.includes("\0") &&
+            new TextEncoder().encode(value).byteLength <= 24
+          }
+          onCommit={(name) => onEdit({ name })}
+        />
+      )}
       <DrawerFrequencyField
-        key={`${channel.number}-rx-${channel.receiveFrequencyHz}`}
+        key={`${identifier}-rx-${channel.receiveFrequencyHz}`}
         id={fieldId("rx-frequency")}
         label={t("rxFrequency")}
         value={channel.receiveFrequencyHz}
-        onCommit={(receiveFrequencyHz) =>
-          onEdit(channel.number, { receiveFrequencyHz })
-        }
+        onCommit={(receiveFrequencyHz) => onEdit({ receiveFrequencyHz })}
       />
       <DrawerFrequencyField
-        key={`${channel.number}-tx-${channel.transmitFrequencyHz}`}
+        key={`${identifier}-tx-${channel.transmitFrequencyHz}`}
         id={fieldId("tx-frequency")}
         label={t("txFrequency")}
         value={channel.transmitFrequencyHz}
         disabled={channel.duplex !== "split"}
-        onCommit={(transmitFrequencyHz) =>
-          onEdit(channel.number, { transmitFrequencyHz })
-        }
+        onCommit={(transmitFrequencyHz) => onEdit({ transmitFrequencyHz })}
       />
       <DrawerSelectField
         id={fieldId("duplex")}
         label={t("duplex")}
         value={channel.duplex}
         options={drawerValueOptions(DUPLEX_OPTIONS, t)}
-        onCommit={(duplex) => onEdit(channel.number, { duplex })}
+        onCommit={(duplex) => onEdit({ duplex })}
       />
       <DrawerFrequencyField
-        key={`${channel.number}-offset-${channel.offsetFrequencyHz}`}
+        key={`${identifier}-offset-${channel.offsetFrequencyHz}`}
         id={fieldId("offset")}
         label={t("offset")}
         value={channel.offsetFrequencyHz}
         disabled={
           channel.duplex !== "positive" && channel.duplex !== "negative"
         }
-        onCommit={(offsetFrequencyHz) =>
-          onEdit(channel.number, { offsetFrequencyHz })
-        }
+        onCommit={(offsetFrequencyHz) => onEdit({ offsetFrequencyHz })}
       />
       <DrawerSelectField
         id={fieldId("reverse")}
         label={t("talkAroundReverse")}
         value={channel.reverse}
         options={drawerValueOptions(REVERSE_OPTIONS, t)}
-        onCommit={(reverse) => onEdit(channel.number, { reverse })}
+        onCommit={(reverse) => onEdit({ reverse })}
       />
       <DrawerSelectField
         id={fieldId("step")}
@@ -132,7 +136,7 @@ function ChannelEditorFields({
         value={channel.stepKHz === "unknown" ? null : String(channel.stepKHz)}
         placeholder={channelValue(channel.stepKHz, t)}
         options={drawerValueOptions(STEP_OPTIONS, t, " kHz")}
-        onCommit={(stepKHz) => onEdit(channel.number, { stepKHz })}
+        onCommit={(stepKHz) => onEdit({ stepKHz })}
       />
       <DrawerSelectField
         id={fieldId("mode")}
@@ -140,7 +144,7 @@ function ChannelEditorFields({
         value={channel.modulation === "unknown" ? null : channel.modulation}
         placeholder={channelValue(channel.modulation, t)}
         options={drawerValueOptions(MODULATION_OPTIONS, t)}
-        onCommit={(modulation) => onEdit(channel.number, { modulation })}
+        onCommit={(modulation) => onEdit({ modulation })}
       />
       <DrawerSelectField
         id={fieldId("power")}
@@ -154,7 +158,7 @@ function ChannelEditorFields({
         }
         placeholder={channelValue(channel.transmitPower, t)}
         options={drawerValueOptions(POWER_OPTIONS, t)}
-        onCommit={(transmitPower) => onEdit(channel.number, { transmitPower })}
+        onCommit={(transmitPower) => onEdit({ transmitPower })}
       />
       <DrawerSelectField
         id={fieldId("rx-only")}
@@ -164,62 +168,60 @@ function ChannelEditorFields({
           { value: "off", label: t("valueOff"), original: false },
           { value: "on", label: t("valueOn"), original: true },
         ]}
-        onCommit={(receiveOnly) => onEdit(channel.number, { receiveOnly })}
+        onCommit={(receiveOnly) => onEdit({ receiveOnly })}
       />
       <DrawerSelectField
         id={fieldId("bclo")}
         label={t("busyChannelLockout")}
         value={channel.busyChannelLockout}
         options={drawerValueOptions(BCLO_OPTIONS, t)}
-        onCommit={(busyChannelLockout) =>
-          onEdit(channel.number, { busyChannelLockout })
-        }
+        onCommit={(busyChannelLockout) => onEdit({ busyChannelLockout })}
       />
-      <DrawerSelectField
-        id={fieldId("scan")}
-        label={t("scanFlag")}
-        value={channel.scan === "reserved" ? null : channel.scan}
-        placeholder={channelValue(channel.scan, t)}
-        options={drawerValueOptions(SCAN_OPTIONS, t)}
-        onCommit={(scan) => onEdit(channel.number, { scan })}
-      />
+      {"number" in channel && (
+        <DrawerSelectField
+          id={fieldId("scan")}
+          label={t("scanFlag")}
+          value={channel.scan === "reserved" ? null : channel.scan}
+          placeholder={channelValue(channel.scan, t)}
+          options={drawerValueOptions(SCAN_OPTIONS, t)}
+          onCommit={(scan) => onEdit({ scan })}
+        />
+      )}
       <DrawerSelectField
         id={fieldId("squelch")}
         label={t("squelch")}
         value={channel.squelch === "unknown" ? null : channel.squelch}
         placeholder={channelValue(channel.squelch, t)}
         options={drawerValueOptions(SQUELCH_OPTIONS, t)}
-        onCommit={(squelch) => onEdit(channel.number, { squelch })}
+        onCommit={(squelch) => onEdit({ squelch })}
       />
       <DrawerToneField
         id={fieldId("tx-tone")}
         label={t("txTone")}
         tone={channel.transmitTone}
         direction="transmit"
-        onCommit={(transmitTone) =>
-          onEdit(channel.number, { transmitTone })
-        }
+        onCommit={(transmitTone) => onEdit({ transmitTone })}
       />
       <DrawerToneField
         id={fieldId("rx-tone")}
         label={t("rxTone")}
         tone={channel.receiveTone}
         direction="receive"
-        onCommit={(receiveTone) => onEdit(channel.number, { receiveTone })}
+        onCommit={(receiveTone) => onEdit({ receiveTone })}
       />
       <DrawerSelectField
         id={fieldId("dcs-polarity")}
         label={t("dcsPolarity")}
         value={channel.dcsPolarity}
         options={drawerValueOptions(DCS_POLARITY_OPTIONS, t)}
-        onCommit={(dcsPolarity) => onEdit(channel.number, { dcsPolarity })}
+        onCommit={(dcsPolarity) => onEdit({ dcsPolarity })}
       />
       <DrawerSelectField
         id={fieldId("compander")}
         label={t("compander")}
         value={channel.compander}
         options={drawerValueOptions(COMPANDER_OPTIONS, t)}
-        onCommit={(compander) => onEdit(channel.number, { compander })}
+        onCommit={(compander) => onEdit({ compander })}
       />
       <DrawerSelectField
         id={fieldId("optional-signaling")}
@@ -232,7 +234,7 @@ function ChannelEditorFields({
         placeholder={formatOptionalSignaling(channel.optionalSignaling, t)}
         options={drawerValueOptions(OPTIONAL_SIGNALING_OPTIONS, t)}
         onCommit={(kind) =>
-          onEdit(channel.number, {
+          onEdit({
             optionalSignaling: {
               ...channel.optionalSignaling,
               kind,
@@ -252,7 +254,7 @@ function ChannelEditorFields({
         }
         placeholder={channelValue(channel.scrambler, t)}
         options={drawerValueOptions(SCRAMBLER_OPTIONS, t)}
-        onCommit={(scrambler) => onEdit(channel.number, { scrambler })}
+        onCommit={(scrambler) => onEdit({ scrambler })}
       />
       <DrawerSelectField
         id={fieldId("ptt-id")}
@@ -260,7 +262,7 @@ function ChannelEditorFields({
         value={channel.pttId === "unknown" ? null : String(channel.pttId)}
         placeholder={channelValue(channel.pttId, t)}
         options={drawerValueOptions(PTT_ID_OPTIONS, t)}
-        onCommit={(pttId) => onEdit(channel.number, { pttId })}
+        onCommit={(pttId) => onEdit({ pttId })}
       />
       <DrawerSelectField
         id={fieldId("aprs-rx")}
@@ -268,18 +270,22 @@ function ChannelEditorFields({
         value={channel.aprsReceive === "unknown" ? null : channel.aprsReceive}
         placeholder={channelValue(channel.aprsReceive, t)}
         options={drawerValueOptions(APRS_RECEIVE_OPTIONS, t)}
-        onCommit={(aprsReceive) => onEdit(channel.number, { aprsReceive })}
+        onCommit={(aprsReceive) => onEdit({ aprsReceive })}
       />
-      <DrawerReadOnlyField
-        id={fieldId("zones")}
-        label={t("channelZones")}
-        value={channel.zoneNames.join(", ") || t("noMembership")}
-      />
-      <DrawerReadOnlyField
-        id={fieldId("scan-lists")}
-        label={t("channelScanLists")}
-        value={channel.scanListNames.join(", ") || t("noMembership")}
-      />
+      {"number" in channel && (
+        <>
+          <DrawerReadOnlyField
+            id={fieldId("zones")}
+            label={t("channelZones")}
+            value={channel.zoneNames.join(", ") || t("noMembership")}
+          />
+          <DrawerReadOnlyField
+            id={fieldId("scan-lists")}
+            label={t("channelScanLists")}
+            value={channel.scanListNames.join(", ") || t("noMembership")}
+          />
+        </>
+      )}
     </FieldGroup>
   )
 }

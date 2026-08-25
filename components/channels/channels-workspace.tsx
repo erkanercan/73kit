@@ -26,7 +26,9 @@ function ChannelsWorkspace() {
     changes,
     completedRead,
     deleteMemoryChannel,
+    editCallChannel,
     editMemoryChannel,
+    editVfoChannel,
     moveMemoryChannel,
     readRadio,
     resetWorkingCodeplug,
@@ -99,16 +101,18 @@ function ChannelsWorkspace() {
             onReset={resetWorkingCodeplug}
           />
         </TabsContent>
-        <TabsContent value="vfo" className="min-h-0 overflow-auto">
+        <TabsContent value="vfo" className="min-h-0 overflow-hidden">
           <SpecialChannelsCard
             channels={codeplug.getVfoChannels()}
             kind="vfo"
+            onEdit={editVfoChannel}
           />
         </TabsContent>
-        <TabsContent value="call" className="min-h-0 overflow-auto">
+        <TabsContent value="call" className="min-h-0 overflow-hidden">
           <SpecialChannelsCard
             channels={codeplug.getCallChannels()}
             kind="call"
+            onEdit={editCallChannel}
           />
         </TabsContent>
       </Tabs>

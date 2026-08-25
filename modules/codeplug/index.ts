@@ -5,7 +5,11 @@ import {
   decodeChannels,
   decodeVfoChannels,
 } from "./channel-codec.ts"
-import { editMemoryChannelBytes } from "./channel-edit.ts"
+import {
+  editCallChannelBytes,
+  editMemoryChannelBytes,
+  editVfoChannelBytes,
+} from "./channel-edit.ts"
 import {
   decodeScanLists,
   decodeZones,
@@ -19,7 +23,11 @@ import {
   addDefaultMemoryChannelBytes,
   deleteMemoryChannelBytes,
 } from "./channel-rows.ts"
-import type { MemoryChannelPatch } from "./channel-edit.ts"
+import type {
+  CallChannelPatch,
+  MemoryChannelPatch,
+  VfoChannelPatch,
+} from "./channel-edit.ts"
 import type {
   ChannelCollectionPatch,
   ChannelMembershipPatch,
@@ -92,6 +100,14 @@ class Codeplug {
     return new Codeplug(editMemoryChannelBytes(this.#bytes, number, patch))
   }
 
+  editVfoChannel(slot: "A" | "B", patch: VfoChannelPatch) {
+    return new Codeplug(editVfoChannelBytes(this.#bytes, slot, patch))
+  }
+
+  editCallChannel(slot: 1 | 2, patch: CallChannelPatch) {
+    return new Codeplug(editCallChannelBytes(this.#bytes, slot, patch))
+  }
+
   editZone(number: number, patch: ChannelCollectionPatch) {
     return new Codeplug(editZoneBytes(this.#bytes, number, patch))
   }
@@ -142,4 +158,8 @@ export type {
   ScanList,
   Zone,
 } from "./channel-membership.ts"
-export type { MemoryChannelPatch } from "./channel-edit.ts"
+export type {
+  CallChannelPatch,
+  MemoryChannelPatch,
+  VfoChannelPatch,
+} from "./channel-edit.ts"

@@ -56,7 +56,7 @@ function ChannelEditorDrawer({
               <ChannelEditorFields
                 key={channel.number}
                 channel={channel}
-                onEdit={onEdit}
+                onEdit={(patch) => onEdit(channel.number, patch)}
               />
             </ScrollArea>
           </>

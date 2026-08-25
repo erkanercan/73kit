@@ -272,5 +272,6 @@ export {
   ChannelValueSelect,
   EditableNameCell,
   EditableSelectCell,
+  EditableTextCell,
   FrequencyCell,
 }

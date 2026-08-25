@@ -5,6 +5,7 @@ import { CODEPLUG_SIZE, createCodeplug } from "../modules/codeplug/index.ts"
 import {
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
+  reconcileSpecialChannelEditChanges,
 } from "../modules/cps-workspace/change-set.ts"
 
 const CHANNEL_RECORD_SIZE = 48
@@ -452,6 +453,110 @@ test("decodes VFO A/B and Call 1/2 through separate read interfaces", () => {
   )
   assert.equal(Object.isFrozen(vfo), true)
   assert.equal(Object.isFrozen(call[0]), true)
+})
+
+test("edits VFO and Call Channel records without touching adjacent bytes", () => {
+  const bytes = Uint8Array.from(
+    { length: CODEPLUG_SIZE },
+    (_, index) => (index * 17 + 9) & 0xff
+  )
+  writeChannelAtOffset(bytes, VFO_RECORDS_OFFSET, "Hidden VFO A", 144_500_000)
+  writeChannelAtOffset(
+    bytes,
+    CALL_RECORDS_OFFSET + CHANNEL_RECORD_SIZE,
+    "Call 2",
+    433_500_000
+  )
+  const baseline = createCodeplug(bytes)
+  const originalVfoName = baseline.getVfoChannels()[0].name
+
+  const edited = baseline
+    .editVfoChannel("A", {
+      receiveFrequencyHz: 145_500_000,
+      duplex: "positive",
+      offsetFrequencyHz: 600_000,
+      transmitTone: { kind: "ctcss", frequencyHz: 88.5 },
+    })
+    .editCallChannel(2, {
+      name: "Local Call",
+      modulation: "fm-narrow",
+      receiveTone: { kind: "dcs", code: "023", reverse: true },
+    })
+
+  const vfoA = edited.getVfoChannels()[0]
+  const call2 = edited.getCallChannels()[1]
+  assert.equal(vfoA.name, originalVfoName)
+  assert.equal(vfoA.receiveFrequencyHz, 145_500_000)
+  assert.equal(vfoA.duplex, "positive")
+  assert.equal(vfoA.offsetFrequencyHz, 600_000)
+  assert.deepEqual(vfoA.transmitTone, {
+    kind: "ctcss",
+    frequencyHz: 88.5,
+  })
+  assert.equal(call2.name, "Local Call")
+  assert.equal(call2.modulation, "fm-narrow")
+  assert.deepEqual(call2.receiveTone, {
+    kind: "dcs",
+    code: "023",
+    reverse: true,
+  })
+  assert.equal(
+    edited.toBytes()[VFO_RECORDS_OFFSET + CHANNEL_RECORD_SIZE - 1],
+    bytes[VFO_RECORDS_OFFSET + CHANNEL_RECORD_SIZE - 1]
+  )
+  assert.equal(
+    edited.toBytes()[CALL_RECORDS_OFFSET + 2 * CHANNEL_RECORD_SIZE],
+    bytes[CALL_RECORDS_OFFSET + 2 * CHANNEL_RECORD_SIZE]
+  )
+})
+
+test("removes VFO and Call changes when fields return to baseline", () => {
+  const bytes = new Uint8Array(CODEPLUG_SIZE)
+  writeChannelAtOffset(bytes, VFO_RECORDS_OFFSET, "Hidden", 144_500_000)
+  writeChannelAtOffset(bytes, CALL_RECORDS_OFFSET, "Local", 145_500_000)
+  const baseline = createCodeplug(bytes)
+
+  const changedVfo = baseline.editVfoChannel("A", { duplex: "split" })
+  const vfoChanges = reconcileSpecialChannelEditChanges(
+    [],
+    baseline,
+    changedVfo,
+    { kind: "vfo", slot: "A", fields: ["duplex"] }
+  )
+  assert.deepEqual(vfoChanges, [
+    { kind: "edit-vfo-channel", slot: "A", field: "duplex" },
+  ])
+
+  const changedCall = changedVfo.editCallChannel(1, { name: "Travel" })
+  const callChanges = reconcileSpecialChannelEditChanges(
+    vfoChanges,
+    baseline,
+    changedCall,
+    { kind: "call", slot: 1, fields: ["name"] }
+  )
+  assert.equal(callChanges.length, 2)
+
+  const revertedVfo = changedCall.editVfoChannel("A", { duplex: "off" })
+  const withoutVfoChange = reconcileSpecialChannelEditChanges(
+    callChanges,
+    baseline,
+    revertedVfo,
+    { kind: "vfo", slot: "A", fields: ["duplex"] }
+  )
+  assert.deepEqual(withoutVfoChange, [
+    { kind: "edit-call-channel", slot: 1, field: "name" },
+  ])
+
+  const revertedCall = revertedVfo.editCallChannel(1, { name: "Local" })
+  assert.deepEqual(
+    reconcileSpecialChannelEditChanges(
+      withoutVfoChange,
+      baseline,
+      revertedCall,
+      { kind: "call", slot: 1, fields: ["name"] }
+    ),
+    []
+  )
 })
 
 test("maps validity and scan bitmap entries across byte boundaries", () => {

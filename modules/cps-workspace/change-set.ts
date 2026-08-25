@@ -1,7 +1,10 @@
 import type {
+  CallChannelPatch,
   Channel,
   Codeplug,
   MemoryChannelPatch,
+  SpecialChannel,
+  VfoChannelPatch,
 } from "../codeplug/index.ts"
 
 type WorkspaceChange =
@@ -23,6 +26,16 @@ type WorkspaceChange =
   | {
       readonly kind: "delete-memory-channel"
       readonly number: number
+    }
+  | {
+      readonly kind: "edit-vfo-channel"
+      readonly slot: "A" | "B"
+      readonly field: keyof VfoChannelPatch
+    }
+  | {
+      readonly kind: "edit-call-channel"
+      readonly slot: 1 | 2
+      readonly field: keyof CallChannelPatch
     }
 
 type MemoryChannelStructureChange = {
@@ -55,7 +68,9 @@ function reconcileMemoryChannelStructureChange(
 
     if (
       addition?.kind === "add-memory-channel" &&
-      laterChanges.every((candidate) => candidate.kind === "edit-memory-channel")
+      laterChanges.every(
+        (candidate) => candidate.kind === "edit-memory-channel"
+      )
     ) {
       let restoredCodeplug = addition.beforeCodeplug
       const retainedLaterChanges = laterChanges.filter(
@@ -146,10 +161,103 @@ function reconcileMemoryChannelEditChanges(
   ])
 }
 
+type SpecialChannelEdit =
+  | {
+      readonly kind: "vfo"
+      readonly slot: "A" | "B"
+      readonly fields: readonly (keyof VfoChannelPatch)[]
+    }
+  | {
+      readonly kind: "call"
+      readonly slot: 1 | 2
+      readonly fields: readonly (keyof CallChannelPatch)[]
+    }
+
+function reconcileSpecialChannelEditChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  edit: SpecialChannelEdit
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) {
+    return Object.freeze([])
+  }
+
+  const baselineChannels =
+    edit.kind === "vfo"
+      ? baselineCodeplug.getVfoChannels()
+      : baselineCodeplug.getCallChannels()
+  const workingChannels =
+    edit.kind === "vfo"
+      ? workingCodeplug.getVfoChannels()
+      : workingCodeplug.getCallChannels()
+  const baselineChannel = baselineChannels.find(
+    (channel) => channel.slot === edit.slot
+  )
+  const workingChannel = workingChannels.find(
+    (channel) => channel.slot === edit.slot
+  )
+  if (!baselineChannel || !workingChannel) {
+    throw new RangeError(`Unknown ${edit.kind.toUpperCase()} Channel slot`)
+  }
+
+  const fields = edit.fields as readonly (keyof CallChannelPatch)[]
+  const affectedFields = new Set(fields)
+  const retained = current.filter((change) => {
+    if (edit.kind === "vfo") {
+      return (
+        change.kind !== "edit-vfo-channel" ||
+        change.slot !== edit.slot ||
+        !affectedFields.has(change.field)
+      )
+    }
+    return (
+      change.kind !== "edit-call-channel" ||
+      change.slot !== edit.slot ||
+      !affectedFields.has(change.field)
+    )
+  })
+  const changedFields = fields.filter(
+    (field) => !channelRecordFieldEquals(baselineChannel, workingChannel, field)
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) =>
+      edit.kind === "vfo"
+        ? Object.freeze({
+            kind: "edit-vfo-channel" as const,
+            slot: edit.slot,
+            field: field as keyof VfoChannelPatch,
+          })
+        : Object.freeze({
+            kind: "edit-call-channel" as const,
+            slot: edit.slot,
+            field,
+          })
+    ),
+  ])
+}
+
 function channelFieldEquals(
   baseline: Channel,
   working: Channel,
   field: keyof MemoryChannelPatch
+) {
+  if (field === "valid" || field === "scan") {
+    return baseline[field] === working[field]
+  }
+  return channelRecordFieldEquals(
+    baseline,
+    working,
+    field as keyof CallChannelPatch
+  )
+}
+
+function channelRecordFieldEquals(
+  baseline: Channel | SpecialChannel,
+  working: Channel | SpecialChannel,
+  field: keyof CallChannelPatch
 ) {
   if (field === "optionalSignaling") {
     return (
@@ -199,5 +307,6 @@ function toneEquals(
 export {
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
+  reconcileSpecialChannelEditChanges,
 }
 export type { WorkspaceChange }

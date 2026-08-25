@@ -17,9 +17,14 @@ import {
 import {
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
+  reconcileSpecialChannelEditChanges,
   type WorkspaceChange,
 } from "@/modules/cps-workspace/change-set"
-import type { MemoryChannelPatch } from "@/modules/codeplug/index"
+import type {
+  CallChannelPatch,
+  MemoryChannelPatch,
+  VfoChannelPatch,
+} from "@/modules/codeplug/index"
 import {
   Uvl15wRadioError,
   type SourceRadio,
@@ -42,6 +47,8 @@ interface CpsWorkspaceContextValue {
   addMemoryChannel(): void
   deleteMemoryChannel(number: number): void
   editMemoryChannel(number: number, patch: MemoryChannelPatch): void
+  editVfoChannel(slot: "A" | "B", patch: VfoChannelPatch): void
+  editCallChannel(slot: 1 | 2, patch: CallChannelPatch): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
 }
@@ -245,6 +252,76 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const editVfoChannel = React.useCallback(
+    (slot: "A" | "B", patch: VfoChannelPatch) => {
+      const fields = Object.keys(patch) as (keyof VfoChannelPatch)[]
+      if (fields.length === 0) {
+        return
+      }
+
+      setDocumentState((current) => {
+        if (!current.completedRead) {
+          return current
+        }
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editVfoChannel(slot, patch)
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileSpecialChannelEditChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            { kind: "vfo", slot, fields }
+          ),
+        })
+      })
+    },
+    []
+  )
+
+  const editCallChannel = React.useCallback(
+    (slot: 1 | 2, patch: CallChannelPatch) => {
+      const fields = Object.keys(patch) as (keyof CallChannelPatch)[]
+      if (fields.length === 0) {
+        return
+      }
+
+      setDocumentState((current) => {
+        if (!current.completedRead) {
+          return current
+        }
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editCallChannel(slot, patch)
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileSpecialChannelEditChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            { kind: "call", slot, fields }
+          ),
+        })
+      })
+    },
+    []
+  )
+
   const addMemoryChannel = React.useCallback(() => {
     setDocumentState((current) => {
       if (!current.completedRead) {
@@ -360,6 +437,8 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       addMemoryChannel,
       deleteMemoryChannel,
       editMemoryChannel,
+      editVfoChannel,
+      editCallChannel,
       moveMemoryChannel,
       resetWorkingCodeplug,
     }),
@@ -377,6 +456,8 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       addMemoryChannel,
       deleteMemoryChannel,
       editMemoryChannel,
+      editVfoChannel,
+      editCallChannel,
       moveMemoryChannel,
       resetWorkingCodeplug,
     ]

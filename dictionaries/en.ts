@@ -173,6 +173,7 @@ const en = {
   pttId: "PTT ID",
   aprsReceive: "APRS RX",
   inspectChannel: "Inspect channel {number, number}",
+  inspectSpecialChannel: "Inspect {channel}",
   dragChannel: "Move channel {number, number}",
   channelDetailsTitle: "Channel {number, number}",
   noMatchingChannels: "No matching channels",

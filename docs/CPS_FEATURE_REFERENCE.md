@@ -336,6 +336,17 @@ directly editable only when Duplex is Split. Offset is directly editable only
 for positive or negative Duplex modes. Zone/Scan List membership editing
 remains planned because it requires a dedicated synchronized membership editor.
 
+### VFO and Call Channel inline editing — P1 / IMPLEMENTED
+
+VFO A/B and Call 1/2 use the same validated 48-byte Channel field editor as
+Memory Channels. Frequently used fields are editable directly in their tables,
+and the complete supported field set is editable in the details Drawer. VFO
+does not expose the record name, Zone, Scan List or Memory-only Used/Scan Flag
+fields. Call exposes the Channel name but likewise has no Zone, Scan List,
+Used or Scan Flag fields. Each field is tracked against its corresponding
+Baseline Backup slot, so restoring its baseline value removes the pending
+change. Edits remain in the Working Codeplug only; no Radio Write is performed.
+
 ### Supported channel fields
 
 - RX frequency — P0
@@ -398,11 +409,11 @@ the remaining bytes are preserved exactly.
 
 ## 7.5 VFOs, Call Channels, Temporary Channels & Weather Channels
 
-### VFO A/B — P1 / DOCUMENTED
+### VFO A/B — P1 / IMPLEMENTED PRODUCT; DOCUMENTED STORAGE
 
 Two 48-byte channel records.
 
-### Call Channels 1/2 — P1 / DOCUMENTED
+### Call Channels 1/2 — P1 / IMPLEMENTED PRODUCT; DOCUMENTED STORAGE
 
 Two special Call Channel storage slots.
 
@@ -916,7 +927,7 @@ Advanced
 - [x] reset all Working Codeplug edits to the Baseline Backup
 - [x] CTCSS/DCS indexed-value editing in the Memory table and details Drawer
 - [ ] Zone and Scan List membership editing
-- [ ] VFO/Call Channel editing
+- [x] VFO/Call Channel editing
 - [ ] semantic Change Set tracking against the Baseline Backup
 - [ ] Change Set review
 - [ ] undo/redo
@@ -1043,7 +1054,7 @@ firmware update commands
 - [ ] saved Working Codeplugs
 - [ ] zone editor
 - [ ] scan-list editor
-- [ ] VFO/Call Channel editor
+- [x] VFO/Call Channel editor
 - [ ] radio settings
 - [ ] programmable keys
 - [ ] APRS
