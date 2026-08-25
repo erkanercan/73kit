@@ -131,6 +131,8 @@ function MemoryChannelsCard({
         const haystack = [
           channel.number,
           channel.name,
+          channel.zoneNames.join(" "),
+          channel.scanListNames.join(" "),
           formatFrequency(channel.receiveFrequencyHz),
           formatFrequency(channel.transmitFrequencyHz),
         ]

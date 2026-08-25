@@ -8,6 +8,7 @@ import {
   CHANNEL_ZONE_MEMBERSHIP_OFFSET,
   MEMBER_LIST_SIZE,
   MEMBER_LIST_SLOT_COUNT,
+  MEMBERSHIP_BITMAP_RECORD_SIZE,
   MEMBERSHIP_GROUP_COUNT,
   SCAN_BITMAP_OFFSET,
   SCAN_LIST_MEMBER_LISTS_OFFSET,
@@ -77,13 +78,16 @@ function clearMemoryChannelSlot(bytes: Uint8Array, index: number) {
   writeTwoBits(bytes, SCAN_BITMAP_OFFSET, index, 0)
   bytes.fill(
     0xff,
-    CHANNEL_ZONE_MEMBERSHIP_OFFSET + index * 2,
-    CHANNEL_ZONE_MEMBERSHIP_OFFSET + index * 2 + 2
+    CHANNEL_ZONE_MEMBERSHIP_OFFSET + index * MEMBERSHIP_BITMAP_RECORD_SIZE,
+    CHANNEL_ZONE_MEMBERSHIP_OFFSET +
+      (index + 1) * MEMBERSHIP_BITMAP_RECORD_SIZE
   )
   bytes.fill(
     0xff,
-    CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + index * 2,
-    CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + index * 2 + 2
+    CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET +
+      index * MEMBERSHIP_BITMAP_RECORD_SIZE,
+    CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET +
+      (index + 1) * MEMBERSHIP_BITMAP_RECORD_SIZE
   )
 }
 
@@ -104,7 +108,7 @@ function removeReferencesFromLists(
     const retained: number[] = []
 
     for (let slot = 0; slot < MEMBER_LIST_SLOT_COUNT; slot += 1) {
-      const value = view.getUint16(listOffset + slot * 2, true)
+      const value = view.getUint16(listOffset + slot * 2, false)
       if (value !== channelIndex) {
         retained.push(value)
       }
@@ -121,7 +125,7 @@ function removeReferencesFromLists(
       )
     )
     retained.forEach((value, slot) => {
-      view.setUint16(listOffset + slot * 2, value, true)
+      view.setUint16(listOffset + slot * 2, value, false)
     })
   }
 }

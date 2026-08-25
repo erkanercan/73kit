@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 import type { Channel } from "@/modules/codeplug/index"
 
 function EditableNameCell({
@@ -28,10 +29,22 @@ function EditableNameCell({
   onEdit: EditMemoryChannel
 }) {
   const t = useTranslations()
+  const memberships = [
+    channel.zoneNames.length > 0
+      ? `${t("channelZones")}: ${channel.zoneNames.join(", ")}`
+      : null,
+    channel.scanListNames.length > 0
+      ? `${t("channelScanLists")}: ${channel.scanListNames.join(", ")}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ")
+
   return (
     <EditableTextCell
       value={channel.name}
       displayValue={channel.name || t("unused")}
+      description={memberships || undefined}
       ariaLabel={`${t("channelName")} ${channel.number}`}
       invalidMessage={t("channelNameTooLong")}
       validate={(value) =>
@@ -82,6 +95,7 @@ function FrequencyCell({
 function EditableTextCell({
   value,
   displayValue,
+  description,
   ariaLabel,
   inputMode,
   invalidMessage,
@@ -90,6 +104,7 @@ function EditableTextCell({
 }: {
   value: string
   displayValue: string
+  description?: string
   ariaLabel: string
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"]
   invalidMessage: string
@@ -116,7 +131,10 @@ function EditableTextCell({
       <Button
         variant="ghost"
         size="sm"
-        className="w-full min-w-0 justify-start px-2 font-mono"
+        className={cn(
+          "w-full min-w-0 justify-start px-2 font-mono",
+          description && "h-9 flex-col items-start gap-0 py-0.5"
+        )}
         aria-label={ariaLabel}
         onClick={(event) => {
           event.stopPropagation()
@@ -125,7 +143,12 @@ function EditableTextCell({
           setEditing(true)
         }}
       >
-        <span className="truncate">{displayValue}</span>
+        <span className="w-full truncate text-left">{displayValue}</span>
+        {description && (
+          <span className="w-full truncate text-left font-sans text-[10px] text-muted-foreground">
+            {description}
+          </span>
+        )}
       </Button>
     )
   }

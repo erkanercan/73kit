@@ -66,6 +66,12 @@ The Codeplug module owns raw-value preservation, parsing, editing, validation, c
 
 The interface should expose domain operations and results rather than addresses, offsets, bit manipulation, or mutable byte arrays. Detailed editor operations should be added only when their first use case is implemented.
 
+Zone and Scan List storage is exposed through immutable collections on the
+Codeplug interface. Collection edits and per-Channel membership edits hide the
+dual ordered-list/inverted-bitmap representation, capacity enforcement, and
+consistency validation. UI callers must not manipulate either storage
+representation independently.
+
 ## Transport seam
 
 The Transport seam isolates UVL-15W protocol behaviour from byte transport behaviour. It is a real seam because it has two adapters:

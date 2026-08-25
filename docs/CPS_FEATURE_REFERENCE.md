@@ -388,6 +388,12 @@ Off plus documented values `2700` through `3400` in 100-unit increments.
 
 Important: zone and scan-list membership bitmaps are stored inverted (`0 = member`). Hide this behind domain APIs.
 
+The hardware-verified layout uses 4-byte membership records at `0x0001C000`
+for Zones and `0x0001D000` for Scan Lists. Ordered member entries are
+big-endian at `0x00018000` and `0x0001A000`; names are stored at `0x0001E000`
+and `0x0001E500`. Only the lower 16 membership bits are currently interpreted;
+the remaining bytes are preserved exactly.
+
 ---
 
 ## 7.5 VFOs, Call Channels, Temporary Channels & Weather Channels
@@ -418,6 +424,22 @@ The storage reference's normal save flow mirrors `VFO A → Temp A` and `VFO B �
 - A/B active zone selection — P1
 
 Zone information exists in both ordered member lists and per-channel membership bitmaps. Writer code must maintain both consistently.
+
+### Zone and Scan List domain operations — P1 / IMPLEMENTED
+
+The Codeplug module exposes immutable Zone and Scan List collections plus
+operations to rename a collection, replace and reorder its members, or update
+one Channel's complete Zone and Scan List membership. Every membership edit
+updates the ordered member list and inverted per-channel bitmap together while
+preserving unrelated bytes and the unused upper membership bits.
+
+The same interface enforces 24-byte UTF-8 names, unique Channel membership,
+valid Channel and collection numbers, and the 128-member capacity. Consistency
+validation reports stable codes for invalid or duplicate ordered entries and
+for differences between ordered lists and membership bitmaps.
+
+This milestone provides the shared domain implementation only. Zone and Scan
+List pages and Channel table/Drawer membership controls remain unimplemented.
 
 Recommended UX: drag/drop, bulk assign, member count, consistency warnings.
 
@@ -903,12 +925,16 @@ Advanced
 
 ## Epic 6 — Zones & scan lists
 
-- zone editing
-- ordered membership
-- bitmap synchronization
-- scan-list editing
-- priority/skip
-- consistency validation
+- [x] shared immutable Zone and Scan List domain interface
+- [x] rename and ordered-member replacement operations
+- [x] per-Channel Zone and Scan List membership operations
+- [x] ordered-list and inverted-bitmap synchronization
+- [x] 128-member capacity and consistency validation
+- [ ] Zone page
+- [ ] Scan List page
+- [ ] Channel table and Drawer membership controls
+- [ ] A/B active Zone and Scan List selection
+- [ ] Scan List priority/skip settings
 
 ## Epic 7 — Safe writer
 

@@ -88,13 +88,11 @@ English developer edition: terminology and descriptions have been normalized for
 | 2-Tone configuration region | 0x00016800~0x000169FF | 512 B | Signaling System-2Tone page |
 | 5-Tone configuration region | 0x00017000~0x000177FF | 2048 B | Signaling System-5Tone page |
 | Zone member-list region | 0x00018000~0x00018FFF | 4096 B | Zones page (16 zones, each with 128×2 B) |
-| Scan-list member region | 0x00019000~0x00019FFF | 4096 B | Scan Lists page (16 scan lists, each with 128×2 B) |
-| Channel-to-Zone membership bitmap | 0x0001A000~0x0001A7CF | 2000 B | Zone membership per channel (16 bits / channel, CH1~CH1000) |
-| Channel-to-Scan List membership bitmap | 0x0001A800~0x0001AFCF | 2000 B | Scan List membership per channel (16 bits / channel, CH1~CH1000) |
-| Zone name region | 0x0001B000~0x0001B17F | 384 B | 16 zone names (24 B each) |
-| Zone attribute region | 0x0001B200~0x0001B3FF | 512 B | Zone parameter settings |
-| Scan List name region | 0x0001B400~0x0001B57F | 384 B | 16 scan-list names (24 B each) |
-| Scan List attribute region | 0x0001B600~0x0001B7FF | 512 B | Scan List parameter settings |
+| Scan-list member region | 0x0001A000~0x0001AFFF | 4096 B | Scan Lists page (16 scan lists, each with 128×2 B) |
+| Channel-to-Zone membership bitmap | 0x0001C000~0x0001CF9F | 4000 B | 4 B per channel; inverted membership bits |
+| Channel-to-Scan List membership bitmap | 0x0001D000~0x0001DF9F | 4000 B | 4 B per channel; inverted membership bits |
+| Zone name region | 0x0001E000~0x0001E17F | 384 B | 16 zone names (24 B each) |
+| Scan List name region | 0x0001E500~0x0001E67F | 384 B | 16 scan-list names (24 B each) |
 | Menu Display Mask | 0x0001BA00~0x0001BAFF | 256 B | menu visibility bitmap |
 
 **Write strategy**: For blocks containing bit fields or reserved bits, use read-modify-write on the complete block to preserve unrelated/reserved values.
@@ -630,8 +628,8 @@ English developer edition: terminology and descriptions have been normalized for
 | Channel record CH1~CH1000 | 0x00008000 + (CH-1)×0x30 | 48 B / record | CH range 1~1000; record content uses the 48-byte channel format.Example: CH1 Address=0x00008000; CH2 Address=0x00008030; CH1000 Address=0x00013B50. |
 | Validity flag (Memory\_Use\_Flag\_List) | 0x00015000 + floor ((CH-1)/8) | 1 bit / channel | bit=(CH-1)%8; 1=valid channel, 0=invalid/unused channel. Example: CH1=0x00015000 bit0; CH8=0x00015000 bit7; CH9=0x00015001 bit0. |
 | Scan flag (Memory\_Scan\_Flag\_List) | 0x00015080 + floor ((CH-1)/4) | 2 bits / channel | 2 bits per channel, bit shift=2×((CH-1)%4). 0=Off (included in normal scan)1=Skip (skip during scan)2=Priority (priority channel)3=Reserved (do not use) Example: CH1=0x00015080 bit1:0; CH2=bit3:2; CH4=bit7:6; CH5=0x00015081 bit1:0. Host should read-modify-write the 2-bit field. |
-| Zone membership (CH\_IN\_ZONE\_LIST) | 0x0001A000 + (CH-1)×2 | 2B/Channel | 16-bit bitmap per channel (Zone1~Zone16). Important: stored inverted (Qt writes `~Bitmap`). Therefore membership is stored as bit=0.Example: CH1 uses 0x0001A000~0x0001A001; CH2 uses 0x0001A002~0x0001A003; Zone1 corresponds to bit0, include in Zone1 bit0=0; Zone9 corresponds to bit8, include in Zone9 bit8=0; Zone16 corresponds to bit15, include in Zone16 bit15=0. |
-| Scan-list membership (CH\_IN\_SCANLIST\_LIST) | 0x0001A800 + (CH-1)×2 | 2B/Channel | 16-bit bitmap per channel (Scan List1~16). This field is also stored inverted (Qt writes `~Bitmap`). Therefore, membership in a scan list is stored as bit value 0. Example: CH1 uses 0x0001A800~0x0001A801; CH1000 uses 0x0001AFCE~0x0001AFCF; Scan List1 corresponds to bit0, include in bit0=0; Scan List9 corresponds to bit8, include in bit8=0; Scan List16 corresponds to bit15, include in bit15=0. |
+| Zone membership (CH\_IN\_ZONE\_LIST) | 0x0001C000 + (CH-1)×4 | 4 B/Channel | Hardware-verified 32-bit little-endian inverted bitmap. Bits 0~15 map to Zone0~Zone15; bit=0 means member. Preserve the upper 16 bits. |
+| Scan-list membership (CH\_IN\_SCANLIST\_LIST) | 0x0001D000 + (CH-1)×4 | 4 B/Channel | Hardware-verified 32-bit little-endian inverted bitmap. Bits 0~15 map to Scan List0~15; bit=0 means member. Preserve the upper 16 bits. |
 
 **48-byte encoding**: Multi-byte fields are stored Big-Endian (the Qt CPS constructs 4-byte/1-byte fields directly as hexadecimal byte strings).
 
@@ -785,12 +783,11 @@ DTCS\_ARRAY (index starts at 0) =
 
 | UI option | Offset / absolute address | Length | Storage format / options |
 | --- | --- | --- | --- |
-| Zone Name list (Zone0-Zone15) | 0x0001B000 + zone×0x18 | 24 B / record, total16 records | UTF-8 byte stream, pad with 0x00. zone=0~15; default names are"Zone0-Zone15". |
-| A-band zone selection | 0x0001B200 + 0x00 | 1 B | 0x00~0x0F = Zone0~Zone150xFF = None Qt behavior: selecting None stores 0xFF; selecting a zone stores combo index - 1. |
-| B-band zone selection | 0x0001B200 + 0x01 | 1 B | 0x00~0x0F = Zone0~Zone150xFF = None Encoding is the same as A-band. |
-| Zone channel-member lists (16 groups) | 0x00018000 + zone×0x100 | 256B/ groups (128×2 B) | Each slot is 2 bytes, little-endian channel index 0-999; unused slots are 0xFFFF. |
+| Zone Name list (Zone0-Zone15) | 0x0001E000 + zone×0x18 | 24 B / record, total16 records | UTF-8 byte stream, pad with 0x00. zone=0~15. |
+| A/B active zone selection | Not yet hardware-verified | 2 B | Keep read/write support deferred until its physical address is verified. |
+| Zone channel-member lists (16 groups) | 0x00018000 + zone×0x100 | 256 B/group (128×2 B) | Each slot is a 2-byte big-endian channel index 0-999; unused slots are 0xFFFF. |
 
-**Consistency requirement**: The ordered Zone member list is stored at `0x00018000`, while per-channel Zone membership is stored in `CH\_IN\_ZONE\_LIST (0x0001A000)`; Both representations must remain consistent.
+**Consistency requirement**: The ordered Zone member list is stored at `0x00018000`, while per-channel Zone membership is stored at `0x0001C000`; both representations must remain consistent.
 
 <a id="sec5"></a>
 
@@ -802,12 +799,11 @@ DTCS\_ARRAY (index starts at 0) =
 
 | UI option | Offset / absolute address | Length | Storage format / options |
 | --- | --- | --- | --- |
-| Scan List Name table (Scan List0~15) | 0x0001B400 + list×0x18 | 24 B / record, total16 records | UTF-8 byte stream, pad with 0x00. Default names are Scan List 0 through Scan List 15. |
-| A-band scan-list selection | 0x0001B600 + 0x00 | 1 B | 0x00~0x0F = Scan List0~150xFF = None Qt write rule is the same as Zone selection. |
-| B-band scan-list selection | 0x0001B600 + 0x01 | 1 B | 0x00~0x0F = Scan List0~150xFF = None Encoding is the same as A-band. |
-| Scan List member lists (16 groups) | 0x00019000 + list×0x100 | 256B/ groups (128×2 B) | Each slot is 2 bytes, little-endian channel index 0-999; unused slots are 0xFFFF. |
+| Scan List Name table (Scan List0~15) | 0x0001E500 + list×0x18 | 24 B / record, total16 records | UTF-8 byte stream, pad with 0x00. |
+| A/B active scan-list selection | Not yet hardware-verified | 2 B | Keep read/write support deferred until its physical address is verified. |
+| Scan List member lists (16 groups) | 0x0001A000 + list×0x100 | 256 B/group (128×2 B) | Each slot is a 2-byte big-endian channel index 0-999; unused slots are 0xFFFF. |
 
-**Consistency requirement**: The ordered Scan List member list is stored at `0x00019000`, while per-channel Scan List membership is stored in `CH\_IN\_SCANLIST\_LIST (0x0001A800)`; Both representations must remain consistent.
+**Consistency requirement**: The ordered Scan List member list is stored at `0x0001A000`, while per-channel Scan List membership is stored at `0x0001D000`; both representations must remain consistent.
 
 <a id="sec6"></a>
 

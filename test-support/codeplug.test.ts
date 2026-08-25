@@ -11,11 +11,12 @@ const CHANNEL_RECORD_SIZE = 48
 const VALIDITY_BITMAP_OFFSET = 0xd000
 const SCAN_BITMAP_OFFSET = 0xd080
 const ZONE_MEMBER_LISTS_OFFSET = 0x10000
-const SCAN_LIST_MEMBER_LISTS_OFFSET = 0x11000
-const CHANNEL_ZONE_MEMBERSHIP_OFFSET = 0x12000
-const CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET = 0x12800
-const ZONE_NAMES_OFFSET = 0x13000
-const SCAN_LIST_NAMES_OFFSET = 0x13400
+const SCAN_LIST_MEMBER_LISTS_OFFSET = 0x12000
+const CHANNEL_ZONE_MEMBERSHIP_OFFSET = 0x14000
+const CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET = 0x15000
+const ZONE_NAMES_OFFSET = 0x16000
+const SCAN_LIST_NAMES_OFFSET = 0x16500
+const MEMBERSHIP_BITMAP_RECORD_SIZE = 4
 const VFO_RECORDS_OFFSET = 0xbb80
 const CALL_RECORDS_OFFSET = 0xbbe0
 
@@ -45,12 +46,12 @@ test("decodes a documented Channel through the Codeplug interface", () => {
   bytes.fill(
     0xff,
     CHANNEL_ZONE_MEMBERSHIP_OFFSET,
-    CHANNEL_ZONE_MEMBERSHIP_OFFSET + 2
+    CHANNEL_ZONE_MEMBERSHIP_OFFSET + MEMBERSHIP_BITMAP_RECORD_SIZE
   )
   bytes.fill(
     0xff,
     CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET,
-    CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + 2
+    CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + MEMBERSHIP_BITMAP_RECORD_SIZE
   )
 
   const codeplug = createCodeplug(bytes)
@@ -92,8 +93,8 @@ test("treats erased membership names as empty", () => {
   const view = new DataView(bytes.buffer)
 
   bytes[VALIDITY_BITMAP_OFFSET] = 1
-  view.setUint16(CHANNEL_ZONE_MEMBERSHIP_OFFSET, 0xfffe, true)
-  view.setUint16(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET, 0xfffe, true)
+  view.setUint32(CHANNEL_ZONE_MEMBERSHIP_OFFSET, 0xffff_fffe, true)
+  view.setUint32(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET, 0xffff_fffe, true)
   bytes.fill(0xff, ZONE_NAMES_OFFSET, ZONE_NAMES_OFFSET + 0x18)
   bytes.fill(0xff, SCAN_LIST_NAMES_OFFSET, SCAN_LIST_NAMES_OFFSET + 0x18)
 
@@ -101,6 +102,36 @@ test("treats erased membership names as empty", () => {
 
   assert.deepEqual(channel.zoneNames, [])
   assert.deepEqual(channel.scanListNames, [])
+})
+
+test("decodes the hardware-verified Zone and Scan List layout", () => {
+  const bytes = new Uint8Array(CODEPLUG_SIZE)
+  const view = new DataView(bytes.buffer)
+
+  bytes[VALIDITY_BITMAP_OFFSET] = 0b0000_0011
+  writeUtf8(bytes, ZONE_NAMES_OFFSET, "Antalya")
+  writeUtf8(bytes, ZONE_NAMES_OFFSET + 0x18, "Burdur")
+  writeUtf8(bytes, SCAN_LIST_NAMES_OFFSET, "Local")
+  view.setUint32(CHANNEL_ZONE_MEMBERSHIP_OFFSET, 0xffff_fffe, true)
+  view.setUint32(CHANNEL_ZONE_MEMBERSHIP_OFFSET + 4, 0xffff_fffd, true)
+  view.setUint32(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET, 0xffff_fffe, true)
+  view.setUint32(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + 4, 0xffff_ffff, true)
+  view.setUint16(ZONE_MEMBER_LISTS_OFFSET, 0, false)
+  view.setUint16(ZONE_MEMBER_LISTS_OFFSET + 0x100, 1, false)
+  view.setUint16(SCAN_LIST_MEMBER_LISTS_OFFSET, 0, false)
+
+  const channels = createCodeplug(bytes).getChannels().slice(0, 2)
+
+  assert.deepEqual(
+    channels.map(({ zoneNames, scanListNames }) => ({
+      zoneNames,
+      scanListNames,
+    })),
+    [
+      { zoneNames: ["Antalya"], scanListNames: ["Local"] },
+      { zoneNames: ["Burdur"], scanListNames: [] },
+    ]
+  )
 })
 
 test("moves a Memory Channel with its metadata and remaps ordered memberships", () => {
@@ -118,15 +149,15 @@ test("moves a Memory Channel with its metadata and remaps ordered memberships", 
   writeUtf8(bytes, ZONE_NAMES_OFFSET, "Local")
   writeUtf8(bytes, ZONE_NAMES_OFFSET + 0x18, "Travel")
   writeUtf8(bytes, SCAN_LIST_NAMES_OFFSET, "Daily")
-  view.setUint16(CHANNEL_ZONE_MEMBERSHIP_OFFSET, 0xfffe, true)
-  view.setUint16(CHANNEL_ZONE_MEMBERSHIP_OFFSET + 2, 0xfffd, true)
-  view.setUint16(CHANNEL_ZONE_MEMBERSHIP_OFFSET + 4, 0xffff, true)
-  view.setUint16(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET, 0xfffe, true)
-  view.setUint16(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + 2, 0xffff, true)
-  view.setUint16(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + 4, 0xffff, true)
-  view.setUint16(ZONE_MEMBER_LISTS_OFFSET, 0, true)
-  view.setUint16(ZONE_MEMBER_LISTS_OFFSET + 0x100, 1, true)
-  view.setUint16(SCAN_LIST_MEMBER_LISTS_OFFSET, 0, true)
+  view.setUint32(CHANNEL_ZONE_MEMBERSHIP_OFFSET, 0xffff_fffe, true)
+  view.setUint32(CHANNEL_ZONE_MEMBERSHIP_OFFSET + 4, 0xffff_fffd, true)
+  view.setUint32(CHANNEL_ZONE_MEMBERSHIP_OFFSET + 8, 0xffff_ffff, true)
+  view.setUint32(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET, 0xffff_fffe, true)
+  view.setUint32(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + 4, 0xffff_ffff, true)
+  view.setUint32(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + 8, 0xffff_ffff, true)
+  view.setUint16(ZONE_MEMBER_LISTS_OFFSET, 0, false)
+  view.setUint16(ZONE_MEMBER_LISTS_OFFSET + 0x100, 1, false)
+  view.setUint16(SCAN_LIST_MEMBER_LISTS_OFFSET, 0, false)
 
   const moved = createCodeplug(bytes).moveMemoryChannel(1, 3)
   const channels = moved.getChannels().slice(0, 3)
@@ -169,9 +200,17 @@ test("moves a Memory Channel with its metadata and remaps ordered memberships", 
       },
     ]
   )
-  assert.equal(movedView.getUint16(ZONE_MEMBER_LISTS_OFFSET, true), 2)
-  assert.equal(movedView.getUint16(ZONE_MEMBER_LISTS_OFFSET + 0x100, true), 0)
-  assert.equal(movedView.getUint16(SCAN_LIST_MEMBER_LISTS_OFFSET, true), 2)
+  assert.equal(movedView.getUint16(ZONE_MEMBER_LISTS_OFFSET, false), 2)
+  assert.equal(movedView.getUint16(ZONE_MEMBER_LISTS_OFFSET + 0x100, false), 0)
+  assert.equal(movedView.getUint16(SCAN_LIST_MEMBER_LISTS_OFFSET, false), 2)
+  assert.equal(
+    movedView.getUint32(CHANNEL_ZONE_MEMBERSHIP_OFFSET + 8, true),
+    0xffff_fffe
+  )
+  assert.equal(
+    movedView.getUint32(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + 8, true),
+    0xffff_fffe
+  )
   assert.deepEqual(createCodeplug(bytes).getChannels()[0].name, "Alpha")
 })
 
@@ -184,16 +223,16 @@ test("adds a clean default Memory Channel in the first unused slot", () => {
   bytes.fill(0xa5, CHANNEL_RECORD_SIZE, CHANNEL_RECORD_SIZE * 2)
   writeUtf8(bytes, ZONE_NAMES_OFFSET, "Local")
   writeUtf8(bytes, SCAN_LIST_NAMES_OFFSET, "Daily")
-  view.setUint16(CHANNEL_ZONE_MEMBERSHIP_OFFSET + 2, 0, true)
-  view.setUint16(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + 2, 0, true)
+  view.setUint32(CHANNEL_ZONE_MEMBERSHIP_OFFSET + 4, 0, true)
+  view.setUint32(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + 4, 0, true)
   bytes.fill(0xff, ZONE_MEMBER_LISTS_OFFSET, ZONE_MEMBER_LISTS_OFFSET + 0x100)
   bytes.fill(
     0xff,
     SCAN_LIST_MEMBER_LISTS_OFFSET,
     SCAN_LIST_MEMBER_LISTS_OFFSET + 0x100
   )
-  view.setUint16(ZONE_MEMBER_LISTS_OFFSET, 1, true)
-  view.setUint16(SCAN_LIST_MEMBER_LISTS_OFFSET, 1, true)
+  view.setUint16(ZONE_MEMBER_LISTS_OFFSET, 1, false)
+  view.setUint16(SCAN_LIST_MEMBER_LISTS_OFFSET, 1, false)
 
   const added = createCodeplug(bytes).addMemoryChannel()
   const channel = added.getChannels()[1]
@@ -255,9 +294,9 @@ test("adds a clean default Memory Channel in the first unused slot", () => {
       scanListNames: [],
     }
   )
-  assert.equal(addedView.getUint16(ZONE_MEMBER_LISTS_OFFSET, true), 0xffff)
+  assert.equal(addedView.getUint16(ZONE_MEMBER_LISTS_OFFSET, false), 0xffff)
   assert.equal(
-    addedView.getUint16(SCAN_LIST_MEMBER_LISTS_OFFSET, true),
+    addedView.getUint16(SCAN_LIST_MEMBER_LISTS_OFFSET, false),
     0xffff
   )
 })
@@ -319,12 +358,12 @@ test("deletes a Memory Channel, compacts rows, and repairs memberships", () => {
   bytes.fill(
     0xff,
     CHANNEL_ZONE_MEMBERSHIP_OFFSET,
-    CHANNEL_ZONE_MEMBERSHIP_OFFSET + 6
+    CHANNEL_ZONE_MEMBERSHIP_OFFSET + 3 * MEMBERSHIP_BITMAP_RECORD_SIZE
   )
   bytes.fill(
     0xff,
     CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET,
-    CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + 6
+    CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + 3 * MEMBERSHIP_BITMAP_RECORD_SIZE
   )
   bytes.fill(0xff, ZONE_MEMBER_LISTS_OFFSET, ZONE_MEMBER_LISTS_OFFSET + 0x100)
   bytes.fill(
@@ -332,11 +371,11 @@ test("deletes a Memory Channel, compacts rows, and repairs memberships", () => {
     SCAN_LIST_MEMBER_LISTS_OFFSET,
     SCAN_LIST_MEMBER_LISTS_OFFSET + 0x100
   )
-  view.setUint16(ZONE_MEMBER_LISTS_OFFSET, 0, true)
-  view.setUint16(ZONE_MEMBER_LISTS_OFFSET + 2, 1, true)
-  view.setUint16(ZONE_MEMBER_LISTS_OFFSET + 4, 2, true)
-  view.setUint16(SCAN_LIST_MEMBER_LISTS_OFFSET, 1, true)
-  view.setUint16(SCAN_LIST_MEMBER_LISTS_OFFSET + 2, 2, true)
+  view.setUint16(ZONE_MEMBER_LISTS_OFFSET, 0, false)
+  view.setUint16(ZONE_MEMBER_LISTS_OFFSET + 2, 1, false)
+  view.setUint16(ZONE_MEMBER_LISTS_OFFSET + 4, 2, false)
+  view.setUint16(SCAN_LIST_MEMBER_LISTS_OFFSET, 1, false)
+  view.setUint16(SCAN_LIST_MEMBER_LISTS_OFFSET + 2, 2, false)
 
   const deleted = createCodeplug(bytes).deleteMemoryChannel(2)
   const channels = deleted.getChannels()
@@ -357,13 +396,13 @@ test("deletes a Memory Channel, compacts rows, and repairs memberships", () => {
   )
   assert.deepEqual(
     [0, 1, 2].map((slot) =>
-      deletedView.getUint16(ZONE_MEMBER_LISTS_OFFSET + slot * 2, true)
+      deletedView.getUint16(ZONE_MEMBER_LISTS_OFFSET + slot * 2, false)
     ),
     [0, 1, 0xffff]
   )
   assert.deepEqual(
     [0, 1].map((slot) =>
-      deletedView.getUint16(SCAN_LIST_MEMBER_LISTS_OFFSET + slot * 2, true)
+      deletedView.getUint16(SCAN_LIST_MEMBER_LISTS_OFFSET + slot * 2, false)
     ),
     [1, 0xffff]
   )

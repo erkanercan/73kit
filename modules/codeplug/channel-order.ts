@@ -6,6 +6,7 @@ import {
   CHANNEL_ZONE_MEMBERSHIP_OFFSET,
   MEMBER_LIST_SIZE,
   MEMBER_LIST_SLOT_COUNT,
+  MEMBERSHIP_BITMAP_RECORD_SIZE,
   MEMBERSHIP_GROUP_COUNT,
   SCAN_BITMAP_OFFSET,
   SCAN_LIST_MEMBER_LISTS_OFFSET,
@@ -59,16 +60,20 @@ function moveMemoryChannelBytes(
     copyBlock(
       source,
       result,
-      CHANNEL_ZONE_MEMBERSHIP_OFFSET + oldIndex * 2,
-      CHANNEL_ZONE_MEMBERSHIP_OFFSET + newIndex * 2,
-      2
+      CHANNEL_ZONE_MEMBERSHIP_OFFSET +
+        oldIndex * MEMBERSHIP_BITMAP_RECORD_SIZE,
+      CHANNEL_ZONE_MEMBERSHIP_OFFSET +
+        newIndex * MEMBERSHIP_BITMAP_RECORD_SIZE,
+      MEMBERSHIP_BITMAP_RECORD_SIZE
     )
     copyBlock(
       source,
       result,
-      CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + oldIndex * 2,
-      CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + newIndex * 2,
-      2
+      CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET +
+        oldIndex * MEMBERSHIP_BITMAP_RECORD_SIZE,
+      CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET +
+        newIndex * MEMBERSHIP_BITMAP_RECORD_SIZE,
+      MEMBERSHIP_BITMAP_RECORD_SIZE
     )
   })
 
@@ -98,10 +103,10 @@ function remapMemberLists(
   for (let group = 0; group < MEMBERSHIP_GROUP_COUNT; group += 1) {
     for (let slot = 0; slot < MEMBER_LIST_SLOT_COUNT; slot += 1) {
       const offset = listsOffset + group * MEMBER_LIST_SIZE + slot * 2
-      const oldIndex = sourceView.getUint16(offset, true)
+      const oldIndex = sourceView.getUint16(offset, false)
 
       if (oldIndex < CHANNEL_COUNT) {
-        resultView.setUint16(offset, oldToNew[oldIndex], true)
+        resultView.setUint16(offset, oldToNew[oldIndex], false)
       }
     }
   }

@@ -23,20 +23,18 @@ import type {
   SpecialChannel,
 } from "./channel.ts"
 import {
+  decodeChannelScanListNames,
+  decodeChannelZoneNames,
+} from "./channel-membership.ts"
+import {
   CALL_RECORDS_OFFSET,
   CHANNEL_COUNT,
   CHANNEL_RECORD_SIZE,
   CHANNEL_RECORDS_OFFSET,
-  CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET,
-  CHANNEL_ZONE_MEMBERSHIP_OFFSET,
-  MEMBERSHIP_GROUP_COUNT,
-  MEMBERSHIP_NAME_SIZE,
   SCAN_BITMAP_OFFSET,
-  SCAN_LIST_NAMES_OFFSET,
   SPECIAL_CHANNEL_COUNT,
   VALIDITY_BITMAP_OFFSET,
   VFO_RECORDS_OFFSET,
-  ZONE_NAMES_OFFSET,
 } from "./memory-map.ts"
 
 const DUPLEX = [
@@ -260,18 +258,8 @@ function decodeChannel(bytes: Uint8Array, index: number): Channel {
     number: index + 1,
     valid: readValidity(bytes, index),
     scan: readScan(bytes, index),
-    zoneNames: decodeMembershipNames(
-      bytes,
-      index,
-      CHANNEL_ZONE_MEMBERSHIP_OFFSET,
-      ZONE_NAMES_OFFSET
-    ),
-    scanListNames: decodeMembershipNames(
-      bytes,
-      index,
-      CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET,
-      SCAN_LIST_NAMES_OFFSET
-    ),
+    zoneNames: decodeChannelZoneNames(bytes, index),
+    scanListNames: decodeChannelScanListNames(bytes, index),
     ...decodeChannelRecord(bytes, offset),
   })
 }
@@ -339,34 +327,6 @@ function decodeChannelRecord(
     pttId: lookup(PTT_ID, readBits(bytes[offset + 0x2d], 0, 4)),
     aprsReceive: lookup(APRS_RECEIVE, readBits(bytes[offset + 0x2e], 0, 2)),
   }
-}
-
-function decodeMembershipNames(
-  bytes: Uint8Array,
-  channelIndex: number,
-  bitmapOffset: number,
-  namesOffset: number
-) {
-  const membershipOffset = bitmapOffset + channelIndex * 2
-  const storedMembership =
-    bytes[membershipOffset] | (bytes[membershipOffset + 1] << 8)
-  const names: string[] = []
-
-  for (let group = 0; group < MEMBERSHIP_GROUP_COUNT; group += 1) {
-    if (((storedMembership >>> group) & 1) !== 0) {
-      continue
-    }
-
-    const nameOffset = namesOffset + group * MEMBERSHIP_NAME_SIZE
-    const name = decodeNullPaddedUtf8(
-      bytes.subarray(nameOffset, nameOffset + MEMBERSHIP_NAME_SIZE)
-    )
-    if (name) {
-      names.push(name)
-    }
-  }
-
-  return Object.freeze(names)
 }
 
 function readValidity(bytes: Uint8Array, index: number) {
