@@ -15,6 +15,12 @@ import {
   type CpsWorkspace,
 } from "@/modules/cps-workspace/index"
 import {
+  reconcileMemoryChannelEditChanges,
+  reconcileMemoryChannelStructureChange,
+  type WorkspaceChange,
+} from "@/modules/cps-workspace/change-set"
+import type { MemoryChannelPatch } from "@/modules/codeplug/index"
+import {
   Uvl15wRadioError,
   type SourceRadio,
   type Uvl15wRadioErrorCode,
@@ -33,14 +39,11 @@ interface CpsWorkspaceContextValue {
   readonly changes: readonly WorkspaceChange[]
   readRadio(): Promise<void>
   downloadRawBackup(): void
+  addMemoryChannel(): void
+  deleteMemoryChannel(number: number): void
+  editMemoryChannel(number: number, patch: MemoryChannelPatch): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
-}
-
-interface WorkspaceChange {
-  readonly kind: "move-memory-channel"
-  readonly fromNumber: number
-  readonly toNumber: number
 }
 
 type WorkspaceError =
@@ -76,11 +79,13 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
   >("checking")
   const [phase, setPhase] = React.useState<WorkspacePhase>("idle")
   const [sourceRadio, setSourceRadio] = React.useState<SourceRadio | null>(null)
-  const [completedRead, setCompletedRead] =
-    React.useState<CompletedRadioRead | null>(null)
+  const [documentState, setDocumentState] = React.useState<{
+    readonly completedRead: CompletedRadioRead | null
+    readonly changes: readonly WorkspaceChange[]
+  }>({ completedRead: null, changes: [] })
   const [progress, setProgress] = React.useState(0)
   const [error, setError] = React.useState<WorkspaceError | null>(null)
-  const [changes, setChanges] = React.useState<readonly WorkspaceChange[]>([])
+  const { completedRead, changes } = documentState
 
   const busy = phase === "connecting" || phase === "reading"
 
@@ -124,8 +129,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       if (!mounted.current) {
         return
       }
-      setCompletedRead(result)
-      setChanges([])
+      setDocumentState({ completedRead: result, changes: [] })
       setProgress(100)
       setPhase("ready")
     } catch (cause) {
@@ -163,48 +167,169 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      setCompletedRead((current) => {
-        if (!current) {
+      setDocumentState((current) => {
+        if (!current.completedRead) {
           return current
         }
 
+        const completedRead = current.completedRead
         const workingCodeplug = Object.freeze({
-          ...current.workingCodeplug,
-          codeplug: current.workingCodeplug.codeplug.moveMemoryChannel(
+          ...completedRead.workingCodeplug,
+          codeplug: completedRead.workingCodeplug.codeplug.moveMemoryChannel(
             fromNumber,
             toNumber
           ),
         })
+        const changes = workingCodeplug.codeplug.equals(
+          completedRead.baselineBackup.codeplug
+        )
+          ? []
+          : [
+              ...current.changes,
+              Object.freeze({
+                kind: "move-memory-channel" as const,
+                fromNumber,
+                toNumber,
+              }),
+            ]
 
-        return Object.freeze({ ...current, workingCodeplug })
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug,
+          }),
+          changes,
+        })
       })
-      setChanges((current) => [
-        ...current,
-        Object.freeze({
-          kind: "move-memory-channel" as const,
-          fromNumber,
-          toNumber,
-        }),
-      ])
     },
     []
   )
 
+  const editMemoryChannel = React.useCallback(
+    (number: number, patch: MemoryChannelPatch) => {
+      const fields = Object.keys(patch) as (keyof MemoryChannelPatch)[]
+      if (fields.length === 0) {
+        return
+      }
+
+      setDocumentState((current) => {
+        if (!current.completedRead) {
+          return current
+        }
+
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editMemoryChannel(
+            number,
+            patch
+          )
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileMemoryChannelEditChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            number,
+            fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
+  const addMemoryChannel = React.useCallback(() => {
+    setDocumentState((current) => {
+      if (!current.completedRead) {
+        return current
+      }
+
+      const completedRead = current.completedRead
+      const number =
+        completedRead.workingCodeplug.codeplug
+          .getChannels()
+          .findIndex((channel) => !channel.valid) + 1
+      if (number === 0) {
+        return current
+      }
+
+      const nextCodeplug =
+        completedRead.workingCodeplug.codeplug.addMemoryChannel()
+      const result = reconcileMemoryChannelStructureChange(
+        current.changes,
+        completedRead.baselineBackup.codeplug,
+        completedRead.workingCodeplug.codeplug,
+        nextCodeplug,
+        { kind: "add-memory-channel", number }
+      )
+
+      return Object.freeze({
+        completedRead: Object.freeze({
+          ...completedRead,
+          workingCodeplug: Object.freeze({
+            ...completedRead.workingCodeplug,
+            codeplug: result.codeplug,
+          }),
+        }),
+        changes: result.changes,
+      })
+    })
+  }, [])
+
+  const deleteMemoryChannel = React.useCallback((number: number) => {
+    setDocumentState((current) => {
+      if (!current.completedRead) {
+        return current
+      }
+
+      const completedRead = current.completedRead
+      const nextCodeplug =
+        completedRead.workingCodeplug.codeplug.deleteMemoryChannel(number)
+      const result = reconcileMemoryChannelStructureChange(
+        current.changes,
+        completedRead.baselineBackup.codeplug,
+        completedRead.workingCodeplug.codeplug,
+        nextCodeplug,
+        { kind: "delete-memory-channel", number }
+      )
+
+      return Object.freeze({
+        completedRead: Object.freeze({
+          ...completedRead,
+          workingCodeplug: Object.freeze({
+            ...completedRead.workingCodeplug,
+            codeplug: result.codeplug,
+          }),
+        }),
+        changes: result.changes,
+      })
+    })
+  }, [])
+
   const resetWorkingCodeplug = React.useCallback(() => {
-    setCompletedRead((current) => {
-      if (!current) {
+    setDocumentState((current) => {
+      if (!current.completedRead) {
         return current
       }
 
       return Object.freeze({
-        ...current,
-        workingCodeplug: Object.freeze({
-          ...current.workingCodeplug,
-          codeplug: current.baselineBackup.codeplug,
+        completedRead: Object.freeze({
+          ...current.completedRead,
+          workingCodeplug: Object.freeze({
+            ...current.completedRead.workingCodeplug,
+            codeplug: current.completedRead.baselineBackup.codeplug,
+          }),
         }),
+        changes: [],
       })
     })
-    setChanges([])
   }, [])
 
   React.useEffect(() => {
@@ -232,6 +357,9 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       changes,
       readRadio,
       downloadRawBackup,
+      addMemoryChannel,
+      deleteMemoryChannel,
+      editMemoryChannel,
       moveMemoryChannel,
       resetWorkingCodeplug,
     }),
@@ -246,6 +374,9 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       changes,
       readRadio,
       downloadRawBackup,
+      addMemoryChannel,
+      deleteMemoryChannel,
+      editMemoryChannel,
       moveMemoryChannel,
       resetWorkingCodeplug,
     ]

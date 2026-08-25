@@ -434,4 +434,24 @@ function lookup<const Values extends readonly unknown[]>(
   return values[index] ?? "unknown"
 }
 
-export { decodeCallChannels, decodeChannels, decodeVfoChannels }
+export {
+  APRS_RECEIVE,
+  BUSY_LOCKOUT,
+  COMPANDER,
+  CTCSS_FREQUENCIES_HZ,
+  DCS_CODES,
+  DCS_POLARITY,
+  DUPLEX,
+  MODULATION,
+  OPTIONAL_SIGNALING,
+  PTT_ID,
+  REVERSE,
+  SCAN,
+  SCRAMBLER,
+  SQUELCH,
+  STEP_KHZ,
+  TRANSMIT_POWER,
+  decodeCallChannels,
+  decodeChannels,
+  decodeVfoChannels,
+}

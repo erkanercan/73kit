@@ -130,32 +130,39 @@ const tr = {
   columnVisibility: "Sütunlar",
   basicColumns: "Temel",
   advancedColumns: "Gelişmiş",
+  addChannel: "Kanal ekle",
+  deleteChannel: "Kanal {number, number} sil",
+  channelActions: "Kanal işlemleri",
+  channelCapacityReached: "1.000 kanal yuvasının tümü kullanımda.",
   resetChannelOrder: "Değişiklikleri sıfırla",
-  pendingChannelMoves:
-    "{count, plural, one {# kanal taşıma} other {# kanal taşıma}} bekliyor",
+  pendingChangeCount:
+    "{count, plural, one {# değişiklik} other {# değişiklik}} bekliyor",
   channelReorderHelp:
     "Bir kanalı yeni numarasına taşımak için tutamacı sürükleyin veya klavyeyi kullanın. Çalışma Codeplug'ı ve üyelik başvuruları birlikte güncellenir.",
   reorderSearchDisabled:
     "Hedef kanal numarasını kesinleştirmek için sıralamadan önce aramayı temizleyin.",
   moveChannel: "Taşı",
   channelNumber: "KN",
-  used: "Kullanımda",
-  unused: "Kullanılmıyor",
+  used: "Aktif",
+  unused: "Pasif",
   channelName: "Ad",
   rxFrequency: "RX frekansı",
   txFrequency: "TX frekansı",
   duplex: "Duplex",
-  txOrOffset: "TX / Offset",
   simplex: "Simplex",
   offset: "Offset",
   channelMode: "Mode",
   txPower: "TX Power",
   txTone: "TX Tone",
   rxTone: "RX Tone",
+  editChannelTone: "{tone} düzenle",
+  toneType: "Tone Type",
+  toneValue: "Tone Value",
   scanFlag: "Scan Flag",
   channelZones: "Zone",
   channelScanLists: "Scan List",
   channelDetails: "Ayrıntılar",
+  closeChannelDetails: "Kanal ayrıntılarını kapat",
   frequencyStep: "Step",
   talkAroundReverse: "Talk-around / Reverse",
   rxOnly: "RX Only",
@@ -211,6 +218,8 @@ const tr = {
   channelMoveAnnouncement:
     "Kanal {from, number}, kanal {to, number} konumuna taşındı.",
   channelMoveCancelled: "Kanal taşıma iptal edildi.",
+  channelNameTooLong: "Kanal adı en fazla 24 UTF-8 bayt olabilir.",
+  invalidChannelFrequency: "MHz cinsinden geçerli bir frekans girin.",
 } satisfies Messages
 
 export default tr

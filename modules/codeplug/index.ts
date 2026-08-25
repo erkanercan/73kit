@@ -1,9 +1,17 @@
 import {
+  CTCSS_FREQUENCIES_HZ,
+  DCS_CODES,
   decodeCallChannels,
   decodeChannels,
   decodeVfoChannels,
 } from "./channel-codec.ts"
+import { editMemoryChannelBytes } from "./channel-edit.ts"
 import { moveMemoryChannelBytes } from "./channel-order.ts"
+import {
+  addDefaultMemoryChannelBytes,
+  deleteMemoryChannelBytes,
+} from "./channel-rows.ts"
+import type { MemoryChannelPatch } from "./channel-edit.ts"
 import type { Channel, SpecialChannel } from "./channel.ts"
 
 const CODEPLUG_SIZE = 0x19000
@@ -53,6 +61,18 @@ class Codeplug {
     )
   }
 
+  editMemoryChannel(number: number, patch: MemoryChannelPatch) {
+    return new Codeplug(editMemoryChannelBytes(this.#bytes, number, patch))
+  }
+
+  addMemoryChannel() {
+    return new Codeplug(addDefaultMemoryChannelBytes(this.#bytes))
+  }
+
+  deleteMemoryChannel(number: number) {
+    return new Codeplug(deleteMemoryChannelBytes(this.#bytes, number))
+  }
+
   equals(other: Codeplug) {
     const otherBytes = other.#bytes
 
@@ -64,5 +84,12 @@ function createCodeplug(bytes: Uint8Array) {
   return new Codeplug(bytes)
 }
 
-export { CODEPLUG_SIZE, Codeplug, createCodeplug }
+export {
+  CODEPLUG_SIZE,
+  CTCSS_FREQUENCIES_HZ,
+  DCS_CODES,
+  Codeplug,
+  createCodeplug,
+}
 export type { Channel, SpecialChannel } from "./channel.ts"
+export type { MemoryChannelPatch } from "./channel-edit.ts"

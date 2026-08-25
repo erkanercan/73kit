@@ -217,7 +217,11 @@ Why:
 - a UI object model must not accidentally zero or regenerate unknown data
 - the UI and CPS Workspace must not manipulate addresses, offsets, bitfields or raw bytes directly
 
-The production Codeplug core exposes immutable typed Channel results, including validity and scan state, while keeping the memory map, binary helpers, lookup tables and raw bytes private. Unknown or reserved values remain opaque and the exact source bytes are preserved. Channel editing and encoding remain part of the later offline-editing milestone.
+The production Codeplug core exposes immutable typed Channel results and
+read-modify-write operations for implemented Memory Channel fields while
+keeping the memory map, binary helpers, lookup tables and raw bytes private.
+Unknown or reserved values remain opaque, untouched record bytes are preserved,
+and every edit creates a new immutable Working Codeplug.
 
 ---
 
@@ -287,14 +291,50 @@ Compare backups or Working Codeplugs semantically for inspection. This optional 
 The Channels workspace provides a virtualized, searchable Memory table, Basic
 and Advanced column visibility, complete channel details, formatted CTCSS/DCS,
 resolved Zone and Scan List membership names, and compact VFO A/B and Call 1/2
-views. Temporary channels remain internal.
+views. The default operating view fits the frequently used Channel fields in a
+compact table; Zone, Scan List and advanced fields remain available through the
+Columns menu and the complete details Drawer. Temporary channels remain
+internal.
 
 Memory rows can be dragged to a new channel number. A row move is an in-memory
 Working Codeplug change: the complete 48-byte record, validity and scan state,
 per-channel Zone and Scan List membership, and every ordered Zone and Scan List
 reference move together. The immutable Baseline Backup remains unchanged and
-the user can reset pending row moves. Other channel-field editing remains Epic
-5 work.
+the user can reset pending row moves and field edits.
+
+Memory rows can also be added and deleted. Add activates the first unused slot
+with a clean 145.500 MHz simplex FM default; unsupported/on-off features,
+signalling, tones and memberships start disabled or empty. Delete removes the
+selected slot, shifts every following Memory row up by one channel number,
+clears the final slot, and removes or remaps ordered Zone and Scan List
+references. Both operations affect only the Working Codeplug until a future
+verified Radio Write. Deleting a newly added row restores the exact pre-add
+Working Codeplug, including when that temporary row was edited, so the canceled
+operation leaves no pending Change Set entry.
+
+### Memory Channel inline editing — P1 / IMPLEMENTED
+
+The Memory table directly edits channel use state, name, RX/TX/offset
+frequencies, duplex, reverse/talk-around, step, modulation, TX power, RX-only,
+Busy Channel Lockout, squelch type, DCS polarity, compander, optional signaling
+kind, scrambler, PTT ID, APRS RX, Scan Flag, and TX/RX CTCSS or DCS tones.
+Tone cells use a compact type-and-value editor so the full documented indexed
+value sets do not expand every table row. RX additionally supports the
+documented reverse CTCSS/DCS encodings. Select fields expose only valid
+documented choices; reserved and unknown values remain visible but cannot be
+selected as new values.
+
+Names are validated against the 24-byte UTF-8 storage limit. Frequencies are
+entered in MHz and encoded as unsigned integer Hz. Edits update only the owning
+field or bit range in a new Working Codeplug and retain the immutable Baseline
+Backup. The pending-change count reflects current field differences from that
+Baseline Backup, so returning a field to its baseline value removes its pending
+change. The same supported fields can be edited from the Channel details Drawer
+or directly in the table. RX frequency, TX frequency, Duplex and Offset are
+separate table columns. TX frequency remains visible beside RX frequency but is
+directly editable only when Duplex is Split. Offset is directly editable only
+for positive or negative Duplex modes. Zone/Scan List membership editing
+remains planned because it requires a dedicated synchronized membership editor.
 
 ### Supported channel fields
 
@@ -342,7 +382,7 @@ Off plus documented values `2700` through `3400` in 100-unit increments.
 ## 7.4 Channel State & Membership Metadata
 
 - channel valid/use bitmap — P0
-- scan flag (normal / skip / priority / reserved) — P0
+- scan flag (off / skip / priority / reserved) — P0
 - zone membership bitmap — P0
 - scan-list membership bitmap — P0
 
@@ -845,14 +885,19 @@ Advanced
 - [x] Zone/Scan List membership parsing and display
 - [x] compact VFO A/B and Call 1/2 views
 - [x] tracked drag-to-reorder with record and membership-reference remapping
+- [x] add default Memory Channel and delete-with-compaction row actions
 
 ## Epic 5 — Offline editing model
 
-- field editing
-- Change Set tracking against the Baseline Backup
-- validation
-- Change Set review
-- undo/redo
+- [x] Memory Channel scalar-field editing directly in table cells
+- [x] 24-byte UTF-8 name and storage-level frequency/value validation
+- [x] reset all Working Codeplug edits to the Baseline Backup
+- [x] CTCSS/DCS indexed-value editing in the Memory table and details Drawer
+- [ ] Zone and Scan List membership editing
+- [ ] VFO/Call Channel editing
+- [ ] semantic Change Set tracking against the Baseline Backup
+- [ ] Change Set review
+- [ ] undo/redo
 
 **No radio writes yet.**
 

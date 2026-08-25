@@ -128,9 +128,13 @@ const en = {
   columnVisibility: "Columns",
   basicColumns: "Basic",
   advancedColumns: "Advanced",
+  addChannel: "Add channel",
+  deleteChannel: "Delete channel {number, number}",
+  channelActions: "Channel actions",
+  channelCapacityReached: "All 1,000 channel slots are in use.",
   resetChannelOrder: "Reset changes",
-  pendingChannelMoves:
-    "{count, plural, one {# channel move} other {# channel moves}} pending",
+  pendingChangeCount:
+    "{count, plural, one {# change} other {# changes}} pending",
   channelReorderHelp:
     "Drag the handle or use the keyboard to move a channel to a new number. The Working Codeplug and membership references are updated together.",
   reorderSearchDisabled:
@@ -143,17 +147,20 @@ const en = {
   rxFrequency: "RX frequency",
   txFrequency: "TX frequency",
   duplex: "Duplex",
-  txOrOffset: "TX / Offset",
   simplex: "Simplex",
   offset: "Offset",
   channelMode: "Mode",
   txPower: "TX Power",
   txTone: "TX Tone",
   rxTone: "RX Tone",
+  editChannelTone: "Edit {tone}",
+  toneType: "Tone Type",
+  toneValue: "Tone Value",
   scanFlag: "Scan Flag",
   channelZones: "Zones",
   channelScanLists: "Scan Lists",
   channelDetails: "Details",
+  closeChannelDetails: "Close channel details",
   frequencyStep: "Step",
   talkAroundReverse: "Talk-around / Reverse",
   rxOnly: "RX only",
@@ -209,6 +216,8 @@ const en = {
   channelMoveAnnouncement:
     "Channel {from, number} moved to channel {to, number}.",
   channelMoveCancelled: "Channel move cancelled.",
+  channelNameTooLong: "Channel names can contain at most 24 UTF-8 bytes.",
+  invalidChannelFrequency: "Enter a valid frequency in MHz.",
 } as const
 
 export type Messages = { [Key in keyof typeof en]: string }
