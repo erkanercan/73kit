@@ -1,0 +1,355 @@
+"use client"
+
+import {
+  AlertTriangleIcon,
+  ChevronDownIcon,
+  DownloadIcon,
+  HardDriveIcon,
+  InfoIcon,
+  LoaderCircleIcon,
+  RadioIcon,
+  ShieldCheckIcon,
+} from "lucide-react"
+
+import { StatusBadge } from "@/components/cps-app-shell"
+import { useCpsWorkspace } from "@/components/cps-workspace-provider"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress"
+import { Separator } from "@/components/ui/separator"
+import type { SourceRadio } from "@/modules/uvl15w-radio/index"
+
+function RadioOverview() {
+  const {
+    busy,
+    completedRead,
+    downloadRawBackup,
+    error,
+    progress,
+    readRadio,
+    sourceRadio,
+    status,
+    webSerialSupported,
+  } = useCpsWorkspace()
+  const displayedRadio = sourceRadio ?? completedRead?.sourceRadio ?? null
+
+  return (
+    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
+      <header className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <Badge variant="outline">Local connection</Badge>
+          <Badge variant="secondary">Read enabled</Badge>
+        </div>
+        <div className="flex flex-col gap-2">
+          <h1 className="font-heading text-3xl font-medium tracking-tight">
+            UVL-15W
+          </h1>
+          <p className="max-w-2xl text-muted-foreground">
+            Inspect the Radio identity and create a complete, unchanged Codeplug
+            Backup. Communication stays between this browser and your Radio.
+          </p>
+        </div>
+      </header>
+
+      {webSerialSupported === false && (
+        <Alert>
+          <InfoIcon aria-hidden="true" />
+          <AlertTitle>Web Serial is unavailable</AlertTitle>
+          <AlertDescription>
+            Open this CPS over a secure connection in Chrome, Edge, or another
+            Chromium browser with Web Serial support.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertTriangleIcon aria-hidden="true" />
+          <AlertTitle>Radio Read stopped</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(18rem,0.75fr)]">
+        <RadioInformationCard
+          radio={displayedRadio}
+          status={status}
+          busy={busy}
+          canRead={webSerialSupported === true}
+          onRead={() => void readRadio()}
+        />
+        <WorkspaceCard
+          status={status}
+          progress={progress}
+          completedRead={completedRead}
+          onDownload={downloadRawBackup}
+        />
+      </div>
+    </div>
+  )
+}
+
+function RadioInformationCard({
+  radio,
+  status,
+  busy,
+  canRead,
+  onRead,
+}: {
+  radio: SourceRadio | null
+  status: "disconnected" | "connecting" | "reading" | "ready"
+  busy: boolean
+  canRead: boolean
+  onRead(): void
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Radio information</CardTitle>
+        <CardDescription>
+          Identity reported directly by the Radio during the handshake.
+        </CardDescription>
+        <CardAction>
+          <StatusBadge status={status} />
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        {radio ? (
+          <RadioDetails radio={radio} />
+        ) : (
+          <Empty className="min-h-72 border">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <RadioIcon />
+              </EmptyMedia>
+              <EmptyTitle>No Radio information</EmptyTitle>
+              <EmptyDescription>
+                Read a Radio to verify its identity and create a Working
+                Codeplug from an immutable Baseline Backup.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button disabled={!canRead || busy} onClick={onRead}>
+                {busy ? (
+                  <LoaderCircleIcon
+                    data-icon="inline-start"
+                    className="animate-spin"
+                  />
+                ) : (
+                  <DownloadIcon data-icon="inline-start" />
+                )}
+                {busy ? "Reading Radio…" : "Read Radio"}
+              </Button>
+            </EmptyContent>
+          </Empty>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function RadioDetails({ radio }: { radio: SourceRadio }) {
+  const details = [
+    ["Serial number", radio.serialNumber || "Not reported"],
+    ["Firmware", radio.firmwareVersion || "Not reported"],
+    ["Hardware", radio.hardwareVersion || "Not reported"],
+    ["Image resources", radio.imageResourceVersion || "Not reported"],
+  ]
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center gap-3">
+        <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
+          <RadioIcon aria-hidden="true" />
+        </div>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="font-heading text-lg font-medium">
+            {radio.model}
+          </span>
+          <span className="text-sm text-muted-foreground">
+            Source Radio verified by handshake
+          </span>
+        </div>
+      </div>
+
+      <Separator />
+
+      <dl className="grid gap-5 sm:grid-cols-2">
+        {details.map(([label, value]) => (
+          <div key={label} className="flex min-w-0 flex-col gap-1">
+            <dt className="text-xs font-medium text-muted-foreground">
+              {label}
+            </dt>
+            <dd className="truncate font-mono text-sm">{value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <ProtectionBadge
+          label="Read protection"
+          enabled={radio.readProtected}
+        />
+        <ProtectionBadge
+          label="Write protection"
+          enabled={radio.writeProtected}
+        />
+      </div>
+
+      <Separator />
+
+      <Collapsible>
+        <CollapsibleTrigger render={<Button variant="ghost" size="sm" />}>
+          <ChevronDownIcon data-icon="inline-start" />
+          Technical details
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4">
+          <dl className="grid gap-4 rounded-lg bg-muted p-4 sm:grid-cols-2">
+            <TechnicalDetail label="Sub-model" value={String(radio.subModel)} />
+            <TechnicalDetail
+              label="Bootloader model"
+              value={radio.bootloaderModel || "Not reported"}
+            />
+            <TechnicalDetail
+              label="CPU ID"
+              value={radio.cpuId || "Not reported"}
+            />
+          </dl>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
+  )
+}
+
+function ProtectionBadge({
+  label,
+  enabled,
+}: {
+  label: string
+  enabled: boolean
+}) {
+  return (
+    <Badge variant={enabled ? "destructive" : "outline"}>
+      <ShieldCheckIcon data-icon="inline-start" />
+      {label}: {enabled ? "On" : "Off"}
+    </Badge>
+  )
+}
+
+function TechnicalDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1">
+      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+      <dd className="font-mono text-xs break-all">{value}</dd>
+    </div>
+  )
+}
+
+function WorkspaceCard({
+  status,
+  progress,
+  completedRead,
+  onDownload,
+}: {
+  status: "disconnected" | "connecting" | "reading" | "ready"
+  progress: number
+  completedRead: ReturnType<typeof useCpsWorkspace>["completedRead"]
+  onDownload(): void
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Working Codeplug</CardTitle>
+        <CardDescription>
+          Local workspace derived from the latest complete Radio Read.
+        </CardDescription>
+        <CardAction>
+          <HardDriveIcon aria-hidden="true" />
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5">
+        {status === "reading" ? (
+          <Progress value={progress}>
+            <ProgressLabel>Reading Codeplug</ProgressLabel>
+            <ProgressValue>{() => `${Math.floor(progress)}%`}</ProgressValue>
+          </Progress>
+        ) : (
+          <dl className="flex flex-col gap-4">
+            <WorkspaceDetail
+              label="Baseline Backup"
+              value={completedRead ? "Ready" : "Not created"}
+            />
+            <WorkspaceDetail
+              label="Working Codeplug"
+              value={completedRead ? "Ready to inspect" : "None"}
+            />
+            <WorkspaceDetail label="Pending changes" value="0" />
+            <WorkspaceDetail
+              label="Local persistence"
+              value={completedRead ? "Session only" : "No data"}
+            />
+          </dl>
+        )}
+
+        {completedRead && status === "ready" && (
+          <Alert>
+            <ShieldCheckIcon aria-hidden="true" />
+            <AlertTitle>Codeplug Backup ready</AlertTitle>
+            <AlertDescription>
+              The complete 102,400-byte Codeplug passed protocol validation.
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+      {completedRead && status === "ready" && (
+        <CardFooter className="justify-between gap-3">
+          <span className="text-xs text-muted-foreground">
+            {completedRead.baselineBackup.createdAt.toLocaleString()}
+          </span>
+          <Button variant="outline" size="sm" onClick={onDownload}>
+            <DownloadIcon data-icon="inline-start" />
+            Raw backup
+          </Button>
+        </CardFooter>
+      )}
+    </Card>
+  )
+}
+
+function WorkspaceDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className="text-right text-sm font-medium">{value}</dd>
+    </div>
+  )
+}
+
+export { RadioOverview }

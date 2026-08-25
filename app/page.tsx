@@ -1,5 +1,5 @@
-import { RadioReader } from "./radio-reader"
+import { RadioOverview } from "@/components/radio-overview"
 
 export default function Page() {
-  return <RadioReader />
+  return <RadioOverview />
 }
