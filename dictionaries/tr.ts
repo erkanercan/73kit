@@ -1,0 +1,117 @@
+import type { Messages } from "@/dictionaries/en"
+
+const tr = {
+  metadataDescription:
+    "TYT UVL-15W Codeplug'ını yerel olarak okuyun, inceleyin ve yönetin.",
+  languageSwitcherLabel: "Dil",
+  languageTr: "Türkçe",
+  languageEn: "English",
+  sidebarTitle: "Gezinme",
+  sidebarDescription: "Mobil ekranda CPS gezinmesini gösterir.",
+  sidebarClose: "Gezinmeyi kapat",
+  sidebarToggle: "Gezinmeyi aç veya kapat",
+  navWorkspace: "Çalışma Alanı",
+  navRadio: "Telsiz",
+  navChannels: "Kanallar",
+  navZones: "Bölgeler",
+  navScanLists: "Tarama Listeleri",
+  navConfiguration: "Programlama",
+  navAprs: "APRS",
+  navSettings: "Telsiz Ayarları",
+  navData: "Codeplug Verileri",
+  navBackups: "Yedekler",
+  navDiagnostics: "Tanılama",
+  navAbout: "Hakkında",
+  planned: "Planlandı",
+  plannedUnavailable: "{item} planlandı; henüz kullanılamıyor.",
+  localRadioWorkspace: "Yerel telsiz programlama",
+  workingCodeplugReady: "Çalışma Codeplug'ı hazır",
+  noWorkingCodeplug: "Çalışma Codeplug'ı yok",
+  workingCodeplug: "Çalışma Codeplug'ı",
+  noCodeplug: "Codeplug yok",
+  radioReadInProgress: "Telsiz okuma sürüyor",
+  sessionStorage: "Bu oturumda saklanıyor",
+  ready: "Hazır",
+  empty: "Boş",
+  readingRadio: "Telsiz okunuyor…",
+  readingRadioPlain: "Telsiz okunuyor",
+  readRadio: "Telsizden Oku",
+  writeRadio: "Telsize Yaz",
+  writeRadioPlanned: "Telsize Yaz özelliği planlandı",
+  noRadio: "Telsiz yok",
+  changesCount: "Değişiklik: {count, number}",
+  localSave: "Yerel kayıt: {value}",
+  sessionOnly: "Yalnızca bu oturum",
+  noData: "Veri yok",
+  disconnected: "Bağlı değil",
+  connecting: "Bağlanıyor",
+  reading: "Okunuyor",
+  backupReady: "Yedek hazır",
+  localConnection: "Doğrudan USB bağlantısı",
+  readEnabled: "Telsizden okuma hazır",
+  overviewDescription:
+    "Telsizin kimliğini doğrulayın ve Codeplug'ın eksiksiz, değişmemiş bir yedeğini alın. Telsiz haberleşmesi yalnızca bu tarayıcı ile telsiziniz arasında kalır.",
+  webSerialUnavailable: "Web Serial kullanılamıyor",
+  webSerialHelp:
+    "Bu CPS'yi güvenli bir bağlantı üzerinden; Web Serial destekleyen Chrome, Edge veya başka bir Chromium tarayıcıda açın.",
+  radioReadStopped: "Telsiz okuma durdu",
+  radioInformation: "Telsiz kimliği",
+  radioInformationDescription:
+    "Bağlantı kurulurken telsizin doğrudan bildirdiği kimlik bilgileri.",
+  noRadioInformation: "Telsiz kimliği bulunmuyor",
+  noRadioInformationDescription:
+    "Kaynak Telsizi doğrulamak ve değiştirilemez bir Temel Yedekten Çalışma Codeplug'ı oluşturmak için telsizi okuyun.",
+  serialNumber: "Seri numarası",
+  firmware: "Firmware sürümü",
+  hardware: "Donanım sürümü",
+  imageResources: "Görsel kaynak sürümü",
+  notReported: "Bildirilmedi",
+  sourceRadioVerified: "Kaynak Telsiz bağlantı sırasında doğrulandı",
+  readProtection: "Okuma koruması",
+  writeProtection: "Yazma koruması",
+  technicalDetails: "Teknik ayrıntılar",
+  subModel: "Alt model",
+  bootloaderModel: "Bootloader modeli",
+  cpuId: "CPU kimliği",
+  on: "Açık",
+  off: "Kapalı",
+  workingCodeplugDescription:
+    "Son eksiksiz telsiz okumadan oluşturulan, düzenlenebilir Codeplug.",
+  readingCodeplug: "Codeplug okunuyor",
+  baselineBackup: "Temel Yedek",
+  notCreated: "Oluşturulmadı",
+  readyToInspect: "İncelemeye hazır",
+  none: "Yok",
+  pendingChanges: "Bekleyen değişiklikler",
+  localPersistence: "Yerel saklama",
+  codeplugBackupReady: "Codeplug Yedeği hazır",
+  codeplugBackupValidated:
+    "102.400 baytlık Codeplug'ın tamamı protokol doğrulamasından geçti.",
+  rawBackup: "Ham Yedeği İndir",
+  noRadioSelected: "Telsiz seçilmedi.",
+  serialPermissionDenied:
+    "Seri port erişimi engellendi. Bu CPS'nin telsizin USB portunu kullanmasına izin verip yeniden deneyin.",
+  serialPortUnavailable:
+    "Seçilen seri port açılamadı. Diğer telsiz programlama yazılımlarını kapatın, telsizi yeniden bağlayıp tekrar deneyin.",
+  serialConnectionClosed:
+    "USB seri bağlantısı kapandı. Yeni bir telsiz okuma başlatmadan önce telsizi yeniden bağlayın.",
+  serialStreamsUnavailable:
+    "Seçilen USB portu, telsiz programlama için gereken veri akışlarını sağlamıyor.",
+  radioAlreadyConnected: "Bu CPS'ye zaten bir telsiz bağlı.",
+  radioNotConnected: "Telsiz okumayı başlatmadan önce bir telsiz bağlayın.",
+  radioOperationInProgress: "Başka bir telsiz işlemi zaten sürüyor.",
+  radioConnectionClosed:
+    "İşlem sırasında telsiz bağlantısı kapandı. Telsizi yeniden bağlayıp telsiz okumayı tekrar başlatın.",
+  radioResponseTimeout:
+    "Telsiz zamanında yanıt vermedi. USB kablosunu ve telsiz bağlantısını kontrol edip yeniden deneyin.",
+  radioProtocolError:
+    "Telsiz geçersiz veri gönderdi. Codeplug Yedeği oluşturulmadı; telsizi yeniden bağlayıp okumayı tekrar deneyin.",
+  incompatibleRadio: "Bağlı telsiz TYT UVL-15W değil; bu CPS ile okunamaz.",
+  readPasswordRequired:
+    "Bu telsizde okuma koruması açık. Parola korumalı telsiz okuma henüz desteklenmiyor.",
+  unexpectedRadioResponse:
+    "Telsiz beklenmeyen bir yanıt gönderdi. Codeplug Yedeği oluşturulmadı; telsizi yeniden bağlayıp tekrar deneyin.",
+  unknownRadioError: "Bilinmeyen bir telsiz hatası oluştu.",
+} satisfies Messages
+
+export default tr

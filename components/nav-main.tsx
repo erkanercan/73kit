@@ -1,7 +1,7 @@
 "use client"
 
-import Link from "next/link"
 import type { LucideIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { Badge } from "@/components/ui/badge"
 import {
@@ -16,6 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Link } from "@/i18n/navigation"
 
 interface NavigationItem {
   readonly title: string
@@ -30,7 +31,15 @@ interface NavigationSection {
   readonly items: readonly NavigationItem[]
 }
 
-function NavMain({ sections }: { sections: readonly NavigationSection[] }) {
+function NavMain({
+  sections,
+  plannedLabel,
+}: {
+  sections: readonly NavigationSection[]
+  plannedLabel: string
+}) {
+  const t = useTranslations()
+
   return sections.map((section) => (
     <SidebarGroup key={section.label}>
       <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
@@ -53,7 +62,9 @@ function NavMain({ sections }: { sections: readonly NavigationSection[] }) {
                     <span
                       className="block"
                       tabIndex={0}
-                      aria-label={`${item.title} is planned and not yet available`}
+                      aria-label={t("plannedUnavailable", {
+                        item: item.title,
+                      })}
                     />
                   }
                 >
@@ -64,12 +75,12 @@ function NavMain({ sections }: { sections: readonly NavigationSection[] }) {
                       variant="outline"
                       className="ml-auto group-data-[collapsible=icon]:hidden"
                     >
-                      Planned
+                      {plannedLabel}
                     </Badge>
                   </SidebarMenuButton>
                 </TooltipTrigger>
                 <TooltipContent side="right">
-                  {item.title} is planned and not yet available.
+                  {t("plannedUnavailable", { item: item.title })}
                 </TooltipContent>
               </Tooltip>
             )}

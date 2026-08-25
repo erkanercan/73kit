@@ -7,10 +7,11 @@ import {
   RadioIcon,
   UploadIcon,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { AppSidebar } from "@/components/app-sidebar"
+import { LanguageSwitcher } from "@/components/language-switcher"
 import {
-  CpsWorkspaceProvider,
   useCpsWorkspace,
   type WorkspaceStatus,
 } from "@/components/cps-workspace-provider"
@@ -30,24 +31,32 @@ import {
 } from "@/components/ui/sidebar"
 
 function CpsAppShell({ children }: { children: React.ReactNode }) {
+  const t = useTranslations()
+
   return (
-    <CpsWorkspaceProvider>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <AppHeader />
-          <div id="main-content" className="flex flex-1 flex-col">
-            {children}
-          </div>
-          <WorkspaceStatusBar />
-        </SidebarInset>
-      </SidebarProvider>
-    </CpsWorkspaceProvider>
+    <SidebarProvider
+      labels={{
+        title: t("sidebarTitle"),
+        description: t("sidebarDescription"),
+        close: t("sidebarClose"),
+        toggle: t("sidebarToggle"),
+      }}
+    >
+      <AppSidebar />
+      <SidebarInset>
+        <AppHeader />
+        <div id="main-content" className="flex flex-1 flex-col">
+          {children}
+        </div>
+        <WorkspaceStatusBar />
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 
 function AppHeader() {
   const { busy, readRadio, webSerialSupported } = useCpsWorkspace()
+  const t = useTranslations()
 
   return (
     <header className="sticky top-0 flex h-14 shrink-0 items-center gap-2 bg-background px-3 sm:px-4">
@@ -59,11 +68,12 @@ function AppHeader() {
       <Breadcrumb className="min-w-0">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbPage>Radio</BreadcrumbPage>
+            <BreadcrumbPage>{t("navRadio")}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
       <div className="ml-auto flex items-center gap-2">
+        <LanguageSwitcher />
         <Button
           size="sm"
           disabled={busy || webSerialSupported !== true}
@@ -78,19 +88,19 @@ function AppHeader() {
             <DownloadIcon data-icon="inline-start" />
           )}
           <span className="hidden sm:inline">
-            {busy ? "Reading Radio…" : "Read Radio"}
+            {busy ? t("readingRadio") : t("readRadio")}
           </span>
           <span className="sr-only sm:hidden">
-            {busy ? "Reading Radio" : "Read Radio"}
+            {busy ? t("readingRadioPlain") : t("readRadio")}
           </span>
         </Button>
         <Button size="sm" variant="outline" disabled>
           <UploadIcon data-icon="inline-start" />
-          <span className="hidden sm:inline">Write Radio</span>
-          <span className="sr-only sm:hidden">Write Radio is planned</span>
+          <span className="hidden sm:inline">{t("writeRadio")}</span>
+          <span className="sr-only sm:hidden">{t("writeRadioPlanned")}</span>
         </Button>
         <Badge variant="outline" className="hidden lg:inline-flex">
-          Planned
+          {t("planned")}
         </Badge>
       </div>
     </header>
@@ -99,6 +109,7 @@ function AppHeader() {
 
 function WorkspaceStatusBar() {
   const { completedRead, sourceRadio, status } = useCpsWorkspace()
+  const t = useTranslations()
 
   return (
     <>
@@ -109,23 +120,30 @@ function WorkspaceStatusBar() {
       >
         <div className="flex items-center gap-1.5">
           <RadioIcon aria-hidden="true" />
-          <span>{sourceRadio?.model ?? "No Radio"}</span>
+          <span>{sourceRadio?.model ?? t("noRadio")}</span>
           <StatusBadge status={status} />
         </div>
-        <span>Working Codeplug: {completedRead ? "Ready" : "None"}</span>
-        <span>Changes: 0</span>
-        <span>Local save: {completedRead ? "Session only" : "No data"}</span>
+        <span>
+          {t("workingCodeplug")}: {completedRead ? t("ready") : t("none")}
+        </span>
+        <span>{t("changesCount", { count: 0 })}</span>
+        <span>
+          {t("localSave", {
+            value: completedRead ? t("sessionOnly") : t("noData"),
+          })}
+        </span>
       </footer>
     </>
   )
 }
 
 function StatusBadge({ status }: { status: WorkspaceStatus }) {
+  const t = useTranslations()
   const labels: Record<WorkspaceStatus, string> = {
-    disconnected: "Disconnected",
-    connecting: "Connecting",
-    reading: "Reading",
-    ready: "Backup ready",
+    disconnected: t("disconnected"),
+    connecting: t("connecting"),
+    reading: t("reading"),
+    ready: t("backupReady"),
   }
 
   return (

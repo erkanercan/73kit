@@ -10,6 +10,7 @@ import {
   RadioIcon,
   ShieldCheckIcon,
 } from "lucide-react"
+import { useFormatter, useTranslations } from "next-intl"
 
 import { StatusBadge } from "@/components/cps-app-shell"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
@@ -47,6 +48,7 @@ import { Separator } from "@/components/ui/separator"
 import type { SourceRadio } from "@/modules/uvl15w-radio/index"
 
 function RadioOverview() {
+  const t = useTranslations()
   const {
     busy,
     completedRead,
@@ -64,16 +66,15 @@ function RadioOverview() {
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
-          <Badge variant="outline">Local connection</Badge>
-          <Badge variant="secondary">Read enabled</Badge>
+          <Badge variant="outline">{t("localConnection")}</Badge>
+          <Badge variant="secondary">{t("readEnabled")}</Badge>
         </div>
         <div className="flex flex-col gap-2">
           <h1 className="font-heading text-3xl font-medium tracking-tight">
             UVL-15W
           </h1>
           <p className="max-w-2xl text-muted-foreground">
-            Inspect the Radio identity and create a complete, unchanged Codeplug
-            Backup. Communication stays between this browser and your Radio.
+            {t("overviewDescription")}
           </p>
         </div>
       </header>
@@ -81,19 +82,18 @@ function RadioOverview() {
       {webSerialSupported === false && (
         <Alert>
           <InfoIcon aria-hidden="true" />
-          <AlertTitle>Web Serial is unavailable</AlertTitle>
-          <AlertDescription>
-            Open this CPS over a secure connection in Chrome, Edge, or another
-            Chromium browser with Web Serial support.
-          </AlertDescription>
+          <AlertTitle>{t("webSerialUnavailable")}</AlertTitle>
+          <AlertDescription>{t("webSerialHelp")}</AlertDescription>
         </Alert>
       )}
 
       {error && (
         <Alert variant="destructive">
           <AlertTriangleIcon aria-hidden="true" />
-          <AlertTitle>Radio Read stopped</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertTitle>{t("radioReadStopped")}</AlertTitle>
+          <AlertDescription>
+            {"key" in error ? t(error.key) : error.message}
+          </AlertDescription>
         </Alert>
       )}
 
@@ -129,13 +129,13 @@ function RadioInformationCard({
   canRead: boolean
   onRead(): void
 }) {
+  const t = useTranslations()
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Radio information</CardTitle>
-        <CardDescription>
-          Identity reported directly by the Radio during the handshake.
-        </CardDescription>
+        <CardTitle>{t("radioInformation")}</CardTitle>
+        <CardDescription>{t("radioInformationDescription")}</CardDescription>
         <CardAction>
           <StatusBadge status={status} />
         </CardAction>
@@ -149,10 +149,9 @@ function RadioInformationCard({
               <EmptyMedia variant="icon">
                 <RadioIcon />
               </EmptyMedia>
-              <EmptyTitle>No Radio information</EmptyTitle>
+              <EmptyTitle>{t("noRadioInformation")}</EmptyTitle>
               <EmptyDescription>
-                Read a Radio to verify its identity and create a Working
-                Codeplug from an immutable Baseline Backup.
+                {t("noRadioInformationDescription")}
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
@@ -165,7 +164,7 @@ function RadioInformationCard({
                 ) : (
                   <DownloadIcon data-icon="inline-start" />
                 )}
-                {busy ? "Reading Radio…" : "Read Radio"}
+                {busy ? t("readingRadio") : t("readRadio")}
               </Button>
             </EmptyContent>
           </Empty>
@@ -176,11 +175,12 @@ function RadioInformationCard({
 }
 
 function RadioDetails({ radio }: { radio: SourceRadio }) {
+  const t = useTranslations()
   const details = [
-    ["Serial number", radio.serialNumber || "Not reported"],
-    ["Firmware", radio.firmwareVersion || "Not reported"],
-    ["Hardware", radio.hardwareVersion || "Not reported"],
-    ["Image resources", radio.imageResourceVersion || "Not reported"],
+    [t("serialNumber"), radio.serialNumber || t("notReported")],
+    [t("firmware"), radio.firmwareVersion || t("notReported")],
+    [t("hardware"), radio.hardwareVersion || t("notReported")],
+    [t("imageResources"), radio.imageResourceVersion || t("notReported")],
   ]
 
   return (
@@ -194,7 +194,7 @@ function RadioDetails({ radio }: { radio: SourceRadio }) {
             {radio.model}
           </span>
           <span className="text-sm text-muted-foreground">
-            Source Radio verified by handshake
+            {t("sourceRadioVerified")}
           </span>
         </div>
       </div>
@@ -214,11 +214,11 @@ function RadioDetails({ radio }: { radio: SourceRadio }) {
 
       <div className="flex flex-wrap items-center gap-2">
         <ProtectionBadge
-          label="Read protection"
+          label={t("readProtection")}
           enabled={radio.readProtected}
         />
         <ProtectionBadge
-          label="Write protection"
+          label={t("writeProtection")}
           enabled={radio.writeProtected}
         />
       </div>
@@ -228,18 +228,21 @@ function RadioDetails({ radio }: { radio: SourceRadio }) {
       <Collapsible>
         <CollapsibleTrigger render={<Button variant="ghost" size="sm" />}>
           <ChevronDownIcon data-icon="inline-start" />
-          Technical details
+          {t("technicalDetails")}
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-4">
           <dl className="grid gap-4 rounded-lg bg-muted p-4 sm:grid-cols-2">
-            <TechnicalDetail label="Sub-model" value={String(radio.subModel)} />
             <TechnicalDetail
-              label="Bootloader model"
-              value={radio.bootloaderModel || "Not reported"}
+              label={t("subModel")}
+              value={String(radio.subModel)}
             />
             <TechnicalDetail
-              label="CPU ID"
-              value={radio.cpuId || "Not reported"}
+              label={t("bootloaderModel")}
+              value={radio.bootloaderModel || t("notReported")}
+            />
+            <TechnicalDetail
+              label={t("cpuId")}
+              value={radio.cpuId || t("notReported")}
             />
           </dl>
         </CollapsibleContent>
@@ -255,10 +258,12 @@ function ProtectionBadge({
   label: string
   enabled: boolean
 }) {
+  const t = useTranslations()
+
   return (
     <Badge variant={enabled ? "destructive" : "outline"}>
       <ShieldCheckIcon data-icon="inline-start" />
-      {label}: {enabled ? "On" : "Off"}
+      {label}: {enabled ? t("on") : t("off")}
     </Badge>
   )
 }
@@ -283,13 +288,14 @@ function WorkspaceCard({
   completedRead: ReturnType<typeof useCpsWorkspace>["completedRead"]
   onDownload(): void
 }) {
+  const format = useFormatter()
+  const t = useTranslations()
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Working Codeplug</CardTitle>
-        <CardDescription>
-          Local workspace derived from the latest complete Radio Read.
-        </CardDescription>
+        <CardTitle>{t("workingCodeplug")}</CardTitle>
+        <CardDescription>{t("workingCodeplugDescription")}</CardDescription>
         <CardAction>
           <HardDriveIcon aria-hidden="true" />
         </CardAction>
@@ -297,23 +303,23 @@ function WorkspaceCard({
       <CardContent className="flex flex-col gap-5">
         {status === "reading" ? (
           <Progress value={progress}>
-            <ProgressLabel>Reading Codeplug</ProgressLabel>
+            <ProgressLabel>{t("readingCodeplug")}</ProgressLabel>
             <ProgressValue>{() => `${Math.floor(progress)}%`}</ProgressValue>
           </Progress>
         ) : (
           <dl className="flex flex-col gap-4">
             <WorkspaceDetail
-              label="Baseline Backup"
-              value={completedRead ? "Ready" : "Not created"}
+              label={t("baselineBackup")}
+              value={completedRead ? t("ready") : t("notCreated")}
             />
             <WorkspaceDetail
-              label="Working Codeplug"
-              value={completedRead ? "Ready to inspect" : "None"}
+              label={t("workingCodeplug")}
+              value={completedRead ? t("readyToInspect") : t("none")}
             />
-            <WorkspaceDetail label="Pending changes" value="0" />
+            <WorkspaceDetail label={t("pendingChanges")} value="0" />
             <WorkspaceDetail
-              label="Local persistence"
-              value={completedRead ? "Session only" : "No data"}
+              label={t("localPersistence")}
+              value={completedRead ? t("sessionOnly") : t("noData")}
             />
           </dl>
         )}
@@ -321,21 +327,22 @@ function WorkspaceCard({
         {completedRead && status === "ready" && (
           <Alert>
             <ShieldCheckIcon aria-hidden="true" />
-            <AlertTitle>Codeplug Backup ready</AlertTitle>
-            <AlertDescription>
-              The complete 102,400-byte Codeplug passed protocol validation.
-            </AlertDescription>
+            <AlertTitle>{t("codeplugBackupReady")}</AlertTitle>
+            <AlertDescription>{t("codeplugBackupValidated")}</AlertDescription>
           </Alert>
         )}
       </CardContent>
       {completedRead && status === "ready" && (
         <CardFooter className="justify-between gap-3">
           <span className="text-xs text-muted-foreground">
-            {completedRead.baselineBackup.createdAt.toLocaleString()}
+            {format.dateTime(completedRead.baselineBackup.createdAt, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}
           </span>
           <Button variant="outline" size="sm" onClick={onDownload}>
             <DownloadIcon data-icon="inline-start" />
-            Raw backup
+            {t("rawBackup")}
           </Button>
         </CardFooter>
       )}

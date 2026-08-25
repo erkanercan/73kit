@@ -4,6 +4,7 @@ import * as React from "react"
 
 import {
   POC_VERIFIED_BAUD_RATE,
+  WebSerialTransportError,
   createWebSerialTransport,
 } from "@/adapters/web-serial/index"
 import {
@@ -11,7 +12,11 @@ import {
   type CompletedRadioRead,
   type CpsWorkspace,
 } from "@/modules/cps-workspace/index"
-import type { SourceRadio } from "@/modules/uvl15w-radio/index"
+import {
+  Uvl15wRadioError,
+  type SourceRadio,
+  type Uvl15wRadioErrorCode,
+} from "@/modules/uvl15w-radio/index"
 
 type WorkspaceStatus = "disconnected" | "connecting" | "reading" | "ready"
 
@@ -20,12 +25,33 @@ interface CpsWorkspaceContextValue {
   readonly sourceRadio: SourceRadio | null
   readonly completedRead: CompletedRadioRead | null
   readonly progress: number
-  readonly error: string | null
+  readonly error: WorkspaceError | null
   readonly webSerialSupported: boolean | null
   readonly busy: boolean
   readRadio(): Promise<void>
   downloadRawBackup(): void
 }
+
+type WorkspaceError =
+  { readonly key: WorkspaceErrorKey } | { readonly message: string }
+
+type WorkspaceErrorKey =
+  | "noRadioSelected"
+  | "serialPermissionDenied"
+  | "serialPortUnavailable"
+  | "serialConnectionClosed"
+  | "serialStreamsUnavailable"
+  | "webSerialUnavailable"
+  | "radioAlreadyConnected"
+  | "radioNotConnected"
+  | "radioOperationInProgress"
+  | "radioConnectionClosed"
+  | "radioResponseTimeout"
+  | "radioProtocolError"
+  | "incompatibleRadio"
+  | "readPasswordRequired"
+  | "unexpectedRadioResponse"
+  | "unknownRadioError"
 
 const CpsWorkspaceContext =
   React.createContext<CpsWorkspaceContextValue | null>(null)
@@ -42,7 +68,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [completedRead, setCompletedRead] =
     React.useState<CompletedRadioRead | null>(null)
   const [progress, setProgress] = React.useState(0)
-  const [error, setError] = React.useState<string | null>(null)
+  const [error, setError] = React.useState<WorkspaceError | null>(null)
 
   const busy = status === "connecting" || status === "reading"
 
@@ -75,7 +101,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       setProgress(100)
       setStatus("ready")
     } catch (cause) {
-      setError(errorMessage(cause))
+      setError(workspaceError(cause))
       setSourceRadio(null)
       setStatus("disconnected")
     }
@@ -146,14 +172,50 @@ function useCpsWorkspace() {
   return context
 }
 
-function errorMessage(error: unknown) {
-  if (error instanceof DOMException && error.name === "NotFoundError") {
-    return "No Radio was selected."
+function workspaceError(error: unknown): WorkspaceError {
+  if (error instanceof DOMException) {
+    const domErrorKeys: Partial<Record<string, WorkspaceErrorKey>> = {
+      NotFoundError: "noRadioSelected",
+      SecurityError: "serialPermissionDenied",
+      NetworkError: "serialPortUnavailable",
+      InvalidStateError: "serialPortUnavailable",
+    }
+
+    return { key: domErrorKeys[error.name] ?? "unknownRadioError" }
+  }
+
+  if (error instanceof WebSerialTransportError) {
+    const serialErrorKeys: Record<
+      WebSerialTransportError["code"],
+      WorkspaceErrorKey
+    > = {
+      "connection-closed": "serialConnectionClosed",
+      unavailable: "webSerialUnavailable",
+      "streams-unavailable": "serialStreamsUnavailable",
+    }
+
+    return { key: serialErrorKeys[error.code] }
+  }
+
+  if (error instanceof Uvl15wRadioError) {
+    const radioErrorKeys: Record<Uvl15wRadioErrorCode, WorkspaceErrorKey> = {
+      "already-connected": "radioAlreadyConnected",
+      "not-connected": "radioNotConnected",
+      "operation-in-progress": "radioOperationInProgress",
+      "connection-closed": "radioConnectionClosed",
+      "response-timeout": "radioResponseTimeout",
+      protocol: "radioProtocolError",
+      "incompatible-radio": "incompatibleRadio",
+      "read-password-required": "readPasswordRequired",
+      "unexpected-response": "unexpectedRadioResponse",
+    }
+
+    return { key: radioErrorKeys[error.code] }
   }
 
   return error instanceof Error
-    ? error.message
-    : "An unknown Radio error occurred."
+    ? { message: error.message }
+    : { key: "unknownRadioError" }
 }
 
 function safeFilename(value: string) {
@@ -174,4 +236,4 @@ function getServerWebSerialSupport() {
 }
 
 export { CpsWorkspaceProvider, useCpsWorkspace }
-export type { WorkspaceStatus }
+export type { WorkspaceError, WorkspaceErrorKey, WorkspaceStatus }

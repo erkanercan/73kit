@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import {
   ArchiveIcon,
   BookOpenIcon,
@@ -13,6 +12,7 @@ import {
   Settings2Icon,
   WaypointsIcon,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { NavMain, type NavigationSection } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
@@ -28,37 +28,42 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-
-const navigation: NavigationSection[] = [
-  {
-    label: "Workspace",
-    items: [
-      { title: "Radio", href: "/", icon: RadioIcon, active: true },
-      { title: "Channels", icon: ListIcon, planned: true },
-      { title: "Zones", icon: MapIcon, planned: true },
-      { title: "Scan Lists", icon: ListChecksIcon, planned: true },
-    ],
-  },
-  {
-    label: "Configuration",
-    items: [
-      { title: "APRS", icon: WaypointsIcon, planned: true },
-      { title: "Settings", icon: Settings2Icon, planned: true },
-    ],
-  },
-  {
-    label: "Data",
-    items: [{ title: "Backups", icon: ArchiveIcon, planned: true }],
-  },
-]
-
-const secondaryNavigation = [
-  { title: "Diagnostics", icon: CircleGaugeIcon, planned: true },
-  { title: "About", icon: BookOpenIcon, planned: true },
-]
+import { Link } from "@/i18n/navigation"
 
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { completedRead, status } = useCpsWorkspace()
+  const t = useTranslations()
+  const navigation: NavigationSection[] = [
+    {
+      label: t("navWorkspace"),
+      items: [
+        {
+          title: t("navRadio"),
+          href: "/",
+          icon: RadioIcon,
+          active: true,
+        },
+        { title: t("navChannels"), icon: ListIcon, planned: true },
+        { title: t("navZones"), icon: MapIcon, planned: true },
+        { title: t("navScanLists"), icon: ListChecksIcon, planned: true },
+      ],
+    },
+    {
+      label: t("navConfiguration"),
+      items: [
+        { title: t("navAprs"), icon: WaypointsIcon, planned: true },
+        { title: t("navSettings"), icon: Settings2Icon, planned: true },
+      ],
+    },
+    {
+      label: t("navData"),
+      items: [{ title: t("navBackups"), icon: ArchiveIcon, planned: true }],
+    },
+  ]
+  const secondaryNavigation = [
+    { title: t("navDiagnostics"), icon: CircleGaugeIcon, planned: true },
+    { title: t("navAbout"), icon: BookOpenIcon, planned: true },
+  ]
 
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>
@@ -75,15 +80,21 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">UVL-15W CPS</span>
-                <span className="truncate text-xs">Local radio workspace</span>
+                <span className="truncate text-xs">
+                  {t("localRadioWorkspace")}
+                </span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain sections={navigation} />
-        <NavSecondary items={secondaryNavigation} className="mt-auto" />
+        <NavMain sections={navigation} plannedLabel={t("planned")} />
+        <NavSecondary
+          items={secondaryNavigation}
+          plannedLabel={t("planned")}
+          className="mt-auto"
+        />
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
@@ -91,7 +102,9 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton
               size="lg"
               tooltip={
-                completedRead ? "Working Codeplug ready" : "No Working Codeplug"
+                completedRead
+                  ? t("workingCodeplugReady")
+                  : t("noWorkingCodeplug")
               }
               render={<div />}
             >
@@ -100,16 +113,16 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
-                  {completedRead ? "Working Codeplug" : "No Codeplug"}
+                  {completedRead ? t("workingCodeplug") : t("noCodeplug")}
                 </span>
                 <span className="truncate text-xs">
                   {status === "reading"
-                    ? "Radio Read in progress"
-                    : "Session storage"}
+                    ? t("radioReadInProgress")
+                    : t("sessionStorage")}
                 </span>
               </div>
               <Badge variant={completedRead ? "secondary" : "outline"}>
-                {completedRead ? "Ready" : "Empty"}
+                {completedRead ? t("ready") : t("empty")}
               </Badge>
             </SidebarMenuButton>
           </SidebarMenuItem>

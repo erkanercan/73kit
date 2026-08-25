@@ -1,10 +1,9 @@
-import type { Metadata } from "next"
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google"
+import { getLocale } from "next-intl/server"
 
 import "./globals.css"
-import { CpsAppShell } from "@/components/cps-app-shell"
+import { CpsWorkspaceProvider } from "@/components/cps-workspace-provider"
 import { ThemeProvider } from "@/components/theme-provider"
-import { TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 const spaceGroteskHeading = Space_Grotesk({
@@ -19,19 +18,16 @@ const fontMono = Geist_Mono({
   variable: "--font-mono",
 })
 
-export const metadata: Metadata = {
-  title: "UVL-15W CPS",
-  description: "Read, inspect, and manage a TYT UVL-15W Codeplug locally.",
-}
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
+
   return (
     <html
-      lang="en"
+      lang={locale}
       suppressHydrationWarning
       className={cn(
         "font-sans antialiased",
@@ -42,9 +38,7 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <TooltipProvider>
-            <CpsAppShell>{children}</CpsAppShell>
-          </TooltipProvider>
+          <CpsWorkspaceProvider>{children}</CpsWorkspaceProvider>
         </ThemeProvider>
       </body>
     </html>

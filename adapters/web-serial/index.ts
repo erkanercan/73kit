@@ -5,6 +5,19 @@ import type {
 
 const POC_VERIFIED_BAUD_RATE = 115_200
 
+type WebSerialTransportErrorCode =
+  "connection-closed" | "unavailable" | "streams-unavailable"
+
+class WebSerialTransportError extends Error {
+  readonly code: WebSerialTransportErrorCode
+
+  constructor(code: WebSerialTransportErrorCode, message: string) {
+    super(message)
+    this.name = "WebSerialTransportError"
+    this.code = code
+  }
+}
+
 interface SerialPortFilter {
   readonly usbVendorId?: number
   readonly usbProductId?: number
@@ -64,7 +77,10 @@ class WebSerialConnection implements RadioConnection {
 
   async write(bytes: Uint8Array) {
     if (this.#closed) {
-      throw new Error("The Web Serial connection is closed")
+      throw new WebSerialTransportError(
+        "connection-closed",
+        "The Web Serial connection is closed"
+      )
     }
 
     await this.#writer.write(bytes)
@@ -102,7 +118,10 @@ class WebSerialTransport implements RadioTransport {
     const serial = (navigator as NavigatorWithSerial).serial
 
     if (!serial) {
-      throw new Error("Web Serial is not available in this browser")
+      throw new WebSerialTransportError(
+        "unavailable",
+        "Web Serial is not available in this browser"
+      )
     }
 
     const port = await serial.requestPort({ filters: this.#options.filters })
@@ -118,7 +137,8 @@ class WebSerialTransport implements RadioTransport {
 
     if (!port.readable || !port.writable) {
       await port.close()
-      throw new Error(
+      throw new WebSerialTransportError(
+        "streams-unavailable",
         "The selected serial port did not expose readable and writable streams"
       )
     }
@@ -135,5 +155,13 @@ function createWebSerialTransport(options: WebSerialTransportOptions) {
   return new WebSerialTransport(options)
 }
 
-export { POC_VERIFIED_BAUD_RATE, createWebSerialTransport }
-export type { SerialPortFilter, WebSerialTransportOptions }
+export {
+  POC_VERIFIED_BAUD_RATE,
+  WebSerialTransportError,
+  createWebSerialTransport,
+}
+export type {
+  SerialPortFilter,
+  WebSerialTransportErrorCode,
+  WebSerialTransportOptions,
+}

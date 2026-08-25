@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import type { LucideIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { Badge } from "@/components/ui/badge"
 import {
@@ -19,6 +20,7 @@ import {
 
 function NavSecondary({
   items,
+  plannedLabel,
   ...props
 }: {
   items: readonly {
@@ -26,7 +28,10 @@ function NavSecondary({
     readonly icon: LucideIcon
     readonly planned: boolean
   }[]
+  plannedLabel: string
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+  const t = useTranslations()
+
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
@@ -39,7 +44,9 @@ function NavSecondary({
                     <span
                       className="block"
                       tabIndex={0}
-                      aria-label={`${item.title} is planned and not yet available`}
+                      aria-label={t("plannedUnavailable", {
+                        item: item.title,
+                      })}
                     />
                   }
                 >
@@ -50,12 +57,12 @@ function NavSecondary({
                       variant="outline"
                       className="ml-auto group-data-[collapsible=icon]:hidden"
                     >
-                      Planned
+                      {plannedLabel}
                     </Badge>
                   </SidebarMenuButton>
                 </TooltipTrigger>
                 <TooltipContent side="right">
-                  {item.title} is planned and not yet available.
+                  {t("plannedUnavailable", { item: item.title })}
                 </TooltipContent>
               </Tooltip>
             </SidebarMenuItem>
