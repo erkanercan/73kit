@@ -92,6 +92,7 @@ English developer edition: terminology and descriptions have been normalized for
 | Channel-to-Zone membership bitmap | 0x0001C000~0x0001CF9F | 4000 B | 4 B per channel; inverted membership bits |
 | Channel-to-Scan List membership bitmap | 0x0001D000~0x0001DF9F | 4000 B | 4 B per channel; inverted membership bits |
 | Zone name region | 0x0001E000~0x0001E17F | 384 B | 16 zone names (24 B each) |
+| A/B Zone selection bitmaps | 0x0001E342~0x0001E349 | 8 B | Two 32-bit little-endian bitmaps; lower 16 bits select Zones 0-15 |
 | Scan List name region | 0x0001E500~0x0001E67F | 384 B | 16 scan-list names (24 B each) |
 | Menu Display Mask | 0x0001BA00~0x0001BAFF | 256 B | menu visibility bitmap |
 
@@ -784,10 +785,18 @@ DTCS\_ARRAY (index starts at 0) =
 | UI option | Offset / absolute address | Length | Storage format / options |
 | --- | --- | --- | --- |
 | Zone Name list (Zone0-Zone15) | 0x0001E000 + zone×0x18 | 24 B / record, total16 records | UTF-8 byte stream, pad with 0x00. zone=0~15. |
-| A/B active zone selection | Not yet hardware-verified | 2 B | Keep read/write support deferred until its physical address is verified. |
+| Band A Zone selection | 0x0001E342 | 4 B | 32-bit little-endian bitmap. Lower bit `n` selects Zone `n`; a zero lower bitmap means All Zones. Preserve the upper 16 bits. |
+| Band B Zone selection | 0x0001E346 | 4 B | Same encoding as Band A. The two bands are independent and each may select multiple Zones. |
 | Zone channel-member lists (16 groups) | 0x00018000 + zone×0x100 | 256 B/group (128×2 B) | Each slot is a 2-byte big-endian channel index 0-999; unused slots are 0xFFFF. |
 
 **Consistency requirement**: The ordered Zone member list is stored at `0x00018000`, while per-channel Zone membership is stored at `0x0001C000`; both representations must remain consistent.
+
+**Hardware verification**: Controlled stock-CPS changes produced lower Band
+selection masks `0x0000` (All Zones), `0x0001` (Zone 0), `0x0002` (Zone 1),
+`0x0004` (Zone 2), `0x0003` (Zones 0+1), and `0x0006` (Zones 1+2).
+These comparisons prove both independent addresses, multi-selection, and the
+zero-mask All Zones behavior. Codeplug backup offsets are the physical addresses
+minus the read base `0x8000` (`0x16342` and `0x16346`).
 
 <a id="sec5"></a>
 

@@ -23,6 +23,11 @@ import {
   addDefaultMemoryChannelBytes,
   deleteMemoryChannelBytes,
 } from "./channel-rows.ts"
+import {
+  decodeBandZoneSelections,
+  editBandZoneSelectionBytes,
+} from "./band-zone-selection.ts"
+import type { BandZoneSelections, RadioBand } from "./band-zone-selection.ts"
 import type {
   CallChannelPatch,
   MemoryChannelPatch,
@@ -46,6 +51,7 @@ class Codeplug {
   readonly #callChannels: readonly SpecialChannel[]
   readonly #zones: readonly Zone[]
   readonly #scanLists: readonly ScanList[]
+  readonly #bandZoneSelections: BandZoneSelections
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -60,6 +66,7 @@ class Codeplug {
     this.#callChannels = decodeCallChannels(this.#bytes)
     this.#zones = decodeZones(this.#bytes)
     this.#scanLists = decodeScanLists(this.#bytes)
+    this.#bandZoneSelections = decodeBandZoneSelections(this.#bytes)
   }
 
   get byteLength() {
@@ -90,6 +97,10 @@ class Codeplug {
     return this.#scanLists
   }
 
+  getBandZoneSelections() {
+    return this.#bandZoneSelections
+  }
+
   moveMemoryChannel(fromNumber: number, toNumber: number) {
     return new Codeplug(
       moveMemoryChannelBytes(this.#bytes, fromNumber, toNumber)
@@ -110,6 +121,12 @@ class Codeplug {
 
   editZone(number: number, patch: ChannelCollectionPatch) {
     return new Codeplug(editZoneBytes(this.#bytes, number, patch))
+  }
+
+  editBandZoneSelection(band: RadioBand, zoneNumbers: readonly number[]) {
+    return new Codeplug(
+      editBandZoneSelectionBytes(this.#bytes, band, zoneNumbers)
+    )
   }
 
   editScanList(number: number, patch: ChannelCollectionPatch) {
@@ -151,6 +168,7 @@ export {
   createCodeplug,
 }
 export type { Channel, SpecialChannel } from "./channel.ts"
+export type { BandZoneSelections, RadioBand } from "./band-zone-selection.ts"
 export type {
   ChannelCollectionPatch,
   ChannelMembershipPatch,

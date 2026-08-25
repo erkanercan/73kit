@@ -15,14 +15,18 @@ import {
   type CpsWorkspace,
 } from "@/modules/cps-workspace/index"
 import {
+  reconcileBandZoneSelectionChange,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
   reconcileSpecialChannelEditChanges,
+  reconcileZoneEditChanges,
   type WorkspaceChange,
 } from "@/modules/cps-workspace/change-set"
 import type {
   CallChannelPatch,
+  ChannelCollectionPatch,
   MemoryChannelPatch,
+  RadioBand,
   VfoChannelPatch,
 } from "@/modules/codeplug/index"
 import {
@@ -49,6 +53,8 @@ interface CpsWorkspaceContextValue {
   editMemoryChannel(number: number, patch: MemoryChannelPatch): void
   editVfoChannel(slot: "A" | "B", patch: VfoChannelPatch): void
   editCallChannel(slot: 1 | 2, patch: CallChannelPatch): void
+  editZone(number: number, patch: ChannelCollectionPatch): void
+  editBandZoneSelection(band: RadioBand, zoneNumbers: readonly number[]): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
 }
@@ -322,6 +328,77 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const editZone = React.useCallback(
+    (number: number, patch: ChannelCollectionPatch) => {
+      const fields = Object.keys(patch) as (keyof ChannelCollectionPatch)[]
+      if (fields.length === 0) {
+        return
+      }
+
+      setDocumentState((current) => {
+        if (!current.completedRead) {
+          return current
+        }
+        const completedRead = current.completedRead
+        const nextCodeplug = completedRead.workingCodeplug.codeplug.editZone(
+          number,
+          patch
+        )
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileZoneEditChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            number,
+            fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
+  const editBandZoneSelection = React.useCallback(
+    (band: RadioBand, zoneNumbers: readonly number[]) => {
+      setDocumentState((current) => {
+        if (!current.completedRead) {
+          return current
+        }
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editBandZoneSelection(
+            band,
+            zoneNumbers
+          )
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileBandZoneSelectionChange(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            band
+          ),
+        })
+      })
+    },
+    []
+  )
+
   const addMemoryChannel = React.useCallback(() => {
     setDocumentState((current) => {
       if (!current.completedRead) {
@@ -439,6 +516,8 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editMemoryChannel,
       editVfoChannel,
       editCallChannel,
+      editZone,
+      editBandZoneSelection,
       moveMemoryChannel,
       resetWorkingCodeplug,
     }),
@@ -458,6 +537,8 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editMemoryChannel,
       editVfoChannel,
       editCallChannel,
+      editZone,
+      editBandZoneSelection,
       moveMemoryChannel,
       resetWorkingCodeplug,
     ]

@@ -50,7 +50,12 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           icon: ListIcon,
           active: pathname === "/channels",
         },
-        { title: t("navZones"), icon: MapIcon, planned: true },
+        {
+          title: t("navZones"),
+          href: "/zones",
+          icon: MapIcon,
+          active: pathname === "/zones",
+        },
         { title: t("navScanLists"), icon: ListChecksIcon, planned: true },
       ],
     },

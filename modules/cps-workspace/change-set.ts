@@ -1,8 +1,10 @@
 import type {
   CallChannelPatch,
+  ChannelCollectionPatch,
   Channel,
   Codeplug,
   MemoryChannelPatch,
+  RadioBand,
   SpecialChannel,
   VfoChannelPatch,
 } from "../codeplug/index.ts"
@@ -36,6 +38,15 @@ type WorkspaceChange =
       readonly kind: "edit-call-channel"
       readonly slot: 1 | 2
       readonly field: keyof CallChannelPatch
+    }
+  | {
+      readonly kind: "edit-zone"
+      readonly number: number
+      readonly field: keyof ChannelCollectionPatch
+    }
+  | {
+      readonly kind: "edit-band-zone-selection"
+      readonly band: RadioBand
     }
 
 type MemoryChannelStructureChange = {
@@ -239,6 +250,82 @@ function reconcileSpecialChannelEditChanges(
   ])
 }
 
+function reconcileZoneEditChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  number: number,
+  fields: readonly (keyof ChannelCollectionPatch)[]
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) {
+    return Object.freeze([])
+  }
+
+  const baselineZone = baselineCodeplug.getZones()[number - 1]
+  const workingZone = workingCodeplug.getZones()[number - 1]
+  if (!baselineZone || !workingZone) {
+    throw new RangeError("Unknown Zone number")
+  }
+
+  const affectedFields = new Set(fields)
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-zone" ||
+      change.number !== number ||
+      !affectedFields.has(change.field)
+  )
+  const changedFields = fields.filter((field) => {
+    if (field === "channelNumbers") {
+      return !numberArraysEqual(
+        baselineZone.channelNumbers,
+        workingZone.channelNumbers
+      )
+    }
+    return baselineZone.name !== workingZone.name
+  })
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) =>
+      Object.freeze({ kind: "edit-zone" as const, number, field })
+    ),
+  ])
+}
+
+function reconcileBandZoneSelectionChange(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  band: RadioBand
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) {
+    return Object.freeze([])
+  }
+
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-band-zone-selection" || change.band !== band
+  )
+  const baseline = baselineCodeplug.getBandZoneSelections()[band]
+  const working = workingCodeplug.getBandZoneSelections()[band]
+
+  if (numberArraysEqual(baseline, working)) {
+    return Object.freeze(retained)
+  }
+
+  return Object.freeze([
+    ...retained,
+    Object.freeze({ kind: "edit-band-zone-selection" as const, band }),
+  ])
+}
+
+function numberArraysEqual(left: readonly number[], right: readonly number[]) {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  )
+}
+
 function channelFieldEquals(
   baseline: Channel,
   working: Channel,
@@ -305,8 +392,10 @@ function toneEquals(
 }
 
 export {
+  reconcileBandZoneSelectionChange,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
   reconcileSpecialChannelEditChanges,
+  reconcileZoneEditChanges,
 }
 export type { WorkspaceChange }

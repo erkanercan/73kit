@@ -75,7 +75,11 @@ function AppHeader() {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbPage>
-              {pathname === "/channels" ? t("navChannels") : t("navRadio")}
+              {pathname === "/channels"
+                ? t("navChannels")
+                : pathname === "/zones"
+                  ? t("navZones")
+                  : t("navRadio")}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>

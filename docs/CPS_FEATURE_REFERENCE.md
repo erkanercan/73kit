@@ -432,7 +432,7 @@ The storage reference's normal save flow mirrors `VFO A → Temp A` and `VFO B �
 - 16 zones — P0
 - 24-byte UTF-8 names — P0
 - 128 member slots per zone — P0
-- A/B active zone selection — P1
+- A/B multi-Zone selection — P1 / IMPLEMENTED PRODUCT; PROVEN STORAGE
 
 Zone information exists in both ordered member lists and per-channel membership bitmaps. Writer code must maintain both consistently.
 
@@ -449,10 +449,30 @@ valid Channel and collection numbers, and the 128-member capacity. Consistency
 validation reports stable codes for invalid or duplicate ordered entries and
 for differences between ordered lists and membership bitmaps.
 
-This milestone provides the shared domain implementation only. Zone and Scan
-List pages and Channel table/Drawer membership controls remain unimplemented.
+### Zone editor — P1 / IMPLEMENTED
 
-Recommended UX: drag/drop, bulk assign, member count, consistency warnings.
+The `/zones` workspace presents all 16 fixed hardware Zone slots in one
+master-detail page. The selected Zone supports a 24-byte UTF-8 name, ordered
+member list, drag-to-reorder, adding any used Memory Channel not already in the
+Zone, removing membership without deleting the Channel, and clearing the fixed
+slot. RX/TX frequency, Channel name, TX Power and Squelch are summaries of the
+shared Memory Channel; opening a member uses the shared Channel Drawer and
+therefore edits that Channel everywhere it is referenced.
+
+Zone edits are tracked field-by-field against the Baseline Backup. Restoring a
+Zone name or exact member order to its baseline value removes that pending
+change. The page scrolls its Zone list and member table internally rather than
+scrolling the application shell.
+
+Compact Band A and Band B controls independently select any combination of the
+16 Zones. An empty selection represents All Zones. Controlled stock-CPS backup
+comparisons proved 32-bit little-endian bitmaps at physical addresses
+`0x1E342` and `0x1E346`: lower bit `n` selects Zone `n`, while the upper 16 bits
+are preserved. Selection edits are baseline-aware and reverting a band to its
+original selection removes that pending change.
+
+Scan List pages, active Scan List selection, and Channel table/Drawer
+membership controls remain unimplemented.
 
 ---
 
@@ -941,10 +961,11 @@ Advanced
 - [x] per-Channel Zone and Scan List membership operations
 - [x] ordered-list and inverted-bitmap synchronization
 - [x] 128-member capacity and consistency validation
-- [ ] Zone page
+- [x] Zone page
 - [ ] Scan List page
 - [ ] Channel table and Drawer membership controls
-- [ ] A/B active Zone and Scan List selection
+- [x] A/B multi-Zone selection
+- [ ] A/B active Scan List selection
 - [ ] Scan List priority/skip settings
 
 ## Epic 7 — Safe writer
@@ -1052,7 +1073,7 @@ firmware update commands
 - [ ] Change Set review
 - [ ] undo/redo
 - [ ] saved Working Codeplugs
-- [ ] zone editor
+- [x] zone editor
 - [ ] scan-list editor
 - [x] VFO/Call Channel editor
 - [ ] radio settings

@@ -2,12 +2,18 @@ import assert from "node:assert/strict"
 import test from "node:test"
 
 import { CODEPLUG_SIZE, createCodeplug } from "../modules/codeplug/index.ts"
+import {
+  reconcileBandZoneSelectionChange,
+  reconcileZoneEditChanges,
+} from "../modules/cps-workspace/change-set.ts"
 
 const ZONE_MEMBER_LISTS_OFFSET = 0x10000
 const SCAN_LIST_MEMBER_LISTS_OFFSET = 0x12000
 const CHANNEL_ZONE_MEMBERSHIP_OFFSET = 0x14000
 const CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET = 0x15000
 const ZONE_NAMES_OFFSET = 0x16000
+const BAND_A_ZONE_SELECTION_OFFSET = 0x16342
+const BAND_B_ZONE_SELECTION_OFFSET = 0x16346
 const SCAN_LIST_NAMES_OFFSET = 0x16500
 const MEMBER_LIST_SIZE = 0x100
 const MEMBER_LIST_SLOT_COUNT = 128
@@ -96,6 +102,94 @@ test("edits a collection and synchronizes its ordered list and bitmap", () => {
   assert.equal(editedBytes[CHANNEL_ZONE_MEMBERSHIP_OFFSET + 7], 0x34)
   assert.deepEqual(edited.validateMembershipConsistency(), [])
   assert.deepEqual(baseline.toBytes(), bytes)
+})
+
+test("tracks Zone fields against the baseline and removes reverted changes", () => {
+  const bytes = blankMembershipCodeplug()
+  writeName(bytes, ZONE_NAMES_OFFSET, "Local")
+  writeOrderedMember(bytes, ZONE_MEMBER_LISTS_OFFSET, 0, 0, 0)
+  writeOrderedMember(bytes, ZONE_MEMBER_LISTS_OFFSET, 0, 1, 1)
+  writeMembership(bytes, CHANNEL_ZONE_MEMBERSHIP_OFFSET, 0, 0, true)
+  writeMembership(bytes, CHANNEL_ZONE_MEMBERSHIP_OFFSET, 1, 0, true)
+  const baseline = createCodeplug(bytes)
+
+  const edited = baseline.editZone(1, {
+    name: "Repeaters",
+    channelNumbers: [2, 1],
+  })
+  const changed = reconcileZoneEditChanges([], baseline, edited, 1, [
+    "name",
+    "channelNumbers",
+  ])
+
+  assert.deepEqual(
+    changed.map((change) => change.kind),
+    ["edit-zone", "edit-zone"]
+  )
+
+  const nameReverted = edited.editZone(1, { name: "Local" })
+  const membershipOnly = reconcileZoneEditChanges(
+    changed,
+    baseline,
+    nameReverted,
+    1,
+    ["name"]
+  )
+  assert.deepEqual(membershipOnly, [
+    { kind: "edit-zone", number: 1, field: "channelNumbers" },
+  ])
+
+  const fullyReverted = nameReverted.editZone(1, { channelNumbers: [1, 2] })
+  assert.deepEqual(
+    reconcileZoneEditChanges(membershipOnly, baseline, fullyReverted, 1, [
+      "channelNumbers",
+    ]),
+    []
+  )
+})
+
+test("decodes and edits independent multi-Zone selections for both bands", () => {
+  const bytes = blankMembershipCodeplug()
+  const view = new DataView(bytes.buffer)
+  view.setUint32(BAND_A_ZONE_SELECTION_OFFSET, 0xabcd0001, true)
+  view.setUint32(BAND_B_ZONE_SELECTION_OFFSET, 0x12340000, true)
+  const baseline = createCodeplug(bytes)
+
+  assert.deepEqual(baseline.getBandZoneSelections(), { A: [1], B: [] })
+
+  const edited = baseline
+    .editBandZoneSelection("A", [1, 2])
+    .editBandZoneSelection("B", [2, 3])
+  const editedBytes = edited.toBytes()
+  const editedView = new DataView(editedBytes.buffer)
+
+  assert.deepEqual(edited.getBandZoneSelections(), { A: [1, 2], B: [2, 3] })
+  assert.equal(
+    editedView.getUint32(BAND_A_ZONE_SELECTION_OFFSET, true),
+    0xabcd0003
+  )
+  assert.equal(
+    editedView.getUint32(BAND_B_ZONE_SELECTION_OFFSET, true),
+    0x12340006
+  )
+  assert.deepEqual(baseline.toBytes(), bytes)
+
+  const changed = reconcileBandZoneSelectionChange([], baseline, edited, "A")
+  assert.deepEqual(changed, [{ kind: "edit-band-zone-selection", band: "A" }])
+
+  const reverted = edited.editBandZoneSelection("A", [1])
+  assert.deepEqual(
+    reconcileBandZoneSelectionChange(changed, baseline, reverted, "A"),
+    []
+  )
+  assert.throws(
+    () => baseline.editBandZoneSelection("A", [1, 1]),
+    /same Zone twice/
+  )
+  assert.throws(
+    () => baseline.editBandZoneSelection("B", [17]),
+    /between 1 and 16/
+  )
 })
 
 test("edits one Channel's Zone and Scan List memberships without losing order", () => {

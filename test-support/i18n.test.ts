@@ -16,7 +16,7 @@ test("uses Turkish as the default locale and prefixes every locale", () => {
   assert.equal(routing.localePrefix, "always")
 })
 
-test("keeps radio terminology technical in Turkish", () => {
+test("keeps approved radio terminology in Turkish", () => {
   assert.deepEqual(
     {
       fmNarrow: tr.valueFmNarrow,
@@ -35,15 +35,15 @@ test("keeps radio terminology technical in Turkish", () => {
     {
       fmNarrow: "FM-N",
       amNarrow: "AM-N",
-      txTone: "TX Tone",
-      rxTone: "RX Tone",
+      txTone: "TX Tonu",
+      rxTone: "RX Tonu",
       scanFlag: "Scan Flag",
       bclo: "BCLO",
       split: "Split",
-      mediumPower: "Medium",
-      squelchTone: "CTCSS/DCS Tone",
+      mediumPower: "Orta",
+      squelchTone: "CTCSS/DCS Tonu",
       twoTone: "2-Tone",
-      aprsMuted: "On (mute audio)",
+      aprsMuted: "Açık (Sessiz)",
       pttId: "PTT ID",
     }
   )
