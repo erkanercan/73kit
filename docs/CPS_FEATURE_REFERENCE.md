@@ -10,6 +10,7 @@
 >
 > - **PROVEN** — verified against a physical UVL-15W using the browser PoC.
 > - **DOCUMENTED** — explicitly supported by the supplied TYT protocol/storage documentation.
+> - **IMPLEMENTED** — present in production source and covered by automated verification; this does not by itself claim physical Radio validation.
 > - **PLANNED** — product capability we intend to implement using documented data/protocol behavior.
 > - **OPTIONAL** — enhancement that is not required to reproduce the vendor CPS.
 > - **FUTURE / RESEARCH** — requires additional protocol work, browser transport work, or product decisions.
@@ -222,14 +223,17 @@ Why:
 
 ## 7.1 Radio & Connection
 
-### Connect/disconnect — P0 / PROVEN TRANSPORT, PLANNED PRODUCT
+### Operation-scoped connect/disconnect — P0 / IMPLEMENTED PRODUCT; PROVEN TRANSPORT
 
-- request Web Serial port
-- open/close connection
-- unsupported-browser message
-- connection state
-- protocol diagnostics
-- reconnect flow
+- request a Web Serial port for every Radio operation
+- open and close the connection within the operation
+- distinguish unsupported browsers from insecure contexts
+- expose idle, connecting, reading and ready operation phases
+- release the port and reset receive state after success or failure
+
+The CPS does not maintain a persistent Radio connection between operations. A later Radio Read starts a fresh operation and requests a port again. Post-reboot reconnection is reserved for the verified Radio Write workflow, where a complete verification Radio Read is mandatory.
+
+Protocol diagnostics remain planned for a later milestone; no diagnostics log or diagnostics UI is implemented in this milestone.
 
 ### Read radio information — P0 / PROVEN PROTOCOL, PLANNED PRODUCT
 
@@ -788,14 +792,14 @@ Advanced
 
 ## Epic 1 — UVL-15W Radio connection & Transport seam
 
-- Transport interface owned by the UVL-15W Radio module
-- Web Serial adapter
-- scripted Transport test adapter
-- continuous RX pump
-- stream parser
-- connect/disconnect
-- browser compatibility
-- protocol log
+- [x] Transport interface owned by the UVL-15W Radio module
+- [x] Web Serial adapter
+- [x] scripted Transport test adapter
+- [x] continuous RX pump
+- [x] stream parser
+- [x] operation-scoped open/close lifecycle
+- [x] secure-context and browser capability handling
+- [ ] protocol diagnostic log — deferred
 
 ## Epic 2 — Read protocol
 
@@ -929,7 +933,7 @@ firmware update commands
 - [x] E6/E4 physical read test
 - [x] full 102,400-byte physical read
 - [x] E5 Read Complete behavior understood
-- [ ] production transport abstraction
+- [x] production transport abstraction
 - [ ] radio-information UI
 - [ ] Codeplug core
 - [ ] Raw Backup Export and CPS Export handling

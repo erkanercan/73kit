@@ -5,7 +5,8 @@ import type {
 
 interface ScriptStep {
   readonly expectedWrite: Uint8Array
-  readonly responseChunks: readonly Uint8Array[]
+  readonly responseChunks?: readonly Uint8Array[]
+  readonly closeAfterWrite?: boolean
 }
 
 class ScriptedTransport implements RadioTransport, RadioConnection {
@@ -62,13 +63,17 @@ class ScriptedTransport implements RadioTransport, RadioConnection {
 
     this.#stepIndex += 1
 
-    for (const chunk of step.responseChunks) {
+    for (const chunk of step.responseChunks ?? []) {
       const waiter = this.#readWaiters.shift()
       if (waiter) {
         waiter(chunk.slice())
       } else {
         this.#queuedChunks.push(chunk.slice())
       }
+    }
+
+    if (step.closeAfterWrite) {
+      await this.close()
     }
   }
 

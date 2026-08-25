@@ -163,8 +163,8 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
   readonly #readBlockSize: number
   readonly #responseTimeoutMs: number
   readonly #checksumRetries: number
-  readonly #decoder = new ResponseFrameDecoder()
-  readonly #inbox = new FrameInbox()
+  #decoder = new ResponseFrameDecoder()
+  #inbox = new FrameInbox()
 
   #connection: RadioConnection | undefined
   #sourceRadio: SourceRadio | undefined
@@ -196,9 +196,12 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
       )
     }
 
+    this.#decoder = new ResponseFrameDecoder()
+    this.#inbox = new FrameInbox()
+
     const connection = await this.#transport.open()
     this.#connection = connection
-    void this.#receiveContinuously(connection)
+    void this.#receiveContinuously(connection, this.#decoder, this.#inbox)
 
     try {
       const response = await this.#exchange(
@@ -299,6 +302,9 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
     this.#sourceRadio = undefined
 
     if (connection) {
+      this.#inbox.fail(
+        new Uvl15wRadioError("connection-closed", "The Radio connection closed")
+      )
       await connection.close()
     }
   }
@@ -348,14 +354,18 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
     throw new Uvl15wRadioError("protocol", "Checksum retries were exhausted")
   }
 
-  async #receiveContinuously(connection: RadioConnection) {
+  async #receiveContinuously(
+    connection: RadioConnection,
+    decoder: ResponseFrameDecoder,
+    inbox: FrameInbox
+  ) {
     try {
       while (this.#connection === connection) {
         const chunk = await connection.read()
 
         if (chunk === null) {
           if (this.#connection === connection) {
-            this.#inbox.fail(
+            inbox.fail(
               new Uvl15wRadioError(
                 "connection-closed",
                 "The Radio connection closed"
@@ -365,12 +375,12 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
           return
         }
 
-        for (const event of this.#decoder.push(chunk)) {
-          this.#inbox.push(event)
+        for (const event of decoder.push(chunk)) {
+          inbox.push(event)
         }
       }
     } catch (error) {
-      this.#inbox.fail(
+      inbox.fail(
         error instanceof Error
           ? error
           : new Uvl15wRadioError(

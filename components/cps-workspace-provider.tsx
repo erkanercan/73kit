@@ -6,6 +6,8 @@ import {
   POC_VERIFIED_BAUD_RATE,
   WebSerialTransportError,
   createWebSerialTransport,
+  detectRadioCapability,
+  type RadioCapability,
 } from "@/adapters/web-serial/index"
 import {
   createCpsWorkspace,
@@ -18,15 +20,15 @@ import {
   type Uvl15wRadioErrorCode,
 } from "@/modules/uvl15w-radio/index"
 
-type WorkspaceStatus = "disconnected" | "connecting" | "reading" | "ready"
+type WorkspacePhase = "idle" | "connecting" | "reading" | "ready"
 
 interface CpsWorkspaceContextValue {
-  readonly status: WorkspaceStatus
+  readonly phase: WorkspacePhase
   readonly sourceRadio: SourceRadio | null
   readonly completedRead: CompletedRadioRead | null
   readonly progress: number
   readonly error: WorkspaceError | null
-  readonly webSerialSupported: boolean | null
+  readonly capability: RadioCapability | "checking"
   readonly busy: boolean
   readRadio(): Promise<void>
   downloadRawBackup(): void
@@ -58,54 +60,74 @@ const CpsWorkspaceContext =
 
 function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
   const workspace = React.useRef<CpsWorkspace | null>(null)
-  const webSerialSupported = React.useSyncExternalStore(
-    subscribeToBrowserCapability,
-    getWebSerialSupport,
-    getServerWebSerialSupport
-  )
-  const [status, setStatus] = React.useState<WorkspaceStatus>("disconnected")
+  const mounted = React.useRef(true)
+  const operationInProgress = React.useRef(false)
+  const [capability, setCapability] = React.useState<
+    RadioCapability | "checking"
+  >("checking")
+  const [phase, setPhase] = React.useState<WorkspacePhase>("idle")
   const [sourceRadio, setSourceRadio] = React.useState<SourceRadio | null>(null)
   const [completedRead, setCompletedRead] =
     React.useState<CompletedRadioRead | null>(null)
   const [progress, setProgress] = React.useState(0)
   const [error, setError] = React.useState<WorkspaceError | null>(null)
 
-  const busy = status === "connecting" || status === "reading"
+  const busy = phase === "connecting" || phase === "reading"
 
   const readRadio = React.useCallback(async () => {
-    if (!webSerialSupported || busy) {
+    if (capability !== "available" || busy || operationInProgress.current) {
       return
     }
 
+    operationInProgress.current = true
+    const previousRead = completedRead
     setError(null)
     setProgress(0)
-    setStatus("connecting")
+    setPhase("connecting")
 
     try {
       await workspace.current?.disconnect().catch(() => undefined)
 
       const nextWorkspace = createCpsWorkspace(
-        createWebSerialTransport({ baudRate: POC_VERIFIED_BAUD_RATE })
+        createWebSerialTransport({
+          baudRate: POC_VERIFIED_BAUD_RATE,
+        })
       )
       workspace.current = nextWorkspace
 
       const radio = await nextWorkspace.connect()
+      if (!mounted.current) {
+        await nextWorkspace.disconnect().catch(() => undefined)
+        return
+      }
       setSourceRadio(radio)
-      setStatus("reading")
+      setPhase("reading")
 
       const result = await nextWorkspace.read({
-        onProgress: ({ percent }) => setProgress(percent),
+        onProgress: ({ percent }) => {
+          if (mounted.current) {
+            setProgress(percent)
+          }
+        },
       })
 
+      if (!mounted.current) {
+        return
+      }
       setCompletedRead(result)
       setProgress(100)
-      setStatus("ready")
+      setPhase("ready")
     } catch (cause) {
+      if (!mounted.current) {
+        return
+      }
       setError(workspaceError(cause))
-      setSourceRadio(null)
-      setStatus("disconnected")
+      setSourceRadio(previousRead?.sourceRadio ?? null)
+      setPhase("idle")
+    } finally {
+      operationInProgress.current = false
     }
-  }, [busy, webSerialSupported])
+  }, [busy, capability, completedRead])
 
   const downloadRawBackup = React.useCallback(() => {
     if (!completedRead) {
@@ -125,30 +147,37 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
   }, [completedRead])
 
   React.useEffect(() => {
+    mounted.current = true
+    const capabilityCheck = window.setTimeout(() => {
+      setCapability(getRadioCapability())
+    }, 0)
+
     return () => {
+      window.clearTimeout(capabilityCheck)
+      mounted.current = false
       void workspace.current?.disconnect().catch(() => undefined)
     }
   }, [])
 
   const value = React.useMemo<CpsWorkspaceContextValue>(
     () => ({
-      status,
+      phase,
       sourceRadio,
       completedRead,
       progress,
       error,
-      webSerialSupported,
+      capability,
       busy,
       readRadio,
       downloadRawBackup,
     }),
     [
-      status,
+      phase,
       sourceRadio,
       completedRead,
       progress,
       error,
-      webSerialSupported,
+      capability,
       busy,
       readRadio,
       downloadRawBackup,
@@ -223,17 +252,10 @@ function safeFilename(value: string) {
   return safeValue || "uvl15w"
 }
 
-function subscribeToBrowserCapability() {
-  return () => undefined
-}
-
-function getWebSerialSupport() {
-  return "serial" in navigator
-}
-
-function getServerWebSerialSupport() {
-  return null
+function getRadioCapability(): RadioCapability {
+  const serial = (navigator as Navigator & { readonly serial?: unknown }).serial
+  return detectRadioCapability(window.isSecureContext, serial)
 }
 
 export { CpsWorkspaceProvider, useCpsWorkspace }
-export type { WorkspaceError, WorkspaceErrorKey, WorkspaceStatus }
+export type { WorkspaceError, WorkspaceErrorKey, WorkspacePhase }

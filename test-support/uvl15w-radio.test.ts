@@ -4,6 +4,7 @@ import test from "node:test"
 import { CODEPLUG_SIZE, createCodeplug } from "../modules/codeplug/index.ts"
 import { createCpsWorkspace } from "../modules/cps-workspace/index.ts"
 import { CODEPLUG_START_ADDRESS } from "../modules/uvl15w-radio/index.ts"
+import { createUvl15wRadio } from "../modules/uvl15w-radio/index.ts"
 import {
   ResponseFrameDecoder,
   encodeRequestFrame,
@@ -128,6 +129,44 @@ test("atomically creates a Baseline Backup and Working Codeplug after a complete
   )
   assert.equal(workspace.getSnapshot().status, "ready")
   assert.equal(progress.at(-1), CODEPLUG_SIZE)
+  transport.assertComplete()
+})
+
+test("starts a later Radio operation with clean receive state after a closed connection", async () => {
+  const handshake = encodeRequestFrame(0xe0, encoder.encode("UVL-15W"))
+  const transport = new ScriptedTransport([
+    { expectedWrite: handshake, closeAfterWrite: true },
+    {
+      expectedWrite: handshake,
+      responseChunks: [encodeResponseFrame(0xe1, deviceInformationPayload())],
+    },
+  ])
+  const radio = createUvl15wRadio(transport, { responseTimeoutMs: 100 })
+
+  await assert.rejects(radio.connect(), { code: "connection-closed" })
+  const sourceRadio = await radio.connect()
+
+  assert.equal(sourceRadio.serialNumber, "UVL15W-TEST-0001")
+  await radio.disconnect()
+  transport.assertComplete()
+})
+
+test("closes a timed-out operation before a later Radio operation starts", async () => {
+  const handshake = encodeRequestFrame(0xe0, encoder.encode("UVL-15W"))
+  const transport = new ScriptedTransport([
+    { expectedWrite: handshake, responseChunks: [] },
+    {
+      expectedWrite: handshake,
+      responseChunks: [encodeResponseFrame(0xe1, deviceInformationPayload())],
+    },
+  ])
+  const radio = createUvl15wRadio(transport, { responseTimeoutMs: 5 })
+
+  await assert.rejects(radio.connect(), { code: "response-timeout" })
+  const sourceRadio = await radio.connect()
+
+  assert.equal(sourceRadio.model, "UVL-15W")
+  await radio.disconnect()
   transport.assertComplete()
 })
 

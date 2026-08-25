@@ -31,7 +31,7 @@ import {
 import { Link } from "@/i18n/navigation"
 
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { completedRead, status } = useCpsWorkspace()
+  const { completedRead, phase } = useCpsWorkspace()
   const t = useTranslations()
   const navigation: NavigationSection[] = [
     {
@@ -116,7 +116,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   {completedRead ? t("workingCodeplug") : t("noCodeplug")}
                 </span>
                 <span className="truncate text-xs">
-                  {status === "reading"
+                  {phase === "reading"
                     ? t("radioReadInProgress")
                     : t("sessionStorage")}
                 </span>

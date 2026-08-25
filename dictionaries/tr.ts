@@ -36,6 +36,7 @@ const tr = {
   readingRadio: "Telsiz okunuyor…",
   readingRadioPlain: "Telsiz okunuyor",
   readRadio: "Telsizden Oku",
+  readAgain: "Yeniden Oku",
   writeRadio: "Telsize Yaz",
   writeRadioPlanned: "Telsize Yaz özelliği planlandı",
   noRadio: "Telsiz yok",
@@ -43,7 +44,7 @@ const tr = {
   localSave: "Yerel kayıt: {value}",
   sessionOnly: "Yalnızca bu oturum",
   noData: "Veri yok",
-  disconnected: "Bağlı değil",
+  idle: "Beklemede",
   connecting: "Bağlanıyor",
   reading: "Okunuyor",
   backupReady: "Yedek hazır",
@@ -54,6 +55,9 @@ const tr = {
   webSerialUnavailable: "Web Serial kullanılamıyor",
   webSerialHelp:
     "Bu CPS'yi güvenli bir bağlantı üzerinden; Web Serial destekleyen Chrome, Edge veya başka bir Chromium tarayıcıda açın.",
+  secureContextRequired: "Güvenli bağlantı gerekiyor",
+  secureContextHelp:
+    "Telsiz işlemlerini kullanmadan önce bu CPS'yi HTTPS veya localhost üzerinden açın.",
   radioReadStopped: "Telsiz okuma durdu",
   radioInformation: "Telsiz kimliği",
   radioInformationDescription:

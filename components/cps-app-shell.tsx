@@ -13,7 +13,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import {
   useCpsWorkspace,
-  type WorkspaceStatus,
+  type WorkspacePhase,
 } from "@/components/cps-workspace-provider"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -55,7 +55,7 @@ function CpsAppShell({ children }: { children: React.ReactNode }) {
 }
 
 function AppHeader() {
-  const { busy, readRadio, webSerialSupported } = useCpsWorkspace()
+  const { busy, capability, completedRead, readRadio } = useCpsWorkspace()
   const t = useTranslations()
 
   return (
@@ -76,7 +76,7 @@ function AppHeader() {
         <LanguageSwitcher />
         <Button
           size="sm"
-          disabled={busy || webSerialSupported !== true}
+          disabled={busy || capability !== "available"}
           onClick={() => void readRadio()}
         >
           {busy ? (
@@ -88,10 +88,18 @@ function AppHeader() {
             <DownloadIcon data-icon="inline-start" />
           )}
           <span className="hidden sm:inline">
-            {busy ? t("readingRadio") : t("readRadio")}
+            {busy
+              ? t("readingRadio")
+              : completedRead
+                ? t("readAgain")
+                : t("readRadio")}
           </span>
           <span className="sr-only sm:hidden">
-            {busy ? t("readingRadioPlain") : t("readRadio")}
+            {busy
+              ? t("readingRadioPlain")
+              : completedRead
+                ? t("readAgain")
+                : t("readRadio")}
           </span>
         </Button>
         <Button size="sm" variant="outline" disabled>
@@ -108,7 +116,7 @@ function AppHeader() {
 }
 
 function WorkspaceStatusBar() {
-  const { completedRead, sourceRadio, status } = useCpsWorkspace()
+  const { completedRead, phase, sourceRadio } = useCpsWorkspace()
   const t = useTranslations()
 
   return (
@@ -121,7 +129,7 @@ function WorkspaceStatusBar() {
         <div className="flex items-center gap-1.5">
           <RadioIcon aria-hidden="true" />
           <span>{sourceRadio?.model ?? t("noRadio")}</span>
-          <StatusBadge status={status} />
+          <StatusBadge phase={phase} />
         </div>
         <span>
           {t("workingCodeplug")}: {completedRead ? t("ready") : t("none")}
@@ -137,18 +145,18 @@ function WorkspaceStatusBar() {
   )
 }
 
-function StatusBadge({ status }: { status: WorkspaceStatus }) {
+function StatusBadge({ phase }: { phase: WorkspacePhase }) {
   const t = useTranslations()
-  const labels: Record<WorkspaceStatus, string> = {
-    disconnected: t("disconnected"),
+  const labels: Record<WorkspacePhase, string> = {
+    idle: t("idle"),
     connecting: t("connecting"),
     reading: t("reading"),
     ready: t("backupReady"),
   }
 
   return (
-    <Badge variant={status === "disconnected" ? "outline" : "secondary"}>
-      {labels[status]}
+    <Badge variant={phase === "idle" ? "outline" : "secondary"}>
+      {labels[phase]}
     </Badge>
   )
 }

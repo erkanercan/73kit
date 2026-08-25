@@ -34,6 +34,7 @@ const en = {
   readingRadio: "Reading Radio…",
   readingRadioPlain: "Reading Radio",
   readRadio: "Read Radio",
+  readAgain: "Read Again",
   writeRadio: "Write Radio",
   writeRadioPlanned: "Write Radio is planned",
   noRadio: "No Radio",
@@ -41,7 +42,7 @@ const en = {
   localSave: "Local save: {value}",
   sessionOnly: "Session only",
   noData: "No data",
-  disconnected: "Disconnected",
+  idle: "Idle",
   connecting: "Connecting",
   reading: "Reading",
   backupReady: "Backup ready",
@@ -52,6 +53,9 @@ const en = {
   webSerialUnavailable: "Web Serial is unavailable",
   webSerialHelp:
     "Open this CPS over a secure connection in Chrome, Edge, or another Chromium browser that supports Web Serial.",
+  secureContextRequired: "A secure connection is required",
+  secureContextHelp:
+    "Open this CPS over HTTPS or on localhost before using Radio operations.",
   radioReadStopped: "Radio Read stopped",
   radioInformation: "Radio identity",
   radioInformationDescription:

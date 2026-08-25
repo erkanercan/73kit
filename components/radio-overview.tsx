@@ -51,14 +51,14 @@ function RadioOverview() {
   const t = useTranslations()
   const {
     busy,
+    capability,
     completedRead,
     downloadRawBackup,
     error,
+    phase,
     progress,
     readRadio,
     sourceRadio,
-    status,
-    webSerialSupported,
   } = useCpsWorkspace()
   const displayedRadio = sourceRadio ?? completedRead?.sourceRadio ?? null
 
@@ -79,11 +79,19 @@ function RadioOverview() {
         </div>
       </header>
 
-      {webSerialSupported === false && (
+      {capability === "unsupported" && (
         <Alert>
           <InfoIcon aria-hidden="true" />
           <AlertTitle>{t("webSerialUnavailable")}</AlertTitle>
           <AlertDescription>{t("webSerialHelp")}</AlertDescription>
+        </Alert>
+      )}
+
+      {capability === "insecure-context" && (
+        <Alert>
+          <InfoIcon aria-hidden="true" />
+          <AlertTitle>{t("secureContextRequired")}</AlertTitle>
+          <AlertDescription>{t("secureContextHelp")}</AlertDescription>
         </Alert>
       )}
 
@@ -100,13 +108,14 @@ function RadioOverview() {
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(18rem,0.75fr)]">
         <RadioInformationCard
           radio={displayedRadio}
-          status={status}
+          phase={phase}
           busy={busy}
-          canRead={webSerialSupported === true}
+          canRead={capability === "available"}
+          readAgain={completedRead !== null}
           onRead={() => void readRadio()}
         />
         <WorkspaceCard
-          status={status}
+          phase={phase}
           progress={progress}
           completedRead={completedRead}
           onDownload={downloadRawBackup}
@@ -118,15 +127,17 @@ function RadioOverview() {
 
 function RadioInformationCard({
   radio,
-  status,
+  phase,
   busy,
   canRead,
+  readAgain,
   onRead,
 }: {
   radio: SourceRadio | null
-  status: "disconnected" | "connecting" | "reading" | "ready"
+  phase: "idle" | "connecting" | "reading" | "ready"
   busy: boolean
   canRead: boolean
+  readAgain: boolean
   onRead(): void
 }) {
   const t = useTranslations()
@@ -137,7 +148,7 @@ function RadioInformationCard({
         <CardTitle>{t("radioInformation")}</CardTitle>
         <CardDescription>{t("radioInformationDescription")}</CardDescription>
         <CardAction>
-          <StatusBadge status={status} />
+          <StatusBadge phase={phase} />
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -164,12 +175,35 @@ function RadioInformationCard({
                 ) : (
                   <DownloadIcon data-icon="inline-start" />
                 )}
-                {busy ? t("readingRadio") : t("readRadio")}
+                {busy
+                  ? t("readingRadio")
+                  : readAgain
+                    ? t("readAgain")
+                    : t("readRadio")}
               </Button>
             </EmptyContent>
           </Empty>
         )}
       </CardContent>
+      {radio && (
+        <CardFooter className="justify-end">
+          <Button disabled={!canRead || busy} onClick={onRead}>
+            {busy ? (
+              <LoaderCircleIcon
+                data-icon="inline-start"
+                className="animate-spin"
+              />
+            ) : (
+              <DownloadIcon data-icon="inline-start" />
+            )}
+            {busy
+              ? t("readingRadio")
+              : readAgain
+                ? t("readAgain")
+                : t("readRadio")}
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   )
 }
@@ -278,12 +312,12 @@ function TechnicalDetail({ label, value }: { label: string; value: string }) {
 }
 
 function WorkspaceCard({
-  status,
+  phase,
   progress,
   completedRead,
   onDownload,
 }: {
-  status: "disconnected" | "connecting" | "reading" | "ready"
+  phase: "idle" | "connecting" | "reading" | "ready"
   progress: number
   completedRead: ReturnType<typeof useCpsWorkspace>["completedRead"]
   onDownload(): void
@@ -301,7 +335,7 @@ function WorkspaceCard({
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
-        {status === "reading" ? (
+        {phase === "reading" ? (
           <Progress value={progress}>
             <ProgressLabel>{t("readingCodeplug")}</ProgressLabel>
             <ProgressValue>{() => `${Math.floor(progress)}%`}</ProgressValue>
@@ -324,7 +358,7 @@ function WorkspaceCard({
           </dl>
         )}
 
-        {completedRead && status === "ready" && (
+        {completedRead && (
           <Alert>
             <ShieldCheckIcon aria-hidden="true" />
             <AlertTitle>{t("codeplugBackupReady")}</AlertTitle>
@@ -332,7 +366,7 @@ function WorkspaceCard({
           </Alert>
         )}
       </CardContent>
-      {completedRead && status === "ready" && (
+      {completedRead && (
         <CardFooter className="justify-between gap-3">
           <span className="text-xs text-muted-foreground">
             {format.dateTime(completedRead.baselineBackup.createdAt, {

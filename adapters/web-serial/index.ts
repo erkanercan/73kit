@@ -93,12 +93,34 @@ class WebSerialConnection implements RadioConnection {
 
     this.#closed = true
 
+    let firstError: unknown
+
     try {
       await this.#reader.cancel()
-    } finally {
+    } catch (error) {
+      firstError = error
+    }
+
+    try {
       this.#reader.releaseLock()
+    } catch (error) {
+      firstError ??= error
+    }
+
+    try {
       this.#writer.releaseLock()
+    } catch (error) {
+      firstError ??= error
+    }
+
+    try {
       await this.#port.close()
+    } catch (error) {
+      firstError ??= error
+    }
+
+    if (firstError) {
+      throw firstError
     }
   }
 }
@@ -133,22 +155,58 @@ class WebSerialTransport implements RadioTransport {
       bufferSize: this.#options.bufferSize,
       flowControl: this.#options.flowControl,
     }
-    await port.open(openOptions)
+    try {
+      await port.open(openOptions)
+    } catch (error) {
+      await port.close().catch(() => undefined)
+      throw error
+    }
 
     if (!port.readable || !port.writable) {
-      await port.close()
-      throw new WebSerialTransportError(
+      const error = new WebSerialTransportError(
         "streams-unavailable",
         "The selected serial port did not expose readable and writable streams"
       )
+      await port.close().catch(() => undefined)
+      throw error
     }
 
-    return new WebSerialConnection(
-      port,
-      port.readable.getReader(),
-      port.writable.getWriter()
-    )
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
+    let writer: WritableStreamDefaultWriter<Uint8Array> | undefined
+    try {
+      reader = port.readable.getReader()
+      writer = port.writable.getWriter()
+    } catch (error) {
+      try {
+        reader?.releaseLock()
+      } catch {}
+      try {
+        writer?.releaseLock()
+      } catch {}
+      await port.close().catch(() => undefined)
+      throw error
+    }
+
+    return new WebSerialConnection(port, reader, writer)
   }
+}
+
+type RadioCapability = "available" | "insecure-context" | "unsupported"
+
+function detectRadioCapability(
+  secureContext: boolean,
+  serial: unknown
+): RadioCapability {
+  if (!secureContext) {
+    return "insecure-context"
+  }
+
+  return typeof serial === "object" &&
+    serial !== null &&
+    "requestPort" in serial &&
+    typeof serial.requestPort === "function"
+    ? "available"
+    : "unsupported"
 }
 
 function createWebSerialTransport(options: WebSerialTransportOptions) {
@@ -159,9 +217,11 @@ export {
   POC_VERIFIED_BAUD_RATE,
   WebSerialTransportError,
   createWebSerialTransport,
+  detectRadioCapability,
 }
 export type {
   SerialPortFilter,
+  RadioCapability,
   WebSerialTransportErrorCode,
   WebSerialTransportOptions,
 }
