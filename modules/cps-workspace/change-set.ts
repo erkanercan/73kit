@@ -293,6 +293,68 @@ function reconcileScanListEditChanges(
   )
 }
 
+function reconcileChannelMembershipChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) {
+    return Object.freeze([])
+  }
+
+  const retained = current.filter(
+    (change) =>
+      !(
+        (change.kind === "edit-zone" || change.kind === "edit-scan-list") &&
+        change.field === "channelNumbers"
+      )
+  )
+  const zoneChanges = collectionMembershipChanges(
+    "zone",
+    baselineCodeplug.getZones(),
+    workingCodeplug.getZones()
+  )
+  const scanListChanges = collectionMembershipChanges(
+    "scan-list",
+    baselineCodeplug.getScanLists(),
+    workingCodeplug.getScanLists()
+  )
+
+  return Object.freeze([...retained, ...zoneChanges, ...scanListChanges])
+}
+
+function collectionMembershipChanges(
+  kind: "zone" | "scan-list",
+  baselineCollections: readonly {
+    readonly channelNumbers: readonly number[]
+  }[],
+  workingCollections: readonly { readonly channelNumbers: readonly number[] }[]
+): readonly WorkspaceChange[] {
+  return baselineCollections.flatMap((baseline, index) => {
+    const working = workingCollections[index]
+    if (
+      working &&
+      numberArraysEqual(baseline.channelNumbers, working.channelNumbers)
+    ) {
+      return []
+    }
+
+    return [
+      kind === "zone"
+        ? Object.freeze({
+            kind: "edit-zone" as const,
+            number: index + 1,
+            field: "channelNumbers" as const,
+          })
+        : Object.freeze({
+            kind: "edit-scan-list" as const,
+            number: index + 1,
+            field: "channelNumbers" as const,
+          }),
+    ]
+  })
+}
+
 function reconcileChannelCollectionEditChanges(
   current: readonly WorkspaceChange[],
   baselineCodeplug: Codeplug,
@@ -479,6 +541,7 @@ function toneEquals(
 export {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
+  reconcileChannelMembershipChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
   reconcileScanListEditChanges,

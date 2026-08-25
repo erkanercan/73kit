@@ -1,6 +1,13 @@
-import type { MemoryChannelPatch } from "@/modules/codeplug/index"
+import type {
+  ChannelMembershipPatch,
+  MemoryChannelPatch,
+} from "@/modules/codeplug/index"
 
 type EditMemoryChannel = (number: number, patch: MemoryChannelPatch) => void
+type EditChannelMemberships = (
+  number: number,
+  patch: ChannelMembershipPatch
+) => void
 
 const DUPLEX_OPTIONS = ["off", "negative", "positive", "split"] as const
 const REVERSE_OPTIONS = ["off", "talk-around", "reverse"] as const
@@ -66,4 +73,4 @@ export {
   SQUELCH_OPTIONS,
   STEP_OPTIONS,
 }
-export type { EditMemoryChannel }
+export type { EditChannelMemberships, EditMemoryChannel }

@@ -180,6 +180,12 @@ const tr = {
   channelDetailsTitle: "Kanal {number, number}",
   noMatchingChannels: "Eşleşen kanal yok",
   noMembership: "Yok",
+  editChannelMemberships:
+    "Kanal {number, number} için {membership} üyeliklerini düzenle",
+  searchMemberships: "{membership} ara",
+  unnamedMembership: "Adsız",
+  membershipFull: "Dolu",
+  noMatchingMemberships: "Eşleşen kayıt yok",
   specialChannelSlot: "Konum",
   vfoSlot: "VFO {slot}",
   callSlot: "Call {slot}",

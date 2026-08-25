@@ -4,7 +4,10 @@ import { XIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { ChannelEditorFields } from "@/components/channels/channel-editor-fields"
-import type { EditMemoryChannel } from "@/components/channels/channel-editing"
+import type {
+  EditChannelMemberships,
+  EditMemoryChannel,
+} from "@/components/channels/channel-editing"
 import { Button } from "@/components/ui/button"
 import {
   Drawer,
@@ -14,15 +17,21 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import type { Channel } from "@/modules/codeplug/index"
+import type { Channel, ScanList, Zone } from "@/modules/codeplug/index"
 
 function ChannelEditorDrawer({
   channel,
+  zones,
+  scanLists,
   onEdit,
+  onEditMemberships,
   onOpenChange,
 }: {
   channel: Channel | null
+  zones: readonly Zone[]
+  scanLists: readonly ScanList[]
   onEdit: EditMemoryChannel
+  onEditMemberships: EditChannelMemberships
   onOpenChange(open: boolean): void
 }) {
   const t = useTranslations()
@@ -56,7 +65,12 @@ function ChannelEditorDrawer({
               <ChannelEditorFields
                 key={channel.number}
                 channel={channel}
+                zones={zones}
+                scanLists={scanLists}
                 onEdit={(patch) => onEdit(channel.number, patch)}
+                onEditMemberships={(patch) =>
+                  onEditMemberships(channel.number, patch)
+                }
               />
             </ScrollArea>
           </>

@@ -333,8 +333,9 @@ change. The same supported fields can be edited from the Channel details Drawer
 or directly in the table. RX frequency, TX frequency, Duplex and Offset are
 separate table columns. TX frequency remains visible beside RX frequency but is
 directly editable only when Duplex is Split. Offset is directly editable only
-for positive or negative Duplex modes. Zone/Scan List membership editing
-remains planned because it requires a dedicated synchronized membership editor.
+for positive or negative Duplex modes. Zone and Scan List columns provide
+compact multi-select membership editors when enabled through the Columns menu;
+the complete Channel Drawer always exposes both editors.
 
 ### VFO and Call Channel inline editing — P1 / IMPLEMENTED
 
@@ -471,7 +472,10 @@ comparisons proved 32-bit little-endian bitmaps at physical addresses
 are preserved. Selection edits are baseline-aware and reverting a band to its
 original selection removes that pending change.
 
-Channel table/Drawer membership controls remain unimplemented.
+The Channel table and Drawer use a shared searchable membership selector.
+Assignments append the Channel to each selected Zone's ordered member list;
+removal compacts that list. Full 128-member Zones cannot accept another
+Channel. Band A/B Zone selection remains independent from Channel membership.
 
 ---
 
@@ -503,6 +507,11 @@ stock-CPS backup comparisons proved 32-bit little-endian bitmaps at physical
 addresses `0x1E822` and `0x1E826`: lower bit `n` selects Scan List `n`, while
 the upper 16 bits are preserved. Selection edits are baseline-aware and
 reverting a band to its original selection removes that pending change.
+
+The same Channel table and Drawer selector edits Scan List membership. It keeps
+the ordered member list and inverted bitmap synchronized, prevents additions to
+full 128-member lists, and does not change the independent Band A/B active Scan
+List selection.
 
 ---
 
@@ -964,7 +973,7 @@ Advanced
 - [x] 24-byte UTF-8 name and storage-level frequency/value validation
 - [x] reset all Working Codeplug edits to the Baseline Backup
 - [x] CTCSS/DCS indexed-value editing in the Memory table and details Drawer
-- [ ] Zone and Scan List membership editing
+- [x] Zone and Scan List membership editing
 - [x] VFO/Call Channel editing
 - [ ] semantic Change Set tracking against the Baseline Backup
 - [ ] Change Set review
@@ -981,7 +990,7 @@ Advanced
 - [x] 128-member capacity and consistency validation
 - [x] Zone page
 - [x] Scan List page
-- [ ] Channel table and Drawer membership controls
+- [x] Channel table and Drawer membership controls
 - [x] A/B multi-Zone selection
 - [x] A/B active Scan List selection
 - [x] Scan List Off/Skip/Priority display and Drawer editing

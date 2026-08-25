@@ -26,11 +26,14 @@ import {
   SCRAMBLER_OPTIONS,
   SQUELCH_OPTIONS,
   STEP_OPTIONS,
+  type EditChannelMemberships,
   type EditMemoryChannel,
 } from "@/components/channels/channel-editing"
 import {
-  formatFrequency,
-} from "@/components/channels/channel-format"
+  ChannelMembershipPicker,
+  type MembershipKind,
+} from "@/components/channels/channel-membership-picker"
+import { formatFrequency } from "@/components/channels/channel-format"
 import { ChannelToneEditor } from "@/components/channels/channel-tone-editor"
 import {
   ChannelValueSelect,
@@ -41,7 +44,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { TableCell, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
-import type { Channel } from "@/modules/codeplug/index"
+import type { Channel, ScanList, Zone } from "@/modules/codeplug/index"
 
 function SortableChannelRow({
   row,
@@ -117,7 +120,10 @@ function createMemoryColumns(
   t: ReturnType<typeof useTranslations>,
   onInspect: (channel: Channel) => void,
   reorderDisabled: boolean,
+  zones: readonly Zone[],
+  scanLists: readonly ScanList[],
   onEdit: EditMemoryChannel,
+  onEditMemberships: EditChannelMemberships,
   onDelete: (number: number) => void
 ): ColumnDef<Channel>[] {
   return [
@@ -259,8 +265,22 @@ function createMemoryColumns(
         />
       ),
     },
-    membershipColumn("zoneNames", "channelZones", t),
-    membershipColumn("scanListNames", "channelScanLists", t),
+    membershipColumn(
+      "zone",
+      "zoneNames",
+      "channelZones",
+      zones,
+      t,
+      onEditMemberships
+    ),
+    membershipColumn(
+      "scan-list",
+      "scanListNames",
+      "channelScanLists",
+      scanLists,
+      t,
+      onEditMemberships
+    ),
     {
       accessorKey: "reverse",
       header: t("talkAroundReverse"),
@@ -454,18 +474,33 @@ function frequencyColumn(
 }
 
 function membershipColumn(
+  kind: MembershipKind,
   accessorKey: "zoneNames" | "scanListNames",
   headerKey: "channelZones" | "channelScanLists",
-  t: ReturnType<typeof useTranslations>
+  collections: readonly (Zone | ScanList)[],
+  t: ReturnType<typeof useTranslations>,
+  onEditMemberships: EditChannelMemberships
 ): ColumnDef<Channel> {
   return {
     accessorKey,
     header: t(headerKey),
     size: 190,
     cell: ({ row }) => (
-      <span className="truncate text-muted-foreground">
-        {row.original[accessorKey].join(", ") || t("noMembership")}
-      </span>
+      <ChannelMembershipPicker
+        id={`channel-${row.original.number}-${accessorKey}`}
+        kind={kind}
+        channelNumber={row.original.number}
+        collections={collections}
+        compact
+        onChange={(numbers) =>
+          onEditMemberships(
+            row.original.number,
+            kind === "zone"
+              ? { zoneNumbers: numbers }
+              : { scanListNumbers: numbers }
+          )
+        }
+      />
     ),
   }
 }

@@ -27,6 +27,7 @@ function ChannelsWorkspace() {
     completedRead,
     deleteMemoryChannel,
     editCallChannel,
+    editChannelMemberships,
     editMemoryChannel,
     editVfoChannel,
     moveMemoryChannel,
@@ -93,10 +94,13 @@ function ChannelsWorkspace() {
         <TabsContent value="memory" className="min-h-0 overflow-hidden">
           <MemoryChannelsCard
             channels={channels}
+            zones={codeplug.getZones()}
+            scanLists={codeplug.getScanLists()}
             changeCount={changes.length}
             onAdd={addMemoryChannel}
             onDelete={deleteMemoryChannel}
             onEdit={editMemoryChannel}
+            onEditMemberships={editChannelMemberships}
             onMove={moveMemoryChannel}
             onReset={resetWorkingCodeplug}
           />

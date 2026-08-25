@@ -17,6 +17,7 @@ import {
 import {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
+  reconcileChannelMembershipChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
   reconcileScanListEditChanges,
@@ -26,6 +27,7 @@ import {
 } from "@/modules/cps-workspace/change-set"
 import type {
   CallChannelPatch,
+  ChannelMembershipPatch,
   ChannelCollectionPatch,
   MemoryChannelPatch,
   RadioBand,
@@ -53,6 +55,7 @@ interface CpsWorkspaceContextValue {
   addMemoryChannel(): void
   deleteMemoryChannel(number: number): void
   editMemoryChannel(number: number, patch: MemoryChannelPatch): void
+  editChannelMemberships(number: number, patch: ChannelMembershipPatch): void
   editVfoChannel(slot: "A" | "B", patch: VfoChannelPatch): void
   editCallChannel(slot: 1 | 2, patch: CallChannelPatch): void
   editZone(number: number, patch: ChannelCollectionPatch): void
@@ -258,6 +261,43 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
             nextCodeplug,
             number,
             fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
+  const editChannelMemberships = React.useCallback(
+    (number: number, patch: ChannelMembershipPatch) => {
+      if (Object.keys(patch).length === 0) {
+        return
+      }
+
+      setDocumentState((current) => {
+        if (!current.completedRead) {
+          return current
+        }
+
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editChannelMemberships(
+            number,
+            patch
+          )
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileChannelMembershipChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug
           ),
         })
       })
@@ -590,6 +630,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       addMemoryChannel,
       deleteMemoryChannel,
       editMemoryChannel,
+      editChannelMemberships,
       editVfoChannel,
       editCallChannel,
       editZone,
@@ -613,6 +654,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       addMemoryChannel,
       deleteMemoryChannel,
       editMemoryChannel,
+      editChannelMemberships,
       editVfoChannel,
       editCallChannel,
       editZone,

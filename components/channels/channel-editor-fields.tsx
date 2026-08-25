@@ -19,6 +19,7 @@ import {
   SQUELCH_OPTIONS,
   STEP_OPTIONS,
 } from "@/components/channels/channel-editing"
+import { ChannelMembershipPicker } from "@/components/channels/channel-membership-picker"
 import { ChannelToneEditor } from "@/components/channels/channel-tone-editor"
 import {
   channelValue,
@@ -46,18 +47,27 @@ import {
 } from "@/components/ui/select"
 import type {
   Channel,
+  ChannelMembershipPatch,
   MemoryChannelPatch,
+  ScanList,
   SpecialChannel,
+  Zone,
 } from "@/modules/codeplug/index"
 
 function ChannelEditorFields({
   channel,
   showName = true,
+  zones,
+  scanLists,
   onEdit,
+  onEditMemberships,
 }: {
   channel: Channel | SpecialChannel
   showName?: boolean
+  zones?: readonly Zone[]
+  scanLists?: readonly ScanList[]
   onEdit(patch: MemoryChannelPatch): void
+  onEditMemberships?(patch: ChannelMembershipPatch): void
 }) {
   const t = useTranslations()
   const identifier = "number" in channel ? channel.number : channel.slot
@@ -272,18 +282,34 @@ function ChannelEditorFields({
         options={drawerValueOptions(APRS_RECEIVE_OPTIONS, t)}
         onCommit={(aprsReceive) => onEdit({ aprsReceive })}
       />
-      {"number" in channel && (
+      {"number" in channel && zones && scanLists && onEditMemberships && (
         <>
-          <DrawerReadOnlyField
-            id={fieldId("zones")}
-            label={t("channelZones")}
-            value={channel.zoneNames.join(", ") || t("noMembership")}
-          />
-          <DrawerReadOnlyField
-            id={fieldId("scan-lists")}
-            label={t("channelScanLists")}
-            value={channel.scanListNames.join(", ") || t("noMembership")}
-          />
+          <Field>
+            <FieldLabel htmlFor={fieldId("zones")}>
+              {t("channelZones")}
+            </FieldLabel>
+            <ChannelMembershipPicker
+              id={fieldId("zones")}
+              kind="zone"
+              channelNumber={channel.number}
+              collections={zones}
+              onChange={(zoneNumbers) => onEditMemberships({ zoneNumbers })}
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={fieldId("scan-lists")}>
+              {t("channelScanLists")}
+            </FieldLabel>
+            <ChannelMembershipPicker
+              id={fieldId("scan-lists")}
+              kind="scan-list"
+              channelNumber={channel.number}
+              collections={scanLists}
+              onChange={(scanListNumbers) =>
+                onEditMemberships({ scanListNumbers })
+              }
+            />
+          </Field>
         </>
       )}
     </FieldGroup>
@@ -479,23 +505,6 @@ function DrawerTextField({
         <Input {...inputProps} />
       )}
       {invalid && <FieldError>{invalidMessage}</FieldError>}
-    </Field>
-  )
-}
-
-function DrawerReadOnlyField({
-  id,
-  label,
-  value,
-}: {
-  id: string
-  label: string
-  value: string
-}) {
-  return (
-    <Field>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Input id={id} value={value} readOnly aria-readonly="true" />
     </Field>
   )
 }

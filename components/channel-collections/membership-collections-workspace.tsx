@@ -95,6 +95,7 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
     completedRead,
     editBandScanListSelection,
     editBandZoneSelection,
+    editChannelMemberships,
     editMemoryChannel,
     editScanList,
     editZone,
@@ -270,7 +271,10 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
       />
       <ChannelEditorDrawer
         channel={selectedChannel}
+        zones={codeplug.getZones()}
+        scanLists={codeplug.getScanLists()}
         onEdit={editMemoryChannel}
+        onEditMemberships={editChannelMemberships}
         onOpenChange={(open) => !open && setSelectedChannelNumber(null)}
       />
     </main>

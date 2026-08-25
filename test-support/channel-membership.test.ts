@@ -5,6 +5,7 @@ import { CODEPLUG_SIZE, createCodeplug } from "../modules/codeplug/index.ts"
 import {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
+  reconcileChannelMembershipChanges,
   reconcileScanListEditChanges,
   reconcileZoneEditChanges,
 } from "../modules/cps-workspace/change-set.ts"
@@ -332,6 +333,42 @@ test("edits one Channel's Zone and Scan List memberships without losing order", 
   assert.deepEqual(removed.getChannels()[1].zoneNames, ["Travel"])
   assert.deepEqual(removed.getChannels()[1].scanListNames, [])
   assert.deepEqual(removed.validateMembershipConsistency(), [])
+})
+
+test("tracks Channel membership edits through collection changes and removes reverts", () => {
+  const bytes = blankMembershipCodeplug()
+  writeName(bytes, ZONE_NAMES_OFFSET, "Local")
+  writeName(bytes, SCAN_LIST_NAMES_OFFSET, "Daily")
+  writeOrderedMember(bytes, ZONE_MEMBER_LISTS_OFFSET, 0, 0, 0)
+  writeMembership(bytes, CHANNEL_ZONE_MEMBERSHIP_OFFSET, 0, 0, true)
+  const baseline = createCodeplug(bytes)
+  const renamed = baseline.editZone(2, { name: "Travel" })
+  const nameChanges = reconcileZoneEditChanges([], baseline, renamed, 2, [
+    "name",
+  ])
+  const edited = renamed.editChannelMemberships(2, {
+    zoneNumbers: [1, 2],
+    scanListNumbers: [1],
+  })
+
+  assert.deepEqual(
+    reconcileChannelMembershipChanges(nameChanges, baseline, edited),
+    [
+      { kind: "edit-zone", number: 2, field: "name" },
+      { kind: "edit-zone", number: 1, field: "channelNumbers" },
+      { kind: "edit-zone", number: 2, field: "channelNumbers" },
+      { kind: "edit-scan-list", number: 1, field: "channelNumbers" },
+    ]
+  )
+
+  const reverted = edited.editChannelMemberships(2, {
+    zoneNumbers: [],
+    scanListNumbers: [],
+  })
+  assert.deepEqual(
+    reconcileChannelMembershipChanges(nameChanges, baseline, reverted),
+    [{ kind: "edit-zone", number: 2, field: "name" }]
+  )
 })
 
 test("rejects membership edits that exceed storage or cannot be encoded", () => {

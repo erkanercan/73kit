@@ -32,7 +32,10 @@ import {
 import { useTranslations } from "next-intl"
 
 import { ChannelEditorDrawer } from "@/components/channels/channel-editor-drawer"
-import type { EditMemoryChannel } from "@/components/channels/channel-editing"
+import type {
+  EditChannelMemberships,
+  EditMemoryChannel,
+} from "@/components/channels/channel-editing"
 import { formatFrequency } from "@/components/channels/channel-format"
 import {
   createMemoryColumns,
@@ -67,7 +70,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
-import type { Channel } from "@/modules/codeplug/index"
+import type { Channel, ScanList, Zone } from "@/modules/codeplug/index"
 
 const ADVANCED_COLUMN_IDS = [
   "reverse",
@@ -91,19 +94,25 @@ const DEFAULT_HIDDEN_COLUMN_IDS = [
 
 function MemoryChannelsCard({
   channels,
+  zones,
+  scanLists,
   changeCount,
   onAdd,
   onDelete,
   onMove,
   onEdit,
+  onEditMemberships,
   onReset,
 }: {
   channels: readonly Channel[]
+  zones: readonly Zone[]
+  scanLists: readonly ScanList[]
   changeCount: number
   onAdd(): void
   onDelete(number: number): void
   onMove(fromNumber: number, toNumber: number): void
   onEdit: EditMemoryChannel
+  onEditMemberships: EditChannelMemberships
   onReset(): void
 }) {
   const t = useTranslations()
@@ -150,10 +159,13 @@ function MemoryChannelsCard({
         t,
         (channel) => setSelectedChannelNumber(channel.number),
         normalizedSearch !== "",
+        zones,
+        scanLists,
         onEdit,
+        onEditMemberships,
         onDelete
       ),
-    [normalizedSearch, onDelete, onEdit, t]
+    [normalizedSearch, onDelete, onEdit, onEditMemberships, scanLists, t, zones]
   )
   // TanStack Table intentionally returns stateful functions that React Compiler
   // cannot memoize. The table owns that state and remains outside compilation.
@@ -404,7 +416,10 @@ function MemoryChannelsCard({
             ? null
             : (channels[selectedChannelNumber - 1] ?? null)
         }
+        zones={zones}
+        scanLists={scanLists}
         onEdit={onEdit}
+        onEditMemberships={onEditMemberships}
         onOpenChange={(open) => !open && setSelectedChannelNumber(null)}
       />
     </>

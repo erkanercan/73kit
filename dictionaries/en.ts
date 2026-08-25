@@ -178,6 +178,12 @@ const en = {
   channelDetailsTitle: "Channel {number, number}",
   noMatchingChannels: "No matching channels",
   noMembership: "None",
+  editChannelMemberships:
+    "Edit {membership} memberships for channel {number, number}",
+  searchMemberships: "Search {membership}",
+  unnamedMembership: "Unnamed",
+  membershipFull: "Full",
+  noMatchingMemberships: "No matching entries",
   specialChannelSlot: "Slot",
   vfoSlot: "VFO {slot}",
   callSlot: "Call {slot}",
