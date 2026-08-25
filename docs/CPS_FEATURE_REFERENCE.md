@@ -235,7 +235,7 @@ The CPS does not maintain a persistent Radio connection between operations. A la
 
 Protocol diagnostics remain planned for a later milestone; no diagnostics log or diagnostics UI is implemented in this milestone.
 
-### Read radio information — P0 / PROVEN PROTOCOL, PLANNED PRODUCT
+### Read radio information — P0 / IMPLEMENTED PRODUCT; PROVEN PROTOCOL
 
 Display model, firmware, hardware, serial number, CPU ID, bootloader model, resource version and read/write protection state.
 
@@ -243,7 +243,7 @@ Display model, firmware, hardware, serial number, CPU ID, bootloader model, reso
 
 ## 7.2 Backups, Working Codeplugs & Exports
 
-### Radio Read — P0 / PROVEN PROTOCOL, PLANNED PRODUCT
+### Radio Read — P0 / IMPLEMENTED PRODUCT; PROVEN PROTOCOL
 
 Read `0x8000 → 0x21000` into a complete 102,400-byte Codeplug. A successful Radio Read creates an immutable Baseline Backup and a separate Working Codeplug. An incomplete or invalid read creates neither.
 
@@ -803,12 +803,12 @@ Advanced
 
 ## Epic 2 — Read protocol
 
-- E0/E1
-- E2
-- E6/E4
-- progress
-- E5 Read Complete
-- safe error handling/retry
+- [x] E0/E1
+- [x] E2
+- [x] E6/E4
+- [x] progress
+- [x] E5 Read Complete
+- [x] safe error handling/retry
 
 ## Epic 3 — Codeplug core
 
@@ -934,7 +934,8 @@ firmware update commands
 - [x] full 102,400-byte physical read
 - [x] E5 Read Complete behavior understood
 - [x] production transport abstraction
-- [ ] radio-information UI
+- [x] production Radio Read workflow
+- [x] radio-information UI
 - [ ] Codeplug core
 - [ ] Raw Backup Export and CPS Export handling
 - [ ] Backup History
