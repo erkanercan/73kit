@@ -217,6 +217,8 @@ Why:
 - a UI object model must not accidentally zero or regenerate unknown data
 - the UI and CPS Workspace must not manipulate addresses, offsets, bitfields or raw bytes directly
 
+The production Codeplug core exposes immutable typed Channel results, including validity and scan state, while keeping the memory map, binary helpers, lookup tables and raw bytes private. Unknown or reserved values remain opaque and the exact source bytes are preserved. Channel editing and encoding remain part of the later offline-editing milestone.
+
 ---
 
 # 7. Complete Feature Catalogue
@@ -812,12 +814,12 @@ Advanced
 
 ## Epic 3 — Codeplug core
 
-- Codeplug module with private exact-byte preservation
-- private memory-map constants and binary helpers
-- private Channel codec
-- validity bitmap
-- scan bitmap
-- preserve unknown bytes
+- [x] Codeplug module with private exact-byte preservation
+- [x] private memory-map constants and binary helpers
+- [x] private read-side Channel codec
+- [x] validity bitmap
+- [x] scan bitmap
+- [x] preserve unknown and reserved bytes
 
 ## Epic 4 — Read-only channel UI
 
@@ -936,10 +938,10 @@ firmware update commands
 - [x] production transport abstraction
 - [x] production Radio Read workflow
 - [x] radio-information UI
-- [ ] Codeplug core
+- [x] Codeplug core
 - [ ] Raw Backup Export and CPS Export handling
 - [ ] Backup History
-- [ ] Channel parser
+- [x] Channel parser
 - [ ] read-only 1000-channel table
 - [ ] CTCSS/DCS display
 - [ ] zones parser

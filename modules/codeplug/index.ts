@@ -1,7 +1,11 @@
+import { decodeChannels } from "./channel-codec.ts"
+import type { Channel } from "./channel.ts"
+
 const CODEPLUG_SIZE = 0x19000
 
 class Codeplug {
   readonly #bytes: Uint8Array
+  readonly #channels: readonly Channel[]
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -11,6 +15,7 @@ class Codeplug {
     }
 
     this.#bytes = bytes.slice()
+    this.#channels = decodeChannels(this.#bytes)
   }
 
   get byteLength() {
@@ -19,6 +24,10 @@ class Codeplug {
 
   toBytes() {
     return this.#bytes.slice()
+  }
+
+  getChannels() {
+    return this.#channels
   }
 
   equals(other: Codeplug) {
@@ -33,3 +42,4 @@ function createCodeplug(bytes: Uint8Array) {
 }
 
 export { CODEPLUG_SIZE, Codeplug, createCodeplug }
+export type { Channel } from "./channel.ts"
