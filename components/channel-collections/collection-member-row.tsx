@@ -13,12 +13,16 @@ import { Button } from "@/components/ui/button"
 import { TableCell, TableRow } from "@/components/ui/table"
 import type { Channel } from "@/modules/codeplug/index"
 
-function ZoneMemberRow({
+import type { CollectionKind } from "./membership-collections-workspace"
+
+function CollectionMemberRow({
+  kind,
   channel,
   position,
   onInspect,
   onRemove,
 }: {
+  kind: CollectionKind
   channel: Channel
   position: number
   onInspect(): void
@@ -33,6 +37,9 @@ function ZoneMemberRow({
     transform,
     transition,
   } = useSortable({ id: channel.number })
+  const dragLabel = kind === "zone" ? "dragZoneMember" : "dragScanListMember"
+  const removeLabel =
+    kind === "zone" ? "removeChannelFromZone" : "removeChannelFromScanList"
 
   return (
     <TableRow
@@ -46,7 +53,7 @@ function ZoneMemberRow({
         <Button
           variant="ghost"
           size="icon-sm"
-          aria-label={t("dragZoneMember", { number: channel.number })}
+          aria-label={t(dragLabel, { number: channel.number })}
           onClick={(event) => event.stopPropagation()}
           {...attributes}
           {...listeners}
@@ -67,6 +74,9 @@ function ZoneMemberRow({
       <TableCell className="max-w-48 truncate">{channel.name || "—"}</TableCell>
       <TableCell>{channelValue(channel.transmitPower, t)}</TableCell>
       <TableCell>{channelValue(channel.squelch, t)}</TableCell>
+      {kind === "scan-list" && (
+        <TableCell>{channelValue(channel.scan, t)}</TableCell>
+      )}
       <TableCell className="w-20">
         <div className="flex justify-end gap-1">
           <Button
@@ -83,7 +93,7 @@ function ZoneMemberRow({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={t("removeChannelFromZone", { number: channel.number })}
+            aria-label={t(removeLabel, { number: channel.number })}
             onClick={(event) => {
               event.stopPropagation()
               onRemove()
@@ -97,4 +107,4 @@ function ZoneMemberRow({
   )
 }
 
-export { ZoneMemberRow }
+export { CollectionMemberRow }

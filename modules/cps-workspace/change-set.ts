@@ -45,6 +45,11 @@ type WorkspaceChange =
       readonly field: keyof ChannelCollectionPatch
     }
   | {
+      readonly kind: "edit-scan-list"
+      readonly number: number
+      readonly field: keyof ChannelCollectionPatch
+    }
+  | {
       readonly kind: "edit-band-zone-selection"
       readonly band: RadioBand
     }
@@ -257,37 +262,83 @@ function reconcileZoneEditChanges(
   number: number,
   fields: readonly (keyof ChannelCollectionPatch)[]
 ): readonly WorkspaceChange[] {
+  return reconcileChannelCollectionEditChanges(
+    current,
+    baselineCodeplug,
+    workingCodeplug,
+    "zone",
+    number,
+    fields
+  )
+}
+
+function reconcileScanListEditChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  number: number,
+  fields: readonly (keyof ChannelCollectionPatch)[]
+): readonly WorkspaceChange[] {
+  return reconcileChannelCollectionEditChanges(
+    current,
+    baselineCodeplug,
+    workingCodeplug,
+    "scan-list",
+    number,
+    fields
+  )
+}
+
+function reconcileChannelCollectionEditChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  kind: "zone" | "scan-list",
+  number: number,
+  fields: readonly (keyof ChannelCollectionPatch)[]
+): readonly WorkspaceChange[] {
   if (workingCodeplug.equals(baselineCodeplug)) {
     return Object.freeze([])
   }
 
-  const baselineZone = baselineCodeplug.getZones()[number - 1]
-  const workingZone = workingCodeplug.getZones()[number - 1]
-  if (!baselineZone || !workingZone) {
-    throw new RangeError("Unknown Zone number")
+  const baselineCollection =
+    kind === "zone"
+      ? baselineCodeplug.getZones()[number - 1]
+      : baselineCodeplug.getScanLists()[number - 1]
+  const workingCollection =
+    kind === "zone"
+      ? workingCodeplug.getZones()[number - 1]
+      : workingCodeplug.getScanLists()[number - 1]
+  if (!baselineCollection || !workingCollection) {
+    throw new RangeError(
+      kind === "zone" ? "Unknown Zone number" : "Unknown Scan List number"
+    )
   }
 
   const affectedFields = new Set(fields)
+  const changeKind = kind === "zone" ? "edit-zone" : "edit-scan-list"
   const retained = current.filter(
     (change) =>
-      change.kind !== "edit-zone" ||
+      change.kind !== changeKind ||
       change.number !== number ||
       !affectedFields.has(change.field)
   )
   const changedFields = fields.filter((field) => {
     if (field === "channelNumbers") {
       return !numberArraysEqual(
-        baselineZone.channelNumbers,
-        workingZone.channelNumbers
+        baselineCollection.channelNumbers,
+        workingCollection.channelNumbers
       )
     }
-    return baselineZone.name !== workingZone.name
+    return baselineCollection.name !== workingCollection.name
   })
 
   return Object.freeze([
     ...retained,
     ...changedFields.map((field) =>
-      Object.freeze({ kind: "edit-zone" as const, number, field })
+      kind === "zone"
+        ? Object.freeze({ kind: "edit-zone" as const, number, field })
+        : Object.freeze({ kind: "edit-scan-list" as const, number, field })
     ),
   ])
 }
@@ -395,6 +446,7 @@ export {
   reconcileBandZoneSelectionChange,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
+  reconcileScanListEditChanges,
   reconcileSpecialChannelEditChanges,
   reconcileZoneEditChanges,
 }

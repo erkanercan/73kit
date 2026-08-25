@@ -471,20 +471,34 @@ comparisons proved 32-bit little-endian bitmaps at physical addresses
 are preserved. Selection edits are baseline-aware and reverting a band to its
 original selection removes that pending change.
 
-Scan List pages, active Scan List selection, and Channel table/Drawer
-membership controls remain unimplemented.
+Active Scan List selection and Channel table/Drawer membership controls remain
+unimplemented.
 
 ---
 
 ## 7.7 Scan Lists
 
-- 16 scan lists — P0
-- 24-byte names — P0
-- 128 member slots per list — P0
-- A/B active scan-list selection — P1
-- priority/skip semantics — P1
+- 16 scan lists — P0 / IMPLEMENTED PRODUCT; PROVEN STORAGE
+- 24-byte names — P0 / IMPLEMENTED PRODUCT; PROVEN STORAGE
+- 128 member slots per list — P0 / IMPLEMENTED PRODUCT; PROVEN STORAGE
+- A/B active scan-list selection — P1 / DEFERRED; STORAGE UNPROVEN
+- member Off/Skip/Priority semantics — P1 / IMPLEMENTED PRODUCT; PROVEN STORAGE
 
 Like zones, both ordered lists and per-channel membership bitmaps must remain synchronized.
+
+### Scan List editor — P1 / IMPLEMENTED
+
+The `/scan-lists` workspace uses the same fixed-slot master-detail workflow as
+Zones. It presents all 16 Scan Lists, a 24-byte UTF-8 name, ordered membership,
+drag-to-reorder, add, remove and clear operations, and the shared Channel
+Drawer. The member table adds the Channel's Off/Skip/Priority scan flag; opening
+the Channel Drawer edits that shared field everywhere the Channel is used.
+
+Scan List name and exact member-order changes are tracked against the Baseline
+Backup, so restoring either field removes its pending change. The page and its
+member table scroll internally. A/B active Scan List controls are intentionally
+withheld until controlled stock-CPS backup comparisons identify and verify their
+storage.
 
 ---
 
@@ -962,11 +976,11 @@ Advanced
 - [x] ordered-list and inverted-bitmap synchronization
 - [x] 128-member capacity and consistency validation
 - [x] Zone page
-- [ ] Scan List page
+- [x] Scan List page
 - [ ] Channel table and Drawer membership controls
 - [x] A/B multi-Zone selection
 - [ ] A/B active Scan List selection
-- [ ] Scan List priority/skip settings
+- [x] Scan List Off/Skip/Priority display and Drawer editing
 
 ## Epic 7 — Safe writer
 
@@ -1074,7 +1088,7 @@ firmware update commands
 - [ ] undo/redo
 - [ ] saved Working Codeplugs
 - [x] zone editor
-- [ ] scan-list editor
+- [x] scan-list editor
 - [x] VFO/Call Channel editor
 - [ ] radio settings
 - [ ] programmable keys

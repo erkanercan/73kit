@@ -18,6 +18,7 @@ import {
   reconcileBandZoneSelectionChange,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
+  reconcileScanListEditChanges,
   reconcileSpecialChannelEditChanges,
   reconcileZoneEditChanges,
   type WorkspaceChange,
@@ -54,6 +55,7 @@ interface CpsWorkspaceContextValue {
   editVfoChannel(slot: "A" | "B", patch: VfoChannelPatch): void
   editCallChannel(slot: 1 | 2, patch: CallChannelPatch): void
   editZone(number: number, patch: ChannelCollectionPatch): void
+  editScanList(number: number, patch: ChannelCollectionPatch): void
   editBandZoneSelection(band: RadioBand, zoneNumbers: readonly number[]): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
@@ -366,6 +368,42 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const editScanList = React.useCallback(
+    (number: number, patch: ChannelCollectionPatch) => {
+      const fields = Object.keys(patch) as (keyof ChannelCollectionPatch)[]
+      if (fields.length === 0) {
+        return
+      }
+
+      setDocumentState((current) => {
+        if (!current.completedRead) {
+          return current
+        }
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editScanList(number, patch)
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileScanListEditChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            number,
+            fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
   const editBandZoneSelection = React.useCallback(
     (band: RadioBand, zoneNumbers: readonly number[]) => {
       setDocumentState((current) => {
@@ -517,6 +555,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editVfoChannel,
       editCallChannel,
       editZone,
+      editScanList,
       editBandZoneSelection,
       moveMemoryChannel,
       resetWorkingCodeplug,
@@ -538,6 +577,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editVfoChannel,
       editCallChannel,
       editZone,
+      editScanList,
       editBandZoneSelection,
       moveMemoryChannel,
       resetWorkingCodeplug,

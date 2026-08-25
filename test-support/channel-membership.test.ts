@@ -4,6 +4,7 @@ import test from "node:test"
 import { CODEPLUG_SIZE, createCodeplug } from "../modules/codeplug/index.ts"
 import {
   reconcileBandZoneSelectionChange,
+  reconcileScanListEditChanges,
   reconcileZoneEditChanges,
 } from "../modules/cps-workspace/change-set.ts"
 
@@ -142,6 +143,52 @@ test("tracks Zone fields against the baseline and removes reverted changes", () 
   const fullyReverted = nameReverted.editZone(1, { channelNumbers: [1, 2] })
   assert.deepEqual(
     reconcileZoneEditChanges(membershipOnly, baseline, fullyReverted, 1, [
+      "channelNumbers",
+    ]),
+    []
+  )
+})
+
+test("tracks Scan List fields against the baseline and removes reverted changes", () => {
+  const bytes = blankMembershipCodeplug()
+  writeName(bytes, SCAN_LIST_NAMES_OFFSET, "Daily")
+  writeOrderedMember(bytes, SCAN_LIST_MEMBER_LISTS_OFFSET, 0, 0, 0)
+  writeOrderedMember(bytes, SCAN_LIST_MEMBER_LISTS_OFFSET, 0, 1, 1)
+  writeMembership(bytes, CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET, 0, 0, true)
+  writeMembership(bytes, CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET, 1, 0, true)
+  const baseline = createCodeplug(bytes)
+
+  const edited = baseline.editScanList(1, {
+    name: "Repeaters",
+    channelNumbers: [2, 1],
+  })
+  const changed = reconcileScanListEditChanges([], baseline, edited, 1, [
+    "name",
+    "channelNumbers",
+  ])
+
+  assert.deepEqual(
+    changed.map((change) => change.kind),
+    ["edit-scan-list", "edit-scan-list"]
+  )
+
+  const nameReverted = edited.editScanList(1, { name: "Daily" })
+  const membershipOnly = reconcileScanListEditChanges(
+    changed,
+    baseline,
+    nameReverted,
+    1,
+    ["name"]
+  )
+  assert.deepEqual(membershipOnly, [
+    { kind: "edit-scan-list", number: 1, field: "channelNumbers" },
+  ])
+
+  const fullyReverted = nameReverted.editScanList(1, {
+    channelNumbers: [1, 2],
+  })
+  assert.deepEqual(
+    reconcileScanListEditChanges(membershipOnly, baseline, fullyReverted, 1, [
       "channelNumbers",
     ]),
     []

@@ -34,12 +34,16 @@ import {
 } from "@/components/ui/table"
 import type { Channel } from "@/modules/codeplug/index"
 
-function AddZoneChannelsDrawer({
+import type { CollectionKind } from "./membership-collections-workspace"
+
+function AddCollectionChannelsDrawer({
+  kind,
   open,
   channels,
   onAdd,
   onOpenChange,
 }: {
+  kind: CollectionKind
   open: boolean
   channels: readonly Channel[]
   onAdd(channelNumber: number): void
@@ -60,12 +64,15 @@ function AddZoneChannelsDrawer({
       .toLocaleLowerCase()
       .includes(normalizedSearch)
   })
+  const title = kind === "zone" ? "addChannelsToZone" : "addChannelsToScanList"
+  const empty =
+    kind === "zone" ? "noAvailableZoneChannels" : "noAvailableScanListChannels"
 
   return (
     <Drawer open={open} swipeDirection="right" onOpenChange={onOpenChange}>
       <DrawerContent className="w-[min(44rem,calc(100vw-1rem))]">
         <DrawerHeader className="flex-row items-center justify-between pb-4">
-          <DrawerTitle>{t("addChannelsToZone")}</DrawerTitle>
+          <DrawerTitle>{t(title)}</DrawerTitle>
           <DrawerClose
             render={
               <Button variant="ghost" size="icon-sm" aria-label={t("close")} />
@@ -93,7 +100,7 @@ function AddZoneChannelsDrawer({
                 <EmptyMedia variant="icon">
                   <SearchIcon />
                 </EmptyMedia>
-                <EmptyTitle>{t("noAvailableZoneChannels")}</EmptyTitle>
+                <EmptyTitle>{t(empty)}</EmptyTitle>
               </EmptyHeader>
             </Empty>
           ) : (
@@ -143,4 +150,4 @@ function AddZoneChannelsDrawer({
   )
 }
 
-export { AddZoneChannelsDrawer }
+export { AddCollectionChannelsDrawer }
