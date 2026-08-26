@@ -9,6 +9,7 @@ import {
   MapIcon,
   RadioIcon,
   ScanLineIcon,
+  BetweenHorizontalStartIcon,
   Settings2Icon,
   WaypointsIcon,
 } from "lucide-react"
@@ -61,6 +62,12 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           href: "/scan-lists",
           icon: ListChecksIcon,
           active: pathname === "/scan-lists",
+        },
+        {
+          title: t("navVfoScanEdges"),
+          href: "/vfo-scan-edges",
+          icon: BetweenHorizontalStartIcon,
+          active: pathname === "/vfo-scan-edges",
         },
       ],
     },

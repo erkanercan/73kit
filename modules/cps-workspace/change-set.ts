@@ -17,6 +17,8 @@ import type {
   SoundSettingsPatch,
   SpecialChannel,
   VfoChannelPatch,
+  VfoScanEdge,
+  VfoScanEdgePatch,
 } from "../codeplug/index.ts"
 
 type WorkspaceChange =
@@ -65,6 +67,15 @@ type WorkspaceChange =
     }
   | {
       readonly kind: "edit-band-scan-list-selection"
+      readonly band: RadioBand
+    }
+  | {
+      readonly kind: "edit-vfo-scan-edge"
+      readonly number: number
+      readonly field: keyof VfoScanEdgePatch
+    }
+  | {
+      readonly kind: "edit-vfo-scan-edge-selection"
       readonly band: RadioBand
     }
   | {
@@ -496,6 +507,68 @@ function reconcileBandScanListSelectionChange(
   ])
 }
 
+function reconcileVfoScanEdgeChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  number: number,
+  fields: readonly (keyof VfoScanEdgePatch)[]
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) return Object.freeze([])
+  const baseline = baselineCodeplug.getVfoScanEdges()[number - 1]
+  const working = workingCodeplug.getVfoScanEdges()[number - 1]
+  if (!baseline || !working)
+    throw new RangeError("Unknown VFO Scan Edge number")
+  const affected = new Set(fields)
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-vfo-scan-edge" ||
+      change.number !== number ||
+      !affected.has(change.field)
+  )
+  const changed = fields.filter(
+    (field) => !vfoScanEdgeFieldEquals(baseline, working, field)
+  )
+  return Object.freeze([
+    ...retained,
+    ...changed.map((field) =>
+      Object.freeze({ kind: "edit-vfo-scan-edge" as const, number, field })
+    ),
+  ])
+}
+
+function reconcileVfoScanEdgeSelectionChange(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  band: RadioBand
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) return Object.freeze([])
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-vfo-scan-edge-selection" || change.band !== band
+  )
+  if (
+    numberArraysEqual(
+      baselineCodeplug.getVfoScanEdgeSelections()[band],
+      workingCodeplug.getVfoScanEdgeSelections()[band]
+    )
+  )
+    return Object.freeze(retained)
+  return Object.freeze([
+    ...retained,
+    Object.freeze({ kind: "edit-vfo-scan-edge-selection" as const, band }),
+  ])
+}
+
+function vfoScanEdgeFieldEquals(
+  baseline: VfoScanEdge,
+  working: VfoScanEdge,
+  field: keyof VfoScanEdgePatch
+) {
+  return baseline[field] === working[field]
+}
+
 function reconcileFunctionSettingChanges(
   current: readonly WorkspaceChange[],
   baselineCodeplug: Codeplug,
@@ -825,6 +898,8 @@ export {
   reconcileMemoryChannelStructureChange,
   reconcileScanListEditChanges,
   reconcileSpecialChannelEditChanges,
+  reconcileVfoScanEdgeChanges,
+  reconcileVfoScanEdgeSelectionChange,
   reconcileZoneEditChanges,
 }
 export type { WorkspaceChange }

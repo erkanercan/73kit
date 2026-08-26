@@ -72,6 +72,11 @@ dual ordered-list/inverted-bitmap representation, capacity enforcement, and
 consistency validation. UI callers must not manipulate either storage
 representation independently.
 
+VFO Scan Edge storage is likewise exposed as 32 immutable records plus two
+independent band selections. The Codeplug module owns header-version migration,
+frequency and step/mode validation, little-endian encoding, and preservation of
+the reserved record bytes; UI callers submit only complete domain patches.
+
 ## Transport seam
 
 The Transport seam isolates UVL-15W protocol behaviour from byte transport behaviour. It is a real seam because it has two adapters:

@@ -28,6 +28,8 @@ import {
   reconcileScanListEditChanges,
   reconcileSpecialChannelEditChanges,
   reconcileZoneEditChanges,
+  reconcileVfoScanEdgeChanges,
+  reconcileVfoScanEdgeSelectionChange,
   type WorkspaceChange,
 } from "@/modules/cps-workspace/change-set"
 import type {
@@ -42,6 +44,7 @@ import type {
   RadioBand,
   SoundSettingsPatch,
   VfoChannelPatch,
+  VfoScanEdgePatch,
 } from "@/modules/codeplug/index"
 import {
   Uvl15wRadioError,
@@ -75,6 +78,8 @@ interface CpsWorkspaceContextValue {
     band: RadioBand,
     scanListNumbers: readonly number[]
   ): void
+  editVfoScanEdge(number: number, patch: VfoScanEdgePatch): void
+  editVfoScanEdgeSelection(band: RadioBand, numbers: readonly number[]): void
   editFunctionSettings(patch: FunctionSettingsPatch): void
   editDisplaySettings(patch: DisplaySettingsPatch): void
   editSoundSettings(patch: SoundSettingsPatch): void
@@ -530,6 +535,66 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const editVfoScanEdge = React.useCallback(
+    (number: number, patch: VfoScanEdgePatch) => {
+      const fields = Object.keys(patch) as (keyof VfoScanEdgePatch)[]
+      if (fields.length === 0) return
+      setDocumentState((current) => {
+        if (!current.completedRead) return current
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editVfoScanEdge(number, patch)
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileVfoScanEdgeChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            number,
+            fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
+  const editVfoScanEdgeSelection = React.useCallback(
+    (band: RadioBand, numbers: readonly number[]) => {
+      setDocumentState((current) => {
+        if (!current.completedRead) return current
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editVfoScanEdgeSelection(
+            band,
+            numbers
+          )
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileVfoScanEdgeSelectionChange(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            band
+          ),
+        })
+      })
+    },
+    []
+  )
+
   const editFunctionSettings = React.useCallback(
     (patch: FunctionSettingsPatch) => {
       const fields = Object.keys(patch) as (keyof FunctionSettingsPatch)[]
@@ -818,6 +883,8 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editScanList,
       editBandZoneSelection,
       editBandScanListSelection,
+      editVfoScanEdge,
+      editVfoScanEdgeSelection,
       editFunctionSettings,
       editDisplaySettings,
       editSoundSettings,
@@ -847,6 +914,8 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editScanList,
       editBandZoneSelection,
       editBandScanListSelection,
+      editVfoScanEdge,
+      editVfoScanEdgeSelection,
       editFunctionSettings,
       editDisplaySettings,
       editSoundSettings,

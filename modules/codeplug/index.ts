@@ -80,6 +80,17 @@ import {
   editMenuVisibilityBytes,
 } from "./menu-visibility.ts"
 import type { MenuVisibility, MenuVisibilityItemId } from "./menu-visibility.ts"
+import {
+  decodeVfoScanEdgeSelections,
+  decodeVfoScanEdges,
+  editVfoScanEdgeBytes,
+  editVfoScanEdgeSelectionBytes,
+} from "./vfo-scan-edge.ts"
+import type {
+  VfoScanEdge,
+  VfoScanEdgePatch,
+  VfoScanEdgeSelections,
+} from "./vfo-scan-edge.ts"
 
 const CODEPLUG_SIZE = 0x19000
 
@@ -97,6 +108,8 @@ class Codeplug {
   readonly #soundSettings: SoundSettings
   readonly #keyboardSettings: KeyboardSettings
   readonly #menuVisibility: MenuVisibility
+  readonly #vfoScanEdges: readonly VfoScanEdge[]
+  readonly #vfoScanEdgeSelections: VfoScanEdgeSelections
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -118,6 +131,8 @@ class Codeplug {
     this.#soundSettings = decodeSoundSettings(this.#bytes)
     this.#keyboardSettings = decodeKeyboardSettings(this.#bytes)
     this.#menuVisibility = decodeMenuVisibility(this.#bytes)
+    this.#vfoScanEdges = decodeVfoScanEdges(this.#bytes)
+    this.#vfoScanEdgeSelections = decodeVfoScanEdgeSelections(this.#bytes)
   }
 
   get byteLength() {
@@ -176,6 +191,14 @@ class Codeplug {
     return this.#menuVisibility
   }
 
+  getVfoScanEdges() {
+    return this.#vfoScanEdges
+  }
+
+  getVfoScanEdgeSelections() {
+    return this.#vfoScanEdgeSelections
+  }
+
   moveMemoryChannel(fromNumber: number, toNumber: number) {
     return new Codeplug(
       moveMemoryChannelBytes(this.#bytes, fromNumber, toNumber)
@@ -210,6 +233,16 @@ class Codeplug {
   ) {
     return new Codeplug(
       editBandScanListSelectionBytes(this.#bytes, band, scanListNumbers)
+    )
+  }
+
+  editVfoScanEdge(number: number, patch: VfoScanEdgePatch) {
+    return new Codeplug(editVfoScanEdgeBytes(this.#bytes, number, patch))
+  }
+
+  editVfoScanEdgeSelection(band: RadioBand, numbers: readonly number[]) {
+    return new Codeplug(
+      editVfoScanEdgeSelectionBytes(this.#bytes, band, numbers)
     )
   }
 
@@ -272,6 +305,7 @@ export {
   createCodeplug,
 }
 export type { Channel, SpecialChannel } from "./channel.ts"
+export type { ChannelModulation, ChannelStepKHz } from "./channel.ts"
 export type { BandZoneSelections, RadioBand } from "./band-zone-selection.ts"
 export type { BandScanListSelections } from "./band-scan-list-selection.ts"
 export type {
@@ -322,3 +356,14 @@ export {
   MENU_VISIBILITY_ASSIGNED_BIT_COUNT,
 } from "./menu-visibility.ts"
 export type { MenuVisibility, MenuVisibilityItemId } from "./menu-visibility.ts"
+export {
+  MAX_FREQUENCY_HZ as VFO_SCAN_EDGE_MAX_FREQUENCY_HZ,
+  MIN_FREQUENCY_HZ as VFO_SCAN_EDGE_MIN_FREQUENCY_HZ,
+  VFO_SCAN_EDGE_MODES,
+  VFO_SCAN_EDGE_STEPS,
+} from "./vfo-scan-edge.ts"
+export type {
+  VfoScanEdge,
+  VfoScanEdgePatch,
+  VfoScanEdgeSelections,
+} from "./vfo-scan-edge.ts"

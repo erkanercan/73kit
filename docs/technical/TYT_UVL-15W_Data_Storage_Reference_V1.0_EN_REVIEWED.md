@@ -97,8 +97,22 @@ English developer edition: terminology and descriptions have been normalized for
 | Scan List name region | 0x0001E500~0x0001E67F | 384 B | 16 scan-list names (24 B each) |
 | A/B active Scan List selection bitmaps | 0x0001E822~0x0001E829 | 8 B | Two 32-bit little-endian bitmaps; lower 16 bits select Scan Lists 0-15 |
 | Menu Display Mask | 0x0001EA00~0x0001EAFF | 256 B | current-CPS menu visibility bitmap; the legacy 0x0001BA00 block remains present but unused in verified current PF files |
+| VFO Scan Edge block | 0x0001EB00~0x0001F2FF | 2048 B | Current `EDG1` version-2 header plus 32 VFO Scan Edge records and reserved bytes |
 
 **Write strategy**: For blocks containing bit fields or reserved bits, use read-modify-write on the complete block to preserve unrelated/reserved values.
+
+### Current-CPS VFO Scan Edge block
+
+The 2026-07-23 CPS stores an `EDG1` header at `0x1EB00`. Version 2 uses a
+32-bit little-endian VFO A selection mask at `+0x08` and a VFO B mask at
+`+0x0C`; version 1 used one zero-based edge index per band at `+0x06` and
+`+0x07` (`0xFF` means none). The 32 records begin at `0x1EB10`, are 36 bytes
+each, and contain a 24-byte null-padded UTF-8 name, little-endian low and high
+frequencies in Hz, step index, mode index, and two reserved bytes. Preserve the
+reserved bytes. Valid frequencies are 108–660 MHz and high must not be below
+low. Step indexes map to 2.5, 3.125, 5, 6.25, 8.33, 10, 12.5, 15, 20, 25, 50,
+and 100 kHz; mode indexes map to FM, FM-N, AM, and AM-N. The CPS permits 8.33
+kHz only with AM modes.
 
 <a id="sec2"></a>
 
