@@ -66,6 +66,7 @@ interface CpsWorkspaceContextValue {
   readRadio(): Promise<void>
   downloadRawBackup(): void
   addMemoryChannel(): void
+  duplicateMemoryChannel(number: number): void
   deleteMemoryChannel(number: number): void
   editMemoryChannel(number: number, patch: MemoryChannelPatch): void
   editChannelMemberships(number: number, patch: ChannelMembershipPatch): void
@@ -799,6 +800,41 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
+  const duplicateMemoryChannel = React.useCallback((number: number) => {
+    setDocumentState((current) => {
+      if (!current.completedRead) {
+        return current
+      }
+
+      const completedRead = current.completedRead
+      const channels = completedRead.workingCodeplug.codeplug.getChannels()
+      const hasUnusedAfter = channels
+        .slice(number)
+        .some((channel) => !channel.valid)
+      const copyNumber = hasUnusedAfter ? number + 1 : number
+      const nextCodeplug =
+        completedRead.workingCodeplug.codeplug.duplicateMemoryChannel(number)
+      const result = reconcileMemoryChannelStructureChange(
+        current.changes,
+        completedRead.baselineBackup.codeplug,
+        completedRead.workingCodeplug.codeplug,
+        nextCodeplug,
+        { kind: "add-memory-channel", number: copyNumber }
+      )
+
+      return Object.freeze({
+        completedRead: Object.freeze({
+          ...completedRead,
+          workingCodeplug: Object.freeze({
+            ...completedRead.workingCodeplug,
+            codeplug: result.codeplug,
+          }),
+        }),
+        changes: result.changes,
+      })
+    })
+  }, [])
+
   const deleteMemoryChannel = React.useCallback((number: number) => {
     setDocumentState((current) => {
       if (!current.completedRead) {
@@ -874,6 +910,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       readRadio,
       downloadRawBackup,
       addMemoryChannel,
+      duplicateMemoryChannel,
       deleteMemoryChannel,
       editMemoryChannel,
       editChannelMemberships,
@@ -905,6 +942,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       readRadio,
       downloadRawBackup,
       addMemoryChannel,
+      duplicateMemoryChannel,
       deleteMemoryChannel,
       editMemoryChannel,
       editChannelMemberships,

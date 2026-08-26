@@ -99,6 +99,7 @@ function MemoryChannelsCard({
   changeCount,
   onAdd,
   onDelete,
+  onDuplicate,
   onMove,
   onEdit,
   onEditMemberships,
@@ -110,6 +111,7 @@ function MemoryChannelsCard({
   changeCount: number
   onAdd(): void
   onDelete(number: number): void
+  onDuplicate(number: number): void
   onMove(fromNumber: number, toNumber: number): void
   onEdit: EditMemoryChannel
   onEditMemberships: EditChannelMemberships
@@ -152,6 +154,7 @@ function MemoryChannelsCard({
       }),
     [channels, normalizedSearch, usedOnly]
   )
+  const canAdd = channels.some((channel) => !channel.valid)
 
   const columns = React.useMemo(
     () =>
@@ -161,11 +164,23 @@ function MemoryChannelsCard({
         normalizedSearch !== "",
         zones,
         scanLists,
+        canAdd,
         onEdit,
         onEditMemberships,
+        onDuplicate,
         onDelete
       ),
-    [normalizedSearch, onDelete, onEdit, onEditMemberships, scanLists, t, zones]
+    [
+      canAdd,
+      normalizedSearch,
+      onDelete,
+      onDuplicate,
+      onEdit,
+      onEditMemberships,
+      scanLists,
+      t,
+      zones,
+    ]
   )
   // TanStack Table intentionally returns stateful functions that React Compiler
   // cannot memoize. The table owns that state and remains outside compilation.
@@ -215,8 +230,6 @@ function MemoryChannelsCard({
     setUsedOnly(true)
     onAdd()
   }
-
-  const canAdd = channels.some((channel) => !channel.valid)
 
   return (
     <>

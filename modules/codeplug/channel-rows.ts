@@ -1,4 +1,10 @@
 import { editMemoryChannelBytes } from "./channel-edit.ts"
+import { decodeChannels } from "./channel-codec.ts"
+import {
+  decodeScanLists,
+  decodeZones,
+  editChannelMembershipsBytes,
+} from "./channel-membership.ts"
 import { moveMemoryChannelBytes } from "./channel-order.ts"
 import {
   CHANNEL_COUNT,
@@ -17,6 +23,8 @@ import {
 } from "./memory-map.ts"
 
 const DEFAULT_FREQUENCY_HZ = 145_500_000
+const CHANNEL_NAME_SIZE = 24
+const COPY_SUFFIX = " Copy"
 
 function addDefaultMemoryChannelBytes(source: Uint8Array) {
   const index = findFirstUnusedChannelIndex(source)
@@ -62,6 +70,105 @@ function deleteMemoryChannelBytes(source: Uint8Array, number: number) {
   return result
 }
 
+function duplicateMemoryChannelBytes(source: Uint8Array, number: number) {
+  const sourceIndex = assertChannelNumber(number)
+  if (readBit(source, VALIDITY_BITMAP_OFFSET, sourceIndex) === 0) {
+    throw new RangeError("Only used Memory Channels can be copied")
+  }
+
+  const unusedIndex = findUnusedChannelIndexForInsert(source, sourceIndex)
+  if (unusedIndex === -1) {
+    throw new RangeError("All Memory Channel slots are in use")
+  }
+
+  const unusedNumber = unusedIndex + 1
+  const sourceNumber = unusedIndex > sourceIndex ? number : number - 1
+  const copyNumber = sourceNumber + 1
+  const reordered = moveMemoryChannelBytes(source, unusedNumber, copyNumber)
+  const sourceChannel = decodeChannels(reordered)[sourceNumber - 1]
+  const zoneNumbers = decodeZones(reordered)
+    .filter((zone) => zone.channelNumbers.includes(sourceNumber))
+    .map((zone) => zone.number)
+  const scanListNumbers = decodeScanLists(reordered)
+    .filter((scanList) => scanList.channelNumbers.includes(sourceNumber))
+    .map((scanList) => scanList.number)
+
+  let result = editChannelMembershipsBytes(reordered, copyNumber, {
+    zoneNumbers: [],
+    scanListNumbers: [],
+  })
+  copyMemoryChannelRecord(result, sourceNumber - 1, copyNumber - 1)
+  result = editMemoryChannelBytes(result, copyNumber, {
+    name: copyChannelName(sourceChannel.name),
+  })
+
+  return editChannelMembershipsBytes(result, copyNumber, {
+    zoneNumbers,
+    scanListNumbers,
+  })
+}
+
+function findUnusedChannelIndexForInsert(
+  bytes: Uint8Array,
+  sourceIndex: number
+) {
+  for (let index = sourceIndex + 1; index < CHANNEL_COUNT; index += 1) {
+    if (readBit(bytes, VALIDITY_BITMAP_OFFSET, index) === 0) {
+      return index
+    }
+  }
+
+  for (let index = 0; index < sourceIndex; index += 1) {
+    if (readBit(bytes, VALIDITY_BITMAP_OFFSET, index) === 0) {
+      return index
+    }
+  }
+
+  return -1
+}
+
+function copyMemoryChannelRecord(
+  bytes: Uint8Array,
+  sourceIndex: number,
+  targetIndex: number
+) {
+  const sourceOffset =
+    CHANNEL_RECORDS_OFFSET + sourceIndex * CHANNEL_RECORD_SIZE
+  const targetOffset =
+    CHANNEL_RECORDS_OFFSET + targetIndex * CHANNEL_RECORD_SIZE
+  bytes.copyWithin(
+    targetOffset,
+    sourceOffset,
+    sourceOffset + CHANNEL_RECORD_SIZE
+  )
+  writeBit(
+    bytes,
+    VALIDITY_BITMAP_OFFSET,
+    targetIndex,
+    readBit(bytes, VALIDITY_BITMAP_OFFSET, sourceIndex)
+  )
+  writeTwoBits(
+    bytes,
+    SCAN_BITMAP_OFFSET,
+    targetIndex,
+    readTwoBits(bytes, SCAN_BITMAP_OFFSET, sourceIndex)
+  )
+}
+
+function copyChannelName(name: string) {
+  const encoder = new TextEncoder()
+  let prefix = name
+
+  while (
+    prefix.length > 0 &&
+    encoder.encode(`${prefix}${COPY_SUFFIX}`).byteLength > CHANNEL_NAME_SIZE
+  ) {
+    prefix = Array.from(prefix).slice(0, -1).join("")
+  }
+
+  return prefix ? `${prefix}${COPY_SUFFIX}` : COPY_SUFFIX.trimStart()
+}
+
 function findFirstUnusedChannelIndex(bytes: Uint8Array) {
   for (let index = 0; index < CHANNEL_COUNT; index += 1) {
     if (readBit(bytes, VALIDITY_BITMAP_OFFSET, index) === 0) {
@@ -79,13 +186,11 @@ function clearMemoryChannelSlot(bytes: Uint8Array, index: number) {
   bytes.fill(
     0xff,
     CHANNEL_ZONE_MEMBERSHIP_OFFSET + index * MEMBERSHIP_BITMAP_RECORD_SIZE,
-    CHANNEL_ZONE_MEMBERSHIP_OFFSET +
-      (index + 1) * MEMBERSHIP_BITMAP_RECORD_SIZE
+    CHANNEL_ZONE_MEMBERSHIP_OFFSET + (index + 1) * MEMBERSHIP_BITMAP_RECORD_SIZE
   )
   bytes.fill(
     0xff,
-    CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET +
-      index * MEMBERSHIP_BITMAP_RECORD_SIZE,
+    CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + index * MEMBERSHIP_BITMAP_RECORD_SIZE,
     CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET +
       (index + 1) * MEMBERSHIP_BITMAP_RECORD_SIZE
   )
@@ -153,8 +258,7 @@ function writeTwoBits(
 ) {
   const byteOffset = offset + Math.floor(index / 4)
   const shift = (index % 4) * 2
-  bytes[byteOffset] =
-    (bytes[byteOffset] & ~(0b11 << shift)) | (value << shift)
+  bytes[byteOffset] = (bytes[byteOffset] & ~(0b11 << shift)) | (value << shift)
 }
 
 function assertChannelNumber(number: number) {
@@ -163,6 +267,17 @@ function assertChannelNumber(number: number) {
       `Channel number must be between 1 and ${CHANNEL_COUNT}`
     )
   }
+
+  return number - 1
 }
 
-export { addDefaultMemoryChannelBytes, deleteMemoryChannelBytes }
+function readTwoBits(bytes: Uint8Array, offset: number, index: number) {
+  const shift = (index % 4) * 2
+  return (bytes[offset + Math.floor(index / 4)] >>> shift) & 0b11
+}
+
+export {
+  addDefaultMemoryChannelBytes,
+  deleteMemoryChannelBytes,
+  duplicateMemoryChannelBytes,
+}

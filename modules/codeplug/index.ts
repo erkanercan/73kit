@@ -22,6 +22,7 @@ import { moveMemoryChannelBytes } from "./channel-order.ts"
 import {
   addDefaultMemoryChannelBytes,
   deleteMemoryChannelBytes,
+  duplicateMemoryChannelBytes,
 } from "./channel-rows.ts"
 import {
   decodeBandZoneSelections,
@@ -284,6 +285,10 @@ class Codeplug {
 
   deleteMemoryChannel(number: number) {
     return new Codeplug(deleteMemoryChannelBytes(this.#bytes, number))
+  }
+
+  duplicateMemoryChannel(number: number) {
+    return new Codeplug(duplicateMemoryChannelBytes(this.#bytes, number))
   }
 
   equals(other: Codeplug) {

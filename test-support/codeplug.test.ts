@@ -302,6 +302,89 @@ test("adds a clean default Memory Channel in the first unused slot", () => {
   )
 })
 
+test("copies a Memory Channel directly below it with its fields and memberships", () => {
+  const bytes = new Uint8Array(CODEPLUG_SIZE)
+  const view = new DataView(bytes.buffer)
+
+  writeChannel(bytes, 0, "Alpha", 145_100_000)
+  writeChannel(bytes, 1, "Bravo", 145_200_000)
+  bytes[0x2f] = 0xa5
+  bytes[VALIDITY_BITMAP_OFFSET] = 0b0000_0011
+  setScan(bytes, 1, 2)
+  clearMembershipStorage(bytes)
+  writeUtf8(bytes, ZONE_NAMES_OFFSET, "Local")
+  writeUtf8(bytes, SCAN_LIST_NAMES_OFFSET, "Daily")
+  view.setUint32(CHANNEL_ZONE_MEMBERSHIP_OFFSET, 0xffff_fffe, true)
+  view.setUint32(CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET, 0xffff_fffe, true)
+  view.setUint16(ZONE_MEMBER_LISTS_OFFSET, 0, false)
+  view.setUint16(SCAN_LIST_MEMBER_LISTS_OFFSET, 0, false)
+
+  const copied = createCodeplug(bytes).duplicateMemoryChannel(1)
+  const channels = copied.getChannels()
+  const copiedBytes = copied.toBytes()
+  const copiedView = new DataView(copiedBytes.buffer)
+  const sourceRecord = copiedBytes.slice(0, CHANNEL_RECORD_SIZE)
+  const copyRecord = copiedBytes.slice(
+    CHANNEL_RECORD_SIZE,
+    CHANNEL_RECORD_SIZE * 2
+  )
+  sourceRecord.fill(0, 0x08, 0x20)
+  copyRecord.fill(0, 0x08, 0x20)
+
+  assert.deepEqual(
+    channels.slice(0, 3).map(({ number, name, valid, scan }) => ({
+      number,
+      name,
+      valid,
+      scan,
+    })),
+    [
+      { number: 1, name: "Alpha", valid: true, scan: "priority" },
+      { number: 2, name: "Alpha Copy", valid: true, scan: "priority" },
+      { number: 3, name: "Bravo", valid: true, scan: "off" },
+    ]
+  )
+  assert.deepEqual(copyRecord, sourceRecord)
+  assert.deepEqual(channels[1].zoneNames, ["Local"])
+  assert.deepEqual(channels[1].scanListNames, ["Daily"])
+  assert.deepEqual(
+    [0, 1].map((slot) =>
+      copiedView.getUint16(ZONE_MEMBER_LISTS_OFFSET + slot * 2, false)
+    ),
+    [0, 1]
+  )
+  assert.deepEqual(
+    [0, 1].map((slot) =>
+      copiedView.getUint16(SCAN_LIST_MEMBER_LISTS_OFFSET + slot * 2, false)
+    ),
+    [0, 1]
+  )
+  assert.deepEqual(createCodeplug(bytes).getChannels()[0].name, "Alpha")
+})
+
+test("keeps a copied Memory Channel name within the UTF-8 byte limit", () => {
+  const bytes = new Uint8Array(CODEPLUG_SIZE)
+  writeChannel(bytes, 0, "ş".repeat(10), 145_100_000)
+  bytes[VALIDITY_BITMAP_OFFSET] = 1
+  clearMembershipStorage(bytes)
+
+  const copied = createCodeplug(bytes)
+    .duplicateMemoryChannel(1)
+    .getChannels()[1]
+
+  assert.equal(copied.name, `${"ş".repeat(9)} Copy`)
+  assert.ok(new TextEncoder().encode(copied.name).byteLength <= 24)
+})
+
+test("rejects copying an unused Memory Channel", () => {
+  const codeplug = createCodeplug(new Uint8Array(CODEPLUG_SIZE))
+
+  assert.throws(
+    () => codeplug.duplicateMemoryChannel(1),
+    /Only used Memory Channels can be copied/
+  )
+})
+
 test("rejects adding a Memory Channel when all slots are used", () => {
   const bytes = new Uint8Array(CODEPLUG_SIZE)
   bytes.fill(0xff, VALIDITY_BITMAP_OFFSET, VALIDITY_BITMAP_OFFSET + 125)
@@ -310,6 +393,37 @@ test("rejects adding a Memory Channel when all slots are used", () => {
     () => createCodeplug(bytes).addMemoryChannel(),
     /All Memory Channel slots are in use/
   )
+  assert.throws(
+    () => createCodeplug(bytes).duplicateMemoryChannel(1),
+    /All Memory Channel slots are in use/
+  )
+})
+
+test("cancels a pending copy when the copied Memory Channel is deleted", () => {
+  const bytes = new Uint8Array(CODEPLUG_SIZE)
+  writeChannel(bytes, 0, "Alpha", 145_100_000)
+  bytes[VALIDITY_BITMAP_OFFSET] = 1
+  clearMembershipStorage(bytes)
+  const baseline = createCodeplug(bytes)
+  const copied = baseline.duplicateMemoryChannel(1)
+  const copiedResult = reconcileMemoryChannelStructureChange(
+    [],
+    baseline,
+    baseline,
+    copied,
+    { kind: "add-memory-channel", number: 2 }
+  )
+  const deleted = copiedResult.codeplug.deleteMemoryChannel(2)
+  const deletedResult = reconcileMemoryChannelStructureChange(
+    copiedResult.changes,
+    baseline,
+    copiedResult.codeplug,
+    deleted,
+    { kind: "delete-memory-channel", number: 2 }
+  )
+
+  assert.equal(deletedResult.changes.length, 0)
+  assert.equal(deletedResult.codeplug.equals(baseline), true)
 })
 
 test("cancels a pending add when the same new Memory Channel is deleted", () => {
@@ -856,6 +970,25 @@ function setScan(bytes: Uint8Array, number: number, value: number) {
   const byteIndex = SCAN_BITMAP_OFFSET + Math.floor(index / 4)
   const shift = (index % 4) * 2
   bytes[byteIndex] = (bytes[byteIndex] & ~(0b11 << shift)) | (value << shift)
+}
+
+function clearMembershipStorage(bytes: Uint8Array) {
+  bytes.fill(0xff, ZONE_MEMBER_LISTS_OFFSET, ZONE_MEMBER_LISTS_OFFSET + 0x1000)
+  bytes.fill(
+    0xff,
+    SCAN_LIST_MEMBER_LISTS_OFFSET,
+    SCAN_LIST_MEMBER_LISTS_OFFSET + 0x1000
+  )
+  bytes.fill(
+    0xff,
+    CHANNEL_ZONE_MEMBERSHIP_OFFSET,
+    CHANNEL_ZONE_MEMBERSHIP_OFFSET + 4_000
+  )
+  bytes.fill(
+    0xff,
+    CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET,
+    CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET + 4_000
+  )
 }
 
 function writeChannel(

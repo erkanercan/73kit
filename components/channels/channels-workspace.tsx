@@ -26,6 +26,7 @@ function ChannelsWorkspace() {
     changes,
     completedRead,
     deleteMemoryChannel,
+    duplicateMemoryChannel,
     editCallChannel,
     editChannelMemberships,
     editMemoryChannel,
@@ -93,6 +94,7 @@ function ChannelsWorkspace() {
             changeCount={changes.length}
             onAdd={addMemoryChannel}
             onDelete={deleteMemoryChannel}
+            onDuplicate={duplicateMemoryChannel}
             onEdit={editMemoryChannel}
             onEditMemberships={editChannelMemberships}
             onMove={moveMemoryChannel}

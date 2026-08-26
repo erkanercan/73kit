@@ -529,6 +529,10 @@ const en = {
   basicColumns: "Basic",
   advancedColumns: "Advanced",
   addChannel: "Add channel",
+  duplicateChannel: "Copy channel {number, number}",
+  copyUsedChannelOnly: "Only used channels can be copied.",
+  copyMembershipCapacityReached:
+    "This channel belongs to a full Zone or Scan List and cannot be copied.",
   deleteChannel: "Delete channel {number, number}",
   channelActions: "Channel actions",
   channelCapacityReached: "All 1,000 channel slots are in use.",

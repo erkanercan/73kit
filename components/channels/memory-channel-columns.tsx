@@ -8,7 +8,7 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table"
 import type { VirtualItem } from "@tanstack/react-virtual"
-import { EyeIcon, GripVerticalIcon, Trash2Icon } from "lucide-react"
+import { CopyIcon, EyeIcon, GripVerticalIcon, Trash2Icon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import {
@@ -122,8 +122,10 @@ function createMemoryColumns(
   reorderDisabled: boolean,
   zones: readonly Zone[],
   scanLists: readonly ScanList[],
+  canDuplicate: boolean,
   onEdit: EditMemoryChannel,
   onEditMemberships: EditChannelMemberships,
+  onDuplicate: (number: number) => void,
   onDelete: (number: number) => void
 ): ColumnDef<Channel>[] {
   return [
@@ -395,30 +397,59 @@ function createMemoryColumns(
     {
       id: "details",
       header: () => <span className="sr-only">{t("channelActions")}</span>,
-      size: 72,
+      size: 108,
       enableHiding: false,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t("inspectChannel", { number: row.original.number })}
-            title={t("inspectChannel", { number: row.original.number })}
-            onClick={() => onInspect(row.original)}
-          >
-            <EyeIcon />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t("deleteChannel", { number: row.original.number })}
-            title={t("deleteChannel", { number: row.original.number })}
-            onClick={() => onDelete(row.original.number)}
-          >
-            <Trash2Icon />
-          </Button>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const membershipCapacityReached = [...zones, ...scanLists].some(
+          (collection) =>
+            collection.channelNumbers.includes(row.original.number) &&
+            collection.channelNumbers.length >= 128
+        )
+        const copyDisabled =
+          !row.original.valid || !canDuplicate || membershipCapacityReached
+        const copyTitle = !row.original.valid
+          ? t("copyUsedChannelOnly")
+          : !canDuplicate
+            ? t("channelCapacityReached")
+            : membershipCapacityReached
+              ? t("copyMembershipCapacityReached")
+              : t("duplicateChannel", { number: row.original.number })
+
+        return (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              disabled={copyDisabled}
+              aria-label={t("duplicateChannel", {
+                number: row.original.number,
+              })}
+              title={copyTitle}
+              onClick={() => onDuplicate(row.original.number)}
+            >
+              <CopyIcon />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("inspectChannel", { number: row.original.number })}
+              title={t("inspectChannel", { number: row.original.number })}
+              onClick={() => onInspect(row.original)}
+            >
+              <EyeIcon />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("deleteChannel", { number: row.original.number })}
+              title={t("deleteChannel", { number: row.original.number })}
+              onClick={() => onDelete(row.original.number)}
+            >
+              <Trash2Icon />
+            </Button>
+          </div>
+        )
+      },
       meta: { reorderDisabled },
     },
   ]

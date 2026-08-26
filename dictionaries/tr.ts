@@ -534,6 +534,10 @@ const tr = {
   basicColumns: "Temel",
   advancedColumns: "Gelişmiş",
   addChannel: "Kanal ekle",
+  duplicateChannel: "Kanal {number, number} kopyala",
+  copyUsedChannelOnly: "Yalnız kullanılan kanallar kopyalanabilir.",
+  copyMembershipCapacityReached:
+    "Bu kanal dolu bir Bölgeye veya Tarama Listesine ait olduğu için kopyalanamaz.",
   deleteChannel: "Kanal {number, number} sil",
   channelActions: "Kanal işlemleri",
   channelCapacityReached: "1.000 kanal konumunun tamamı dolu.",
