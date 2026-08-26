@@ -712,12 +712,15 @@ const tr = {
   aprsDestinationSsidHint: "APRS-0 gibi hedef kimliğini tamamlar.",
   aprsCallsignInvalid: "1–6 harf veya rakam girin.",
   aprsSymbolTable: "Sembol tablosu",
-  aprsSymbolTableHint:
-    "APRS harita sembollerinin birincil veya ikincil grubunu seçer.",
   aprsSymbol: "Sembol",
   aprsSymbolHint: "APRS haritalarında istasyonu gösteren sembol.",
   aprsSymbolPrimary: "Birincil (/)",
   aprsSymbolSecondary: "İkincil (\\)",
+  aprsSymbolPickerTitle: "APRS sembolü",
+  aprsSymbolSearch: "Sembol ara",
+  aprsSymbolNoResults: "Eşleşen sembol yok",
+  aprsSymbolReserved: "Ayrılmış",
+  aprsSymbolOptionLabel: "{name}, kod {code}",
   aprsBeaconTitle: "Beacon",
   aprsBeaconType: "Konum kaynağı",
   aprsBeaconTypeHint:
@@ -795,7 +798,6 @@ const tr = {
   aprsReportAlert: "Uyarı tonu",
   aprsReportAlertHint:
     "Bu türde bir APRS paketi alındığında uyarı tonu çalar.",
-  aprsTxChannelsTitle: "TX Kanalları",
   aprsTxChannel: "Kanal",
   aprsTxChannelHint: "APRS TX kanal kaydı numarası.",
   aprsTxChannelUsed: "Etkin",
@@ -804,6 +806,7 @@ const tr = {
   aprsTxFrequency: "TX frekansı (MHz)",
   aprsTxFrequencyHint: "APRS beacon gönderim frekansı.",
   aprsTxFrequencyLabel: "APRS kanalı {channel, number} TX frekansı",
+  aprsTxFrequencyInvalid: "108 ile 660 MHz arasında bir frekans girin.",
   aprsBandwidth: "Bant genişliği",
   aprsBandwidthHint: "Bu APRS kanalının gönderim bant genişliği.",
   aprsTxPower: "TX gücü",

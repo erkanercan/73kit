@@ -2,165 +2,29 @@ const APRS_SYMBOL_CODES = Object.freeze(
   Array.from({ length: 94 }, (_, index) => String.fromCharCode(0x21 + index))
 )
 
-const PRIMARY_SYMBOL_NAMES: Readonly<Record<string, string>> = Object.freeze({
-  "!": "Police / Sheriff",
-  '"': "Rain",
-  "#": "Digipeater",
-  $: "Phone",
-  "%": "DX Cluster",
-  "&": "HF/VHF Gateway",
-  "'": "Small Aircraft",
-  "(": "Cloudy",
-  "*": "Snowmobile",
-  "+": "Red Cross",
-  ",": "Reverse L",
-  "-": "QTH / House",
-  ".": "Small X",
-  "/": "Dot",
-  "0": "Numbered Circle",
-  "1": "Numbered Circle",
-  "2": "Numbered Circle",
-  "3": "Numbered Circle",
-  "4": "Numbered Circle",
-  "5": "Numbered Circle",
-  "6": "Numbered Circle",
-  "7": "Numbered Circle",
-  "8": "Numbered Circle",
-  "9": "Numbered Circle",
-  ":": "Fire",
-  ";": "Campground",
-  "<": "Motorcycle",
-  "=": "Railroad Engine",
-  ">": "Car",
-  "?": "Position Server",
-  "@": "Hurricane / Tropical Storm",
-  A: "Aid Station",
-  B: "BBS",
-  C: "Canoe",
-  G: "Grid Square",
-  H: "Hotel",
-  I: "TCP/IP",
-  K: "School",
-  L: "Lighthouse",
-  M: "MacAPRS",
-  N: "NTS Station",
-  O: "Balloon",
-  P: "Police",
-  R: "Recreational Vehicle",
-  S: "Space Shuttle",
-  T: "Thunderstorm",
-  U: "Bus",
-  W: "Weather Service Site",
-  X: "Helicopter",
-  Y: "Yacht",
-  Z: "WinAPRS",
-  "[": "Runner",
-  "\\": "Triangle / Direction Finder",
-  "]": "PBBS",
-  "^": "Large Aircraft",
-  _: "Weather Station",
-  "`": "Dish Antenna",
-  a: "Ambulance",
-  b: "Bike",
-  d: "Fire Department",
-  e: "Horse",
-  f: "Fire Truck",
-  g: "Glider",
-  h: "Hospital",
-  i: "IOTA",
-  j: "Jeep",
-  k: "Truck",
-  l: "Area Object",
-  m: "Mic-E Repeater",
-  n: "Node",
-  o: "Emergency Operations Center",
-  p: "Rover",
-  q: "Grid Square",
-  r: "Antenna",
-  s: "Power Boat",
-  t: "Truck Stop",
-  u: "18-Wheeler",
-  v: "Van",
-  w: "Water Station",
-  x: "X Window System",
-  y: "Yagi",
-  "|": "Reserved",
-  "}": "Diamond",
-  "~": "Reserved",
-})
+type AprsSymbolTableName = "primary" | "secondary"
 
-const SECONDARY_SYMBOL_NAMES: Readonly<Record<string, string>> = Object.freeze({
-  "!": "Emergency",
-  "#": "Overlay Digipeater",
-  $: "Bank / ATM",
-  "&": "Overlay Gateway",
-  "'": "Crash Site",
-  "(": "Cloudy",
-  "*": "Snow",
-  "+": "Church",
-  "-": "House / HF",
-  ".": "Unknown Position",
-  "0": "Overlay Circle",
-  "9": "Gas Station",
-  ":": "Hail",
-  ";": "Park / Picnic",
-  "<": "Advisory",
-  ">": "Overlay Car",
-  "?": "Information Kiosk",
-  "@": "Hurricane",
-  A: "Overlay Box",
-  B: "Blowing Snow",
-  C: "Coast Guard",
-  D: "Drizzle",
-  E: "Smoke",
-  F: "Freezing Rain",
-  G: "Snow Shower",
-  H: "Haze",
-  I: "Rain Shower",
-  J: "Lightning",
-  L: "Lighthouse",
-  N: "Navigation Buoy",
-  P: "Parking",
-  Q: "Earthquake",
-  R: "Restaurant",
-  S: "Satellite",
-  T: "Thunderstorm",
-  U: "Sunny",
-  V: "VORTAC",
-  W: "Weather Service / Digipeater",
-  X: "Pharmacy",
-  "[": "Wall Cloud",
-  "^": "Overlay Aircraft",
-  _: "Weather / Digipeater",
-  "`": "Rain",
-  b: "Blowing Dust / Sand",
-  d: "DX Spot",
-  e: "Sleet",
-  f: "Funnel Cloud",
-  g: "Gale Flags",
-  h: "Ham Store",
-  j: "Construction",
-  l: "Area Object",
-  m: "Milepost",
-  n: "Overlay Triangle",
-  o: "Small Circle",
-  p: "Partly Cloudy",
-  r: "Restrooms",
-  s: "Overlay Ship / Boat",
-  t: "Tornado",
-  u: "Overlay Truck",
-  v: "Overlay Van",
-  w: "Flooding",
-  "{": "Fog",
-})
-
-function aprsSymbolLabel(table: "primary" | "secondary", index: number) {
-  const code = APRS_SYMBOL_CODES[index]
-  if (!code) return `#${index}`
-  const tableCharacter = table === "primary" ? "/" : "\\"
-  const names =
-    table === "primary" ? PRIMARY_SYMBOL_NAMES : SECONDARY_SYMBOL_NAMES
-  return `${tableCharacter}${code} — ${names[code] ?? "Reserved"}`
+function assertAprsSymbolIndex(index: number) {
+  if (
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= APRS_SYMBOL_CODES.length
+  ) {
+    throw new RangeError(`Invalid APRS symbol index: ${index}`)
+  }
 }
 
-export { APRS_SYMBOL_CODES, aprsSymbolLabel }
+function aprsSymbolCode(table: AprsSymbolTableName, index: number) {
+  assertAprsSymbolIndex(index)
+  return `${table === "primary" ? "/" : "\\"}${APRS_SYMBOL_CODES[index]}`
+}
+
+function aprsSymbolSpritePosition(index: number) {
+  assertAprsSymbolIndex(index)
+  return {
+    column: index % 16,
+    row: Math.floor(index / 16),
+  }
+}
+
+export { APRS_SYMBOL_CODES, aprsSymbolCode, aprsSymbolSpritePosition }

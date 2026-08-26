@@ -9,14 +9,12 @@ Codeplug does not expose a separate overlay value, so this CPS should display
 and select only the plain primary and secondary symbols unless a future radio
 comparison proves another storage field.
 
-For a prototype, the aprs.fi sprites are the most practical and recognizable
-asset source. For a distributable product, do not silently vendor them as if
-they had one permissive license: their own copyright inventory identifies many
-symbols whose original licensing is unknown. Either obtain explicit permission
-for the complete set or commission a clean, original set based on the protocol
-meanings. The machine-readable aprs.fi **description index** is separately and
-clearly licensed under CC BY-SA 4.0 and is suitable as reference data when its
-attribution and share-alike requirements are honored.
+The implemented picker uses the aprs.fi sprites from `hessu/aprs-symbols`, as
+selected for this project. Both high-DPI sheets are vendored at a pinned commit
+with the upstream README, complete copyright inventory, and checksums in
+`public/aprs-symbols/`. The inventory identifies mixed and sometimes unknown
+per-symbol provenance; that limitation remains explicit rather than presenting
+the artwork as one permissively licensed set.
 
 ## Formal encoding
 

@@ -7,10 +7,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { FieldGroup } from "@/components/ui/field"
 import {
   APRS_SETTING_OPTIONS,
-  APRS_SYMBOL_CODES,
-  aprsSymbolLabel,
   isUnknownSettingValue,
   type AprsDigipeaterEntry,
+  type AprsSettingsPatch,
 } from "@/modules/codeplug/index"
 
 import {
@@ -20,14 +19,16 @@ import {
   AprsTextField,
   type AprsSelectOption,
 } from "./aprs-fields"
+import { AprsSymbolPicker } from "./aprs-symbol-picker"
 import type { AprsSectionProps } from "./types"
 
-function AprsStationTab({ settings, edit }: AprsSectionProps) {
+interface AprsStationTabProps extends AprsSectionProps {
+  readonly editPatch: (patch: AprsSettingsPatch) => void
+}
+
+function AprsStationTab({ settings, edit, editPatch }: AprsStationTabProps) {
   const t = useTranslations()
   const unknownLabel = t("valueUnknownStored")
-  const symbolTable = isUnknownSettingValue(settings.symbolTable)
-    ? "primary"
-    : settings.symbolTable
   const fixedPositionEnabled = settings.beaconType === "fixed"
   const manualBeaconEnabled = settings.manualBeaconMode !== "off"
   const altitudeUnit = isUnknownSettingValue(
@@ -70,34 +71,16 @@ function AprsStationTab({ settings, edit }: AprsSectionProps) {
               unknownLabel={unknownLabel}
               onChange={(value) => edit("localSsid", value)}
             />
-            <AprsSelectField
-              id="aprs-symbol-table"
-              label={t("aprsSymbolTable")}
-              hint={t("aprsSymbolTableHint")}
-              value={settings.symbolTable}
-              options={APRS_SETTING_OPTIONS.symbolTables.map((value) => ({
-                value,
-                original: value,
-                label:
-                  value === "primary"
-                    ? t("aprsSymbolPrimary")
-                    : t("aprsSymbolSecondary"),
-              }))}
-              unknownLabel={unknownLabel}
-              onChange={(value) => edit("symbolTable", value)}
-            />
-            <AprsSelectField
+            <AprsSymbolPicker
               id="aprs-symbol"
               label={t("aprsSymbol")}
               hint={t("aprsSymbolHint")}
-              value={settings.symbolIndex}
-              options={APRS_SYMBOL_CODES.map((code, index) => ({
-                value: String(index),
-                original: index,
-                label: aprsSymbolLabel(symbolTable, index),
-              }))}
+              table={settings.symbolTable}
+              index={settings.symbolIndex}
               unknownLabel={unknownLabel}
-              onChange={(value) => edit("symbolIndex", value)}
+              onChange={(symbolTable, symbolIndex) =>
+                editPatch({ symbolTable, symbolIndex })
+              }
             />
             <AprsTextField
               id="aprs-destination-callsign"

@@ -391,7 +391,11 @@ export {
   APRS_SETTINGS_OFFSET,
   APRS_SETTINGS_SIZE,
 } from "./aprs-settings.ts"
-export { APRS_SYMBOL_CODES, aprsSymbolLabel } from "./aprs-symbols.ts"
+export {
+  APRS_SYMBOL_CODES,
+  aprsSymbolCode,
+  aprsSymbolSpritePosition,
+} from "./aprs-symbols.ts"
 export type {
   AprsAltitudeUnit,
   AprsBandwidth,

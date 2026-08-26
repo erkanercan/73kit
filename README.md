@@ -19,3 +19,10 @@ To use the components in your app, import them as follows:
 ```tsx
 import { Button } from "@/components/ui/button";
 ```
+
+## Third-party assets
+
+APRS symbol graphics are vendored from
+[`hessu/aprs-symbols`](https://github.com/hessu/aprs-symbols) at a pinned
+revision. The complete attribution, provenance notes, and checksums are in
+[`public/aprs-symbols/NOTICE.md`](public/aprs-symbols/NOTICE.md).

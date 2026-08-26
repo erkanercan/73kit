@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl"
 
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Empty,
@@ -27,7 +26,6 @@ function AprsWorkspace() {
   const {
     busy,
     capability,
-    changes,
     completedRead,
     editAprsSettings,
     readRadio,
@@ -61,19 +59,12 @@ function AprsWorkspace() {
   }
 
   const settings = codeplug.getAprsSettings()
-  const aprsChangeCount = changes.filter(
-    (change) => change.kind === "edit-aprs-setting"
-  ).length
   const edit: EditAprsSetting = (field, value) =>
     editAprsSettings({ [field]: value } as AprsSettingsPatch)
 
   return (
     <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
-      <PageHeader title={t("aprsTitle")}>
-        {aprsChangeCount > 0 && (
-          <Badge>{t("pendingChangeCount", { count: aprsChangeCount })}</Badge>
-        )}
-      </PageHeader>
+      <PageHeader title={t("aprsTitle")} />
 
       <Tabs defaultValue="station" className="gap-6">
         <TabsList className="grid h-auto w-full grid-cols-4">
@@ -87,7 +78,11 @@ function AprsWorkspace() {
           <TabsTrigger value="tnc">{t("aprsTabTnc")}</TabsTrigger>
         </TabsList>
         <TabsContent value="station">
-          <AprsStationTab settings={settings} edit={edit} />
+          <AprsStationTab
+            settings={settings}
+            edit={edit}
+            editPatch={editAprsSettings}
+          />
         </TabsContent>
         <TabsContent value="receive">
           <AprsReceiveTab settings={settings} edit={edit} />

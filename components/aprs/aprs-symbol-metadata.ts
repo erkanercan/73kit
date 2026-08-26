@@ -1,0 +1,212 @@
+import {
+  APRS_SYMBOL_CODES,
+  aprsSymbolCode,
+  type AprsSymbolTable,
+} from "@/modules/codeplug/index"
+
+type AprsSymbolLocale = "en" | "tr"
+type LocalizedName = readonly [english: string, turkish: string]
+
+const PRIMARY_NAMES: Readonly<Record<string, LocalizedName>> = Object.freeze({
+  "!": ["Police station", "Polis istasyonu"],
+  "#": ["Digipeater", "Digipeater"],
+  $: ["Telephone", "Telefon"],
+  "%": ["DX cluster", "DX kümesi"],
+  "&": ["HF gateway", "HF geçidi"],
+  "'": ["Small aircraft", "Küçük uçak"],
+  "(": ["Mobile satellite station", "Mobil uydu istasyonu"],
+  ")": ["Wheelchair", "Tekerlekli sandalye"],
+  "*": ["Snowmobile", "Kar motosikleti"],
+  "+": ["Red Cross", "Kızılhaç"],
+  ",": ["Boy Scouts", "İzciler"],
+  "-": ["House", "Ev"],
+  ".": ["Red X", "Kırmızı X"],
+  "/": ["Red dot", "Kırmızı nokta"],
+  "0": ["Numbered circle 0", "0 numaralı daire"],
+  "1": ["Numbered circle 1", "1 numaralı daire"],
+  "2": ["Numbered circle 2", "2 numaralı daire"],
+  "3": ["Numbered circle 3", "3 numaralı daire"],
+  "4": ["Numbered circle 4", "4 numaralı daire"],
+  "5": ["Numbered circle 5", "5 numaralı daire"],
+  "6": ["Numbered circle 6", "6 numaralı daire"],
+  "7": ["Numbered circle 7", "7 numaralı daire"],
+  "8": ["Numbered circle 8", "8 numaralı daire"],
+  "9": ["Numbered circle 9", "9 numaralı daire"],
+  ":": ["Fire", "Yangın"],
+  ";": ["Campground", "Kamp alanı"],
+  "<": ["Motorcycle", "Motosiklet"],
+  "=": ["Railroad engine", "Lokomotif"],
+  ">": ["Car", "Otomobil"],
+  "?": ["File server", "Dosya sunucusu"],
+  "@": ["Hurricane predicted path", "Kasırga tahmin rotası"],
+  A: ["Aid station", "Yardım istasyonu"],
+  B: ["BBS", "BBS"],
+  C: ["Canoe", "Kano"],
+  E: ["Eyeball", "Gözlemci"],
+  F: ["Farm vehicle", "Tarım aracı"],
+  G: ["Grid square", "Grid karesi"],
+  H: ["Hotel", "Otel"],
+  I: ["TCP/IP station", "TCP/IP istasyonu"],
+  K: ["School", "Okul"],
+  L: ["PC user", "Bilgisayar kullanıcısı"],
+  M: ["Mac", "Mac"],
+  N: ["NTS station", "NTS istasyonu"],
+  O: ["Balloon", "Balon"],
+  P: ["Police car", "Polis aracı"],
+  R: ["RV", "Karavan"],
+  S: ["Space Shuttle", "Uzay mekiği"],
+  T: ["SSTV", "SSTV"],
+  U: ["Bus", "Otobüs"],
+  V: ["Amateur television", "Amatör televizyon"],
+  W: ["Weather service site", "Meteoroloji istasyonu"],
+  X: ["Helicopter", "Helikopter"],
+  Y: ["Sailboat", "Yelkenli"],
+  Z: ["Windows", "Windows"],
+  "[": ["Runner", "Koşucu"],
+  "\\": ["Direction finder", "Yön bulma istasyonu"],
+  "]": ["Mailbox", "Posta kutusu"],
+  "^": ["Large aircraft", "Büyük uçak"],
+  _: ["Weather station", "Hava durumu istasyonu"],
+  "`": ["Satellite dish", "Uydu anteni"],
+  a: ["Ambulance", "Ambulans"],
+  b: ["Bicycle", "Bisiklet"],
+  c: ["Incident command post", "Olay komuta merkezi"],
+  d: ["Fire station", "İtfaiye"],
+  e: ["Horse", "Atlı"],
+  f: ["Fire truck", "İtfaiye aracı"],
+  g: ["Glider", "Planör"],
+  h: ["Hospital", "Hastane"],
+  i: ["IOTA", "IOTA"],
+  j: ["Jeep", "Arazi aracı"],
+  k: ["Truck", "Kamyon"],
+  l: ["Laptop", "Dizüstü bilgisayar"],
+  m: ["Mic-E repeater", "Mic-E rölesi"],
+  n: ["Node", "Düğüm"],
+  o: ["Emergency operations center", "Acil durum merkezi"],
+  p: ["Dog", "Köpek"],
+  q: ["Grid square", "Grid karesi"],
+  r: ["Repeater tower", "Röle kulesi"],
+  s: ["Power boat", "Motorlu tekne"],
+  t: ["Truck stop", "Kamyon durağı"],
+  u: ["Semi-trailer", "Tır"],
+  v: ["Van", "Minibüs"],
+  w: ["Water station", "Su istasyonu"],
+  x: ["X / Unix", "X / Unix"],
+  y: ["House with Yagi", "Yagi antenli ev"],
+  z: ["Shelter", "Sığınak"],
+})
+
+const SECONDARY_NAMES: Readonly<Record<string, LocalizedName>> = Object.freeze({
+  "!": ["Emergency", "Acil durum"],
+  "#": ["Digipeater", "Digipeater"],
+  $: ["Bank or ATM", "Banka veya ATM"],
+  "&": ["Gateway", "Geçit istasyonu"],
+  "'": ["Crash site", "Kaza alanı"],
+  "(": ["Cloudy", "Bulutlu"],
+  ")": ["Earth observation", "Yer gözlem istasyonu"],
+  "*": ["Snow", "Kar"],
+  "+": ["Church", "Kilise"],
+  ",": ["Girl Scouts", "Kız izciler"],
+  "-": ["House with HF antenna", "HF antenli ev"],
+  ".": ["Ambiguous position", "Belirsiz konum"],
+  "/": ["Waypoint destination", "Rota noktası"],
+  "0": ["IRLP / Echolink / WIRES", "IRLP / Echolink / WIRES"],
+  "8": ["Network node", "Ağ düğümü"],
+  "9": ["Gas station", "Akaryakıt istasyonu"],
+  ":": ["Hail", "Dolu"],
+  ";": ["Park", "Park"],
+  "<": ["Advisory", "Uyarı"],
+  ">": ["Red car", "Kırmızı otomobil"],
+  "?": ["Information kiosk", "Bilgi noktası"],
+  "@": ["Hurricane", "Kasırga"],
+  A: ["White box", "Beyaz kutu"],
+  B: ["Blowing snow", "Tipi"],
+  C: ["Coast Guard", "Sahil Güvenlik"],
+  D: ["Drizzle", "Çiseleyen yağmur"],
+  E: ["Smoke", "Duman"],
+  F: ["Freezing rain", "Donan yağmur"],
+  G: ["Snow shower", "Kar sağanağı"],
+  H: ["Haze", "Pus"],
+  I: ["Rain shower", "Yağmur sağanağı"],
+  J: ["Lightning", "Şimşek"],
+  K: ["Kenwood handheld", "Kenwood el telsizi"],
+  L: ["Lighthouse", "Deniz feneri"],
+  N: ["Navigation buoy", "Seyir şamandırası"],
+  O: ["Rocket", "Roket"],
+  P: ["Parking", "Otopark"],
+  Q: ["Earthquake", "Deprem"],
+  R: ["Restaurant", "Restoran"],
+  S: ["Satellite", "Uydu"],
+  T: ["Thunderstorm", "Gök gürültülü fırtına"],
+  U: ["Sunny", "Güneşli"],
+  V: ["VORTAC", "VORTAC"],
+  W: ["Weather service site", "Meteoroloji istasyonu"],
+  X: ["Pharmacy", "Eczane"],
+  "[": ["Wall cloud", "Duvar bulutu"],
+  "^": ["Aircraft", "Uçak"],
+  _: ["Weather site", "Hava durumu istasyonu"],
+  "`": ["Rain", "Yağmur"],
+  a: ["Red diamond", "Kırmızı baklava"],
+  b: ["Blowing dust", "Toz fırtınası"],
+  c: ["Civil defence", "Sivil savunma"],
+  d: ["DX spot", "DX noktası"],
+  e: ["Sleet", "Karla karışık yağmur"],
+  f: ["Funnel cloud", "Huni bulutu"],
+  g: ["Gale", "Kuvvetli fırtına"],
+  h: ["Store", "Mağaza"],
+  i: ["Point of interest", "İlgi noktası"],
+  j: ["Work zone", "Çalışma alanı"],
+  k: ["SUV", "SUV"],
+  m: ["Value sign", "Değer tabelası"],
+  n: ["Red triangle", "Kırmızı üçgen"],
+  o: ["Small circle", "Küçük daire"],
+  p: ["Partly cloudy", "Parçalı bulutlu"],
+  r: ["Restrooms", "Tuvalet"],
+  s: ["Ship", "Gemi"],
+  t: ["Tornado", "Hortum"],
+  u: ["Truck", "Kamyon"],
+  v: ["Van", "Minibüs"],
+  w: ["Flooding", "Sel"],
+  y: ["Skywarn", "Skywarn"],
+  z: ["Shelter", "Sığınak"],
+  "{": ["Fog", "Sis"],
+})
+
+interface AprsSymbolMetadata {
+  readonly code: string
+  readonly index: number
+  readonly name: string
+  readonly reserved: boolean
+}
+
+function getAprsSymbolMetadata(
+  table: AprsSymbolTable,
+  index: number,
+  locale: AprsSymbolLocale,
+  reservedName: string
+): AprsSymbolMetadata {
+  const codeCharacter = APRS_SYMBOL_CODES[index]
+  const localizedName = (table === "primary" ? PRIMARY_NAMES : SECONDARY_NAMES)[
+    codeCharacter
+  ]
+
+  return {
+    code: aprsSymbolCode(table, index),
+    index,
+    name: localizedName?.[locale === "tr" ? 1 : 0] ?? reservedName,
+    reserved: localizedName === undefined,
+  }
+}
+
+function getAprsSymbols(
+  table: AprsSymbolTable,
+  locale: AprsSymbolLocale,
+  reservedName: string
+) {
+  return APRS_SYMBOL_CODES.map((_, index) =>
+    getAprsSymbolMetadata(table, index, locale, reservedName)
+  )
+}
+
+export { getAprsSymbolMetadata, getAprsSymbols }
+export type { AprsSymbolLocale, AprsSymbolMetadata }

@@ -1,18 +1,12 @@
 "use client"
 
-import * as React from "react"
 import { useTranslations } from "next-intl"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { formatFrequency } from "@/components/channels/channel-format"
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  EditableSelectCell,
+  EditableTextCell,
+} from "@/components/channels/editable-channel-cells"
 import { Switch } from "@/components/ui/switch"
 import {
   Table,
@@ -49,175 +43,184 @@ function AprsTransmitChannelsTab({ settings, edit }: AprsSectionProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("aprsTxChannelsTitle")}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableSettingHead
-                label={t("aprsTxChannel")}
-                hint={t("aprsTxChannelHint")}
-              />
-              <TableSettingHead
-                label={t("aprsTxChannelUsed")}
-                hint={t("aprsTxChannelUsedHint")}
-              />
-              <TableSettingHead
-                label={t("aprsTxFrequency")}
-                hint={t("aprsTxFrequencyHint")}
-              />
-              <TableSettingHead
-                label={t("aprsBandwidth")}
-                hint={t("aprsBandwidthHint")}
-              />
-              <TableSettingHead
-                label={t("aprsTxPower")}
-                hint={t("aprsTxPowerHint")}
-              />
-              <TableSettingHead
-                label={t("aprsToneType")}
-                hint={t("aprsToneTypeHint")}
-              />
-              <TableSettingHead
-                label={t("aprsToneValue")}
-                hint={t("aprsToneValueHint")}
-              />
+    <Table
+      containerClassName="rounded-lg border"
+      className="min-w-[64rem] table-fixed"
+    >
+      <TableHeader className="bg-background">
+        <TableRow>
+          <TableSettingHead
+            className="w-20"
+            label={t("aprsTxChannel")}
+            hint={t("aprsTxChannelHint")}
+          />
+          <TableSettingHead
+            className="w-20"
+            label={t("aprsTxChannelUsed")}
+            hint={t("aprsTxChannelUsedHint")}
+          />
+          <TableSettingHead
+            className="w-44"
+            label={t("aprsTxFrequency")}
+            hint={t("aprsTxFrequencyHint")}
+          />
+          <TableSettingHead
+            className="w-32"
+            label={t("aprsBandwidth")}
+            hint={t("aprsBandwidthHint")}
+          />
+          <TableSettingHead
+            className="w-28"
+            label={t("aprsTxPower")}
+            hint={t("aprsTxPowerHint")}
+          />
+          <TableSettingHead
+            className="w-28"
+            label={t("aprsToneType")}
+            hint={t("aprsToneTypeHint")}
+          />
+          <TableSettingHead
+            className="w-32"
+            label={t("aprsToneValue")}
+            hint={t("aprsToneValueHint")}
+          />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {settings.transmitChannels.map((channel) => {
+          const channelLabel = `CH${channel.number}`
+
+          return (
+            <TableRow key={channel.number}>
+              <TableCell className="font-mono font-medium">
+                {channelLabel}
+              </TableCell>
+              <TableCell>
+                <Switch
+                  checked={channel.used}
+                  aria-label={t("aprsTxChannelUsedLabel", {
+                    channel: channel.number,
+                  })}
+                  onCheckedChange={(used) =>
+                    updateChannel(channel.number, {
+                      used,
+                      frequencyHz: used
+                        ? (channel.frequencyHz ?? 144_800_000)
+                        : null,
+                      bandwidth: used ? channel.bandwidth : "wide",
+                      power: used ? channel.power : "low",
+                      toneType: used ? channel.toneType : "none",
+                    })
+                  }
+                />
+              </TableCell>
+              <TableCell>
+                <AprsFrequencyCell
+                  channel={channel}
+                  ariaLabel={t("aprsTxFrequencyLabel", {
+                    channel: channel.number,
+                  })}
+                  invalidMessage={t("aprsTxFrequencyInvalid")}
+                  onCommit={(frequencyHz) =>
+                    updateChannel(channel.number, { frequencyHz })
+                  }
+                />
+              </TableCell>
+              <TableCell>
+                <AprsSelectCell
+                  ariaLabel={`${t("aprsBandwidth")} ${channelLabel}`}
+                  value={channel.bandwidth}
+                  disabled={!channel.used}
+                  options={APRS_SETTING_OPTIONS.bandwidths.map((value) => ({
+                    value,
+                    label: value === "wide" ? t("valueWide") : t("valueNarrow"),
+                  }))}
+                  onCommit={(bandwidth) =>
+                    updateChannel(channel.number, { bandwidth })
+                  }
+                />
+              </TableCell>
+              <TableCell>
+                <AprsSelectCell
+                  ariaLabel={`${t("aprsTxPower")} ${channelLabel}`}
+                  value={channel.power}
+                  disabled={!channel.used}
+                  options={APRS_SETTING_OPTIONS.transmitPowers.map((value) => ({
+                    value,
+                    label:
+                      value === "low"
+                        ? t("valueLow")
+                        : value === "medium"
+                          ? t("valueMedium")
+                          : t("valueHigh"),
+                  }))}
+                  onCommit={(power) => updateChannel(channel.number, { power })}
+                />
+              </TableCell>
+              <TableCell>
+                <AprsSelectCell
+                  ariaLabel={`${t("aprsToneType")} ${channelLabel}`}
+                  value={channel.toneType}
+                  disabled={!channel.used}
+                  options={APRS_SETTING_OPTIONS.toneTypes.map((value) => ({
+                    value,
+                    label:
+                      value === "none" ? t("valueNone") : value.toUpperCase(),
+                  }))}
+                  onCommit={(toneType) =>
+                    updateChannel(channel.number, { toneType })
+                  }
+                />
+              </TableCell>
+              <TableCell>
+                {channel.used && channel.toneType === "ctcss" ? (
+                  <AprsSelectCell
+                    ariaLabel={`${t("aprsToneValue")} ${channelLabel}`}
+                    value={channel.ctcssIndex}
+                    options={CTCSS_FREQUENCIES_HZ.map((value, index) => ({
+                      value: index,
+                      label: `${value.toFixed(1)} Hz`,
+                    }))}
+                    onCommit={(ctcssIndex) =>
+                      updateChannel(channel.number, { ctcssIndex })
+                    }
+                  />
+                ) : channel.used && channel.toneType === "dcs" ? (
+                  <AprsSelectCell
+                    ariaLabel={`${t("aprsToneValue")} ${channelLabel}`}
+                    value={channel.dcsIndex}
+                    options={DCS_CODES.map((value, index) => ({
+                      value: index,
+                      label: `D${value}`,
+                    }))}
+                    onCommit={(dcsIndex) =>
+                      updateChannel(channel.number, { dcsIndex })
+                    }
+                  />
+                ) : (
+                  <UnavailableValue />
+                )}
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {settings.transmitChannels.map((channel) => (
-              <TableRow key={channel.number}>
-                <TableCell className="font-medium">
-                  CH{channel.number}
-                </TableCell>
-                <TableCell>
-                  <Switch
-                    checked={channel.used}
-                    aria-label={t("aprsTxChannelUsedLabel", {
-                      channel: channel.number,
-                    })}
-                    onCheckedChange={(used) =>
-                      updateChannel(channel.number, {
-                        used,
-                        frequencyHz: used
-                          ? (channel.frequencyHz ?? 144_800_000)
-                          : null,
-                        bandwidth: used ? channel.bandwidth : "wide",
-                        power: used ? channel.power : "low",
-                        toneType: used ? channel.toneType : "none",
-                      })
-                    }
-                  />
-                </TableCell>
-                <TableCell>
-                  <FrequencyInput
-                    channel={channel}
-                    label={t("aprsTxFrequencyLabel", {
-                      channel: channel.number,
-                    })}
-                    onChange={(frequencyHz) =>
-                      updateChannel(channel.number, { frequencyHz })
-                    }
-                  />
-                </TableCell>
-                <TableCell>
-                  <CompactSelect
-                    label={t("aprsBandwidth")}
-                    value={channel.bandwidth}
-                    options={APRS_SETTING_OPTIONS.bandwidths.map((value) => ({
-                      value,
-                      label:
-                        value === "wide" ? t("valueWide") : t("valueNarrow"),
-                    }))}
-                    disabled={!channel.used}
-                    onChange={(bandwidth) =>
-                      updateChannel(channel.number, { bandwidth })
-                    }
-                  />
-                </TableCell>
-                <TableCell>
-                  <CompactSelect
-                    label={t("aprsTxPower")}
-                    value={channel.power}
-                    options={APRS_SETTING_OPTIONS.transmitPowers.map(
-                      (value) => ({
-                        value,
-                        label:
-                          value === "low"
-                            ? t("valueLow")
-                            : value === "medium"
-                              ? t("valueMedium")
-                              : t("valueHigh"),
-                      })
-                    )}
-                    disabled={!channel.used}
-                    onChange={(power) =>
-                      updateChannel(channel.number, { power })
-                    }
-                  />
-                </TableCell>
-                <TableCell>
-                  <CompactSelect
-                    label={t("aprsToneType")}
-                    value={channel.toneType}
-                    options={APRS_SETTING_OPTIONS.toneTypes.map((value) => ({
-                      value,
-                      label:
-                        value === "none" ? t("valueNone") : value.toUpperCase(),
-                    }))}
-                    disabled={!channel.used}
-                    onChange={(toneType) =>
-                      updateChannel(channel.number, { toneType })
-                    }
-                  />
-                </TableCell>
-                <TableCell>
-                  {channel.toneType === "ctcss" ? (
-                    <CompactSelect
-                      label={t("aprsToneValue")}
-                      value={channel.ctcssIndex}
-                      options={CTCSS_FREQUENCIES_HZ.map((value, index) => ({
-                        value: index,
-                        label: `${value.toFixed(1)} Hz`,
-                      }))}
-                      disabled={!channel.used}
-                      onChange={(ctcssIndex) =>
-                        updateChannel(channel.number, { ctcssIndex })
-                      }
-                    />
-                  ) : channel.toneType === "dcs" ? (
-                    <CompactSelect
-                      label={t("aprsToneValue")}
-                      value={channel.dcsIndex}
-                      options={DCS_CODES.map((value, index) => ({
-                        value: index,
-                        label: `D${value}`,
-                      }))}
-                      disabled={!channel.used}
-                      onChange={(dcsIndex) =>
-                        updateChannel(channel.number, { dcsIndex })
-                      }
-                    />
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+          )
+        })}
+      </TableBody>
+    </Table>
   )
 }
 
-function TableSettingHead({ label, hint }: { label: string; hint: string }) {
+function TableSettingHead({
+  className,
+  label,
+  hint,
+}: {
+  className?: string
+  label: string
+  hint: string
+}) {
   return (
-    <TableHead>
-      <div className="flex items-center gap-1 whitespace-nowrap">
+    <TableHead className={className}>
+      <div className="flex items-center gap-1">
         <span>{label}</span>
         <AprsHelp label={label} hint={hint} />
       </div>
@@ -225,120 +228,77 @@ function TableSettingHead({ label, hint }: { label: string; hint: string }) {
   )
 }
 
-function FrequencyInput({
+function AprsFrequencyCell({
   channel,
-  label,
-  onChange,
+  ariaLabel,
+  invalidMessage,
+  onCommit,
 }: {
   channel: AprsTransmitChannel
-  label: string
-  onChange(frequencyHz: number): void
+  ariaLabel: string
+  invalidMessage: string
+  onCommit(frequencyHz: number): void
 }) {
-  const value = channel.frequencyHz === null ? "" : mhz(channel.frequencyHz)
-  const [draftState, setDraftState] = React.useState({
-    source: value,
-    draft: value,
-  })
-  const draft = draftState.source === value ? draftState.draft : value
-  const setDraft = (next: string) =>
-    setDraftState({ source: value, draft: next })
-  const parsed = Number(draft)
-  const invalid =
-    channel.used && (!Number.isFinite(parsed) || parsed < 108 || parsed > 660)
-
-  function commit() {
-    if (invalid || draft === "") {
-      setDraft(value)
-      return
-    }
-    const frequencyHz = Math.round(parsed * 1_000_000)
-    if (frequencyHz !== channel.frequencyHz) onChange(frequencyHz)
+  if (!channel.used || channel.frequencyHz === null) {
+    return <UnavailableValue />
   }
 
   return (
-    <Input
-      className="w-40"
-      type="number"
+    <EditableTextCell
+      value={(channel.frequencyHz / 1_000_000).toFixed(6)}
+      displayValue={formatFrequency(channel.frequencyHz)}
+      ariaLabel={ariaLabel}
       inputMode="decimal"
-      min={108}
-      max={660}
-      step={0.000001}
-      value={draft}
-      disabled={!channel.used}
-      aria-label={label}
-      aria-invalid={invalid}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={commit}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") event.currentTarget.blur()
-        if (event.key === "Escape") {
-          setDraft(value)
-          event.currentTarget.blur()
-        }
+      invalidMessage={invalidMessage}
+      validate={(draft) => {
+        const mhz = Number(draft.trim().replace(",", "."))
+        return Number.isFinite(mhz) && mhz >= 108 && mhz <= 660
+      }}
+      onCommit={(draft) => {
+        const mhz = Number(draft.trim().replace(",", "."))
+        onCommit(Math.round(mhz * 1_000_000))
       }}
     />
   )
 }
 
-function CompactSelect<Value extends string | number>({
-  label,
+function AprsSelectCell<Value extends string | number>({
+  ariaLabel,
   value,
   options,
-  disabled,
-  onChange,
+  disabled = false,
+  onCommit,
 }: {
-  label: string
+  ariaLabel: string
   value: Value | UnknownSettingValue
   options: readonly { readonly value: Value; readonly label: string }[]
   disabled?: boolean
-  onChange(value: Value): void
+  onCommit(value: Value): void
 }) {
-  const selected = isUnknownSettingValue(value) ? null : String(value)
-  const items = options.map((option) => ({
-    value: String(option.value),
-    label: option.label,
-  }))
+  if (disabled) return <UnavailableValue />
+
+  const selected = isUnknownSettingValue(value) ? "" : String(value)
+  const placeholder = isUnknownSettingValue(value)
+    ? `0x${value.raw.toString(16).padStart(2, "0")}`
+    : undefined
+
   return (
-    <Select
-      items={items}
+    <EditableSelectCell
       value={selected}
-      disabled={disabled}
-      onValueChange={(next) => {
-        if (next === null) return
-        const option = options.find(
-          (candidate) => String(candidate.value) === next
-        )
-        if (option) onChange(option.value)
-      }}
-    >
-      <SelectTrigger className="w-40!" aria-label={label}>
-        <SelectValue>
-          {(next) =>
-            options.find((option) => String(option.value) === next)?.label ??
-            (isUnknownSettingValue(value)
-              ? `0x${value.raw.toString(16).padStart(2, "0")}`
-              : label)
-          }
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent align="start" alignItemWithTrigger={false}>
-        <SelectGroup>
-          {options.map((option) => (
-            <SelectItem key={String(option.value)} value={String(option.value)}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+      ariaLabel={ariaLabel}
+      placeholder={placeholder}
+      options={options.map((option) => ({
+        value: String(option.value),
+        label: option.label,
+        original: option.value,
+      }))}
+      onCommit={(_, option) => onCommit(option.original)}
+    />
   )
 }
 
-function mhz(frequencyHz: number) {
-  return (frequencyHz / 1_000_000)
-    .toFixed(6)
-    .replace(/0+$/, "")
-    .replace(/\.$/, "")
+function UnavailableValue() {
+  return <span className="px-2 text-muted-foreground">—</span>
 }
 
 export { AprsTransmitChannelsTab }

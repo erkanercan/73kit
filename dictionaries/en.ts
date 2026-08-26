@@ -702,12 +702,15 @@ const en = {
     "Completes the destination identifier, such as APRS-0.",
   aprsCallsignInvalid: "Enter 1–6 letters or numbers.",
   aprsSymbolTable: "Symbol table",
-  aprsSymbolTableHint:
-    "Chooses the primary or secondary set of APRS map symbols.",
   aprsSymbol: "Symbol",
   aprsSymbolHint: "Symbol used for the station on APRS maps.",
   aprsSymbolPrimary: "Primary (/)",
   aprsSymbolSecondary: "Secondary (\\)",
+  aprsSymbolPickerTitle: "APRS symbol",
+  aprsSymbolSearch: "Search symbols",
+  aprsSymbolNoResults: "No matching symbols",
+  aprsSymbolReserved: "Reserved",
+  aprsSymbolOptionLabel: "{name}, code {code}",
   aprsBeaconTitle: "Beacon",
   aprsBeaconType: "Position source",
   aprsBeaconTypeHint:
@@ -783,7 +786,6 @@ const en = {
   aprsReportAlert: "Alert tone",
   aprsReportAlertHint:
     "Plays a tone when an APRS packet of this type is received.",
-  aprsTxChannelsTitle: "TX Channels",
   aprsTxChannel: "Channel",
   aprsTxChannelHint: "APRS TX channel record number.",
   aprsTxChannelUsed: "Enabled",
@@ -792,6 +794,7 @@ const en = {
   aprsTxFrequency: "TX frequency (MHz)",
   aprsTxFrequencyHint: "Frequency used to transmit APRS beacons.",
   aprsTxFrequencyLabel: "TX frequency for APRS channel {channel, number}",
+  aprsTxFrequencyInvalid: "Enter a frequency from 108 to 660 MHz.",
   aprsBandwidth: "Bandwidth",
   aprsBandwidthHint: "Transmit bandwidth for this APRS channel.",
   aprsTxPower: "TX power",
