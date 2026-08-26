@@ -46,6 +46,14 @@ import type {
   Zone,
 } from "./channel-membership.ts"
 import type { Channel, SpecialChannel } from "./channel.ts"
+import {
+  decodeFunctionSettings,
+  editFunctionSettingsBytes,
+} from "./function-settings.ts"
+import type {
+  FunctionSettings,
+  FunctionSettingsPatch,
+} from "./function-settings.ts"
 
 const CODEPLUG_SIZE = 0x19000
 
@@ -58,6 +66,7 @@ class Codeplug {
   readonly #scanLists: readonly ScanList[]
   readonly #bandZoneSelections: BandZoneSelections
   readonly #bandScanListSelections: BandScanListSelections
+  readonly #functionSettings: FunctionSettings
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -74,6 +83,7 @@ class Codeplug {
     this.#scanLists = decodeScanLists(this.#bytes)
     this.#bandZoneSelections = decodeBandZoneSelections(this.#bytes)
     this.#bandScanListSelections = decodeBandScanListSelections(this.#bytes)
+    this.#functionSettings = decodeFunctionSettings(this.#bytes)
   }
 
   get byteLength() {
@@ -110,6 +120,10 @@ class Codeplug {
 
   getBandScanListSelections() {
     return this.#bandScanListSelections
+  }
+
+  getFunctionSettings() {
+    return this.#functionSettings
   }
 
   moveMemoryChannel(fromNumber: number, toNumber: number) {
@@ -151,6 +165,10 @@ class Codeplug {
 
   editScanList(number: number, patch: ChannelCollectionPatch) {
     return new Codeplug(editScanListBytes(this.#bytes, number, patch))
+  }
+
+  editFunctionSettings(patch: FunctionSettingsPatch) {
+    return new Codeplug(editFunctionSettingsBytes(this.#bytes, patch))
   }
 
   editChannelMemberships(number: number, patch: ChannelMembershipPatch) {
@@ -202,3 +220,12 @@ export type {
   MemoryChannelPatch,
   VfoChannelPatch,
 } from "./channel-edit.ts"
+export {
+  FUNCTION_SETTING_OPTIONS,
+  isUnknownSettingValue,
+} from "./function-settings.ts"
+export type {
+  FunctionSettings,
+  FunctionSettingsPatch,
+  UnknownSettingValue,
+} from "./function-settings.ts"

@@ -79,7 +79,11 @@ function AppHeader() {
                 ? t("navChannels")
                 : pathname === "/zones"
                   ? t("navZones")
-                  : t("navRadio")}
+                  : pathname === "/scan-lists"
+                    ? t("navScanLists")
+                    : pathname.startsWith("/radio-settings")
+                      ? t("navSettings")
+                      : t("navRadio")}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>

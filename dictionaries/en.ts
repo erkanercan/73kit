@@ -16,6 +16,172 @@ const en = {
   navConfiguration: "Programming",
   navAprs: "APRS",
   navSettings: "Radio Settings",
+  radioSettingsTitle: "Radio Basic Settings",
+  radioSettingsDescription:
+    "Edit the Working Codeplug's radio-wide behavior. Changes remain local until Radio Write is available.",
+  functionSettingsReadRequiredTitle:
+    "Read a Radio to edit its Function Settings",
+  settingsCategoryFunctions: "Functions",
+  settingsCategoryDisplay: "Display",
+  settingsCategorySounds: "Sounds",
+  settingsCategoryKeyboard: "Keyboard",
+  settingsCategoryMenu: "Menu",
+  functionSectionTrx: "TRX",
+  functionSectionTrxDescription:
+    "Receive, transmit, band operating modes, and automatic frequency behavior.",
+  functionSectionCit: "CI-T",
+  functionSectionCitDescription:
+    "Enable or disable the Radio's data interfaces independently.",
+  functionSectionSte: "STE",
+  functionSectionSteDescription:
+    "Squelch-tail elimination and end-of-transmission signaling.",
+  functionSectionToneBurst: "Tone Burst",
+  functionSectionToneBurstDescription:
+    "Configure the single-tone burst sent by the assigned Radio control.",
+  functionSectionScan: "Scan",
+  functionSectionScanDescription:
+    "Scanning behavior, resume timing, hold time, and channel dwell time.",
+  functionSectionPowerSave: "Power Save",
+  functionSectionPowerSaveDescription:
+    "Reduce idle power consumption after the selected delay.",
+  functionSectionWeather: "WX CH",
+  functionSectionWeatherDescription:
+    "Weather Channel monitoring, scan membership, and signaling reset behavior.",
+  settingRxTxMode: "RX/TX mode",
+  settingCrossBandRepeaterMode: "Cross-band repeater mode",
+  settingCrossBandRepeaterMonitoring: "Cross-band repeater monitoring",
+  settingSquelchLevel: "Squelch level",
+  settingTransmitTimeout: "Transmit timeout timer",
+  settingTransmitChannelSelection: "Transmit channel selection",
+  settingCallHoldTime: "Call hold time",
+  settingBandAOperatingMode: "Band A operating mode",
+  settingBandBOperatingMode: "Band B operating mode",
+  settingAutoRepeater: "Auto Repeater",
+  settingAutoAmMode: "Auto AM Mode",
+  settingCitUsbCdc: "USB CDC",
+  settingCitBluetoothSpp: "Bluetooth SPP",
+  settingCitBluetoothBle: "Bluetooth BLE",
+  settingNoSignalingTailTone: "No-signaling tail tone",
+  settingCtcssTailBehavior: "CTCSS tail behavior",
+  settingDcsTailBehavior: "DCS tail behavior",
+  settingTailSignalingDuration: "Tail-signaling duration",
+  settingToneBurstFrequency: "Tone Burst frequency",
+  settingToneBurstDuration: "Tone Burst duration",
+  settingToneBurstSidetone: "Tone Burst sidetone",
+  settingScanMode: "Scan mode",
+  settingMemoryScanType: "MR scan type",
+  settingCoResumeDelay: "CO Resume Delay",
+  settingToHoldTime: "TO Hold Time",
+  settingScanDwellTime: "Scan Dwell Time",
+  settingPowerSave: "Power save",
+  settingPowerSaveDelay: "Power-save delay",
+  settingWeatherSquelchControl: "Squelch control",
+  settingWeatherReceiveMode: "Receive mode",
+  settingWeatherScanChannels: "Channels included in WX scan",
+  settingWeatherDecodeReset: "Decode reset time",
+  settingHelpLabel: "About {setting}",
+  settingHintRxTxMode:
+    "Chooses how the two display bands receive and which band can transmit.",
+  settingHintCrossBandRepeaterMode:
+    "Selects one-way or two-way forwarding while cross-band repeater mode is active.",
+  settingHintCrossBandRepeaterMonitoring:
+    "Keeps the receive side audible while the Radio operates as a cross-band repeater.",
+  settingHintSquelchLevel:
+    "Sets how strong a signal must be before receiver audio opens. Higher levels require a stronger signal.",
+  settingHintTransmitTimeout:
+    "Stops a continuous transmission after this time to protect the Radio and keep the channel available.",
+  settingHintTransmitChannelSelection:
+    "Chooses whether PTT transmits on the main channel or the channel that was called most recently.",
+  settingHintCallHoldTime:
+    "Keeps the last-called channel available for a reply for this amount of time.",
+  settingHintBandAOperatingMode:
+    "Chooses whether Band A starts in Memory, VFO, CALL, or Weather mode.",
+  settingHintBandBOperatingMode:
+    "Chooses whether Band B starts in Memory, VFO, CALL, or Weather mode.",
+  settingHintAutoRepeater:
+    "Enables the Radio's automatic repeater behavior on supported frequencies.",
+  settingHintAutoAmMode:
+    "Automatically uses AM reception inside the selected air-band range. Off disables automatic switching.",
+  settingHintCitUsbCdc:
+    "Enables the USB virtual serial interface for compatible control software.",
+  settingHintCitBluetoothSpp:
+    "Enables the classic Bluetooth Serial Port Profile data interface.",
+  settingHintCitBluetoothBle:
+    "Enables the Bluetooth Low Energy data interface for compatible clients.",
+  settingHintNoSignalingTailTone:
+    "Selects the tail tone sent when a transmission ends without CTCSS or DCS signaling.",
+  settingHintCtcssTailBehavior:
+    "Chooses the CTCSS tail method used to help the receiving squelch close cleanly.",
+  settingHintDcsTailBehavior:
+    "Chooses the DCS tail method used to help the receiving squelch close cleanly.",
+  settingHintTailSignalingDuration:
+    "Sets how long the selected tail signal is sent after transmission ends.",
+  settingHintToneBurstFrequency:
+    "Selects the signaling tone frequency sent by the assigned Tone Burst control.",
+  settingHintToneBurstDuration:
+    "Sends the Tone Burst for one second or continuously while the assigned control is held.",
+  settingHintToneBurstSidetone:
+    "Plays the outgoing Tone Burst through the Radio speaker so the operator can hear it.",
+  settingHintScanMode:
+    "Controls when scanning stops on activity and when it resumes.",
+  settingHintMemoryScanType:
+    "Chooses normal Memory Channel scanning or scanning that gives priority to the priority channel.",
+  settingHintCoResumeDelay:
+    "After the received carrier disappears, waits this long before scanning resumes.",
+  settingHintToHoldTime:
+    "Sets how long time-operated scanning remains on an active channel before continuing.",
+  settingHintScanDwellTime:
+    "Sets how long the scanner samples each channel. Shorter values scan faster; longer values listen longer.",
+  settingHintPowerSave:
+    "Allows the Radio to reduce receiver activity while idle to save battery power.",
+  settingHintPowerSaveDelay:
+    "Sets how long the Radio remains idle before entering power-save operation.",
+  settingHintWeatherSquelchControl:
+    "Uses normal squelch or requires 1050 Hz Weather alert signaling to open it.",
+  settingHintWeatherReceiveMode:
+    "Watches one selected Weather Channel or repeatedly scans the included WX channels.",
+  settingHintWeatherScanChannels:
+    "Chooses which of the ten fixed Weather Channels participate in multi-channel WX scanning.",
+  settingHintWeatherDecodeReset:
+    "Sets how long Weather alert decoding remains active before it resets for the next signal.",
+  settingTenthsRangeError:
+    "Enter a value from {min, number} to {max, number} in 0.1-second increments.",
+  secondsUnit: "s",
+  weatherChannel: "WX{channel, number}",
+  valueMinutes: "{value, number} min",
+  valueSeconds: "{value, number} s",
+  valueMilliseconds: "{value, number} ms",
+  valueHertz: "{value, number} Hz",
+  valueLevel: "Level {value, number}",
+  valueUnknownStored: "Unknown stored value",
+  valueSingleRxTx: "Single RX/TX",
+  valueDualWatchSingleTx: "Dual-watch, single TX",
+  valueDualReceiveSingleTx: "Dual receive, single TX",
+  valueCrossBandRepeater: "Cross-band repeater",
+  valueOneWay: "One-way repeat",
+  valueTwoWay: "Two-way repeat",
+  valueMainChannel: "Main channel",
+  valueLastCalledChannel: "Last-called channel",
+  valueMemoryMode: "Memory mode",
+  valueVfoMode: "VFO/frequency mode",
+  valueCallMode: "CALL mode",
+  valueWeatherMode: "Weather mode",
+  valueAutoAm108136: "108.0–136.0 MHz",
+  valueAutoAm108137: "108.0–137.0 MHz",
+  value55Point2Hz: "55.2 Hz",
+  value259Point2Hz: "259.2 Hz",
+  value55Hz: "55 Hz",
+  value134Point4Hz: "134.4 Hz",
+  valuePhaseShift120: "Phase shift 120°",
+  valuePhaseShift180: "Phase shift 180°",
+  valuePhaseShift240: "Phase shift 240°",
+  valueOneSecond: "1 second",
+  valueContinuous: "Continuous",
+  valueTime: "Time",
+  valueSearch: "Search",
+  value1050HzSignaling: "1050 Hz signaling",
+  valueSingleChannelWatch: "Single-channel watch",
+  valueMultiChannelScan: "Multi-channel scan",
   navData: "Codeplug Data",
   navBackups: "Backups",
   navDiagnostics: "Diagnostics",

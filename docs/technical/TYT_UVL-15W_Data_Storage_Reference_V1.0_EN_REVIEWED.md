@@ -15,11 +15,12 @@ English developer edition: terminology and descriptions have been normalized for
    1. [Radio Basic Info](#sec2_0)
    2. [Function Settings](#sec2_1)
       1. [Transmit/Receive Settings](#sec2_1_1)
-      2. [Squelch-Tail / End-of-Transmission Signaling](#sec2_1_2)
-      3. [Tone Burst](#sec2_1_3)
-      4. [Scanning](#sec2_1_4)
-      5. [Power-Save Settings](#sec2_1_5)
-      6. [Weather Channels](#sec2_1_6)
+      2. [CI-T Data Interfaces](#sec2_1_2)
+      3. [Squelch-Tail / End-of-Transmission Signaling](#sec2_1_3)
+      4. [Tone Burst](#sec2_1_4)
+      5. [Scanning](#sec2_1_5)
+      6. [Power-Save Settings](#sec2_1_6)
+      7. [Weather Channels](#sec2_1_7)
    3. [Display Settings](#sec2_2)
       1. [LCD Backlight](#sec2_2_1)
       2. [Power-On Display](#sec2_2_2)
@@ -148,10 +149,22 @@ English developer edition: terminology and descriptions have been normalized for
 | Call hold time | 0x35 | 1 B | 0=3s1=4s2=5s3=6s4=7s5=8s6=9s7=10s8=15s9=20s10=25s11=30s12=35s13=40s14=45s15=50s16=55s17=60s18=70s19=80s20=90s21=100s22=110s23=120s24=150s25=180s26=210s27=240s28=270s29=300s |
 | A-band operating mode | 0x00015307 | 1 B | Stored in Radio Status (offset0x07). 0=Memory mode1=VFO/frequency mode2=CALL mode3=Weather mode (visibility depends on the corresponding feature switch) |
 | B-band operating mode | 0x00015308 | 1 B | Stored in Radio Status (offset0x08). 0=Memory mode1=VFO/frequency mode2=CALL mode3=Weather mode (visibility depends on the corresponding feature switch) |
+| Auto Repeater | 0xB7 | 1 B | 0=Off1=On |
+| Auto AM Mode | 0xBC | 1 B | 0=Off1=108.0~~136.0MHz2=108.0~~137.0MHz |
 
 <a id="sec2_1_2"></a>
 
-#### 2.2.2 Squelch-Tail / End-of-Transmission Signaling
+#### 2.2.2 CI-T Data Interfaces
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| USB CDC | 0xB8 | 1 B | 0=Off1=On |
+| Bluetooth SPP | 0xB9 | 1 B | 0=Off1=On |
+| Bluetooth BLE | 0xBA | 1 B | 0=Off1=On |
+
+<a id="sec2_1_3"></a>
+
+#### 2.2.3 Squelch-Tail / End-of-Transmission Signaling
 
 | UI option | Offset / absolute address | Length | Storage format / options |
 | --- | --- | --- | --- |
@@ -160,9 +173,9 @@ English developer edition: terminology and descriptions have been normalized for
 | DCS tail behavior | 0x37 | 1 B | 0=Off1=134.4Hz |
 | Tail-signaling duration | 0x39 | 1 B | 0=50ms1=75ms2=100ms3=125ms4=150ms5=175ms6=200ms7=225ms8=250ms9=275ms10=300ms11=325ms12=350ms13=375ms14=400ms15=425ms16=450ms17=475ms18=500ms |
 
-<a id="sec2_1_3"></a>
+<a id="sec2_1_4"></a>
 
-#### 2.2.3 Tone Burst
+#### 2.2.4 Tone Burst
 
 | UI option | Offset / absolute address | Length | Storage format / options |
 | --- | --- | --- | --- |
@@ -170,27 +183,30 @@ English developer edition: terminology and descriptions have been normalized for
 | Tone Burst duration | 0x3A | 1 B | 0=1s1=continuous |
 | Tone Burst sidetone | 0x3C | 1 B | 0=Off1=On |
 
-<a id="sec2_1_4"></a>
+<a id="sec2_1_5"></a>
 
-#### 2.2.4 Scanning
+#### 2.2.5 Scanning
 
 | UI option | Offset / absolute address | Length | Storage format / options |
 | --- | --- | --- | --- |
 | Scan mode | 0x3D | 1 B | 0=Carrier1=Time2=Search |
 | MR scan type | 0x3E | 1 B | 0=Normal1=Priority |
+| CO Resume Delay | 0x48 | 1 B | Stored in tenths of a second: 0~~100=0.0~~10.0s. |
+| TO Hold Time | 0x49 | 1 B | Stored in tenths of a second: 10~~100=1.0~~10.0s. |
+| Scan Dwell Time | 0x4A | 1 B | 0=10ms1=20ms2=30ms3=40ms4=50ms |
 
-<a id="sec2_1_5"></a>
+<a id="sec2_1_6"></a>
 
-#### 2.2.5 Power-Save Settings
+#### 2.2.6 Power-Save Settings
 
 | UI option | Offset / absolute address | Length | Storage format / options |
 | --- | --- | --- | --- |
 | Power-save switch | 0xB0 | 1 B | 0=Off1=On |
 | Power-save delay | 0xB1 | 1 B | 0=3s1=4s2=5s3=6s4=7s5=8s6=9s7=10s8=12s9=14s10=16s11=18s12=20s13=25s14=30s15=35s16=40s17=45s18=50s19=55s20=60s21=70s22=80s23=90s24=100s25=110s26=120s27=150s28=180s29=210s30=240s31=270s32=300s |
 
-<a id="sec2_1_6"></a>
+<a id="sec2_1_7"></a>
 
-#### 2.2.6 Weather Channels
+#### 2.2.7 Weather Channels
 
 | UI option | Offset / absolute address | Length | Storage format / options |
 | --- | --- | --- | --- |
@@ -1035,8 +1051,9 @@ Lists 0+1) independently on both bands. Unrelated upper bits must be preserved.
 | 1 | Overall Storage Map | Address ranges, lengths, purpose, and block names match the document | ☑ Pass |
 | 2.1 | Radio Basic Info | E1 field order, offsets, lengths, and semantics match the newer format | ☑ Pass |
 | 2.2.1 | Function Settings-Transmit/Receive Settings | Field names, offsets, and enums match Qt read/write behavior | ☑ Pass |
-| 2.2.2 | Function Settings-Squelch-Tail / End-of-Transmission Signaling | STE field layout, offsets, and enums are fully documented and consistent | ☑ Pass |
-| 2.2.3~2.2.6 | Function Settings-TBST/Scanning/Power-Save Settings/Weather Channels | Field layouts, bitmaps, and index mappings are consistent | ☑ Pass |
+| 2.2.2 | Function Settings-CI-T Data Interfaces | USB CDC, Bluetooth SPP, and Bluetooth BLE switch offsets match controlled stock-CPS file comparisons | ☑ Pass |
+| 2.2.3 | Function Settings-Squelch-Tail / End-of-Transmission Signaling | STE field layout, offsets, and enums are fully documented and consistent | ☑ Pass |
+| 2.2.4~2.2.7 | Function Settings-TBST/Scanning/Power-Save Settings/Weather Channels | Field layouts, bitmaps, and index mappings are consistent | ☑ Pass |
 | 2.3 | Display Settings (all subtables) | Bit fields, enum values, and address conventions are consistent | ☑ Pass |
 | 2.4 | Audio Settings (all subtables) | Field name, offset, switch/level enums are consistent | ☑ Pass |
 | 2.5 | Key Settings (including short-/long-press index maps) | Main table and both function-index maps are consistent | ☑ Pass |

@@ -3,6 +3,8 @@ import type {
   ChannelCollectionPatch,
   Channel,
   Codeplug,
+  FunctionSettings,
+  FunctionSettingsPatch,
   MemoryChannelPatch,
   RadioBand,
   SpecialChannel,
@@ -56,6 +58,10 @@ type WorkspaceChange =
   | {
       readonly kind: "edit-band-scan-list-selection"
       readonly band: RadioBand
+    }
+  | {
+      readonly kind: "edit-function-setting"
+      readonly field: keyof FunctionSettingsPatch
     }
 
 type MemoryChannelStructureChange = {
@@ -466,11 +472,66 @@ function reconcileBandScanListSelectionChange(
   ])
 }
 
+function reconcileFunctionSettingChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  fields: readonly (keyof FunctionSettingsPatch)[]
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) {
+    return Object.freeze([])
+  }
+
+  const affectedFields = new Set(fields)
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-function-setting" ||
+      !affectedFields.has(change.field)
+  )
+  const baseline = baselineCodeplug.getFunctionSettings()
+  const working = workingCodeplug.getFunctionSettings()
+  const changedFields = fields.filter(
+    (field) => !functionSettingFieldEquals(baseline, working, field)
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) =>
+      Object.freeze({ kind: "edit-function-setting" as const, field })
+    ),
+  ])
+}
+
 function numberArraysEqual(left: readonly number[], right: readonly number[]) {
   return (
     left.length === right.length &&
     left.every((value, index) => value === right[index])
   )
+}
+
+function functionSettingFieldEquals(
+  baseline: FunctionSettings,
+  working: FunctionSettings,
+  field: keyof FunctionSettingsPatch
+) {
+  const baselineValue = baseline[field]
+  const workingValue = working[field]
+
+  if (Array.isArray(baselineValue) && Array.isArray(workingValue)) {
+    return numberArraysEqual(baselineValue, workingValue)
+  }
+  if (
+    typeof baselineValue === "object" &&
+    baselineValue !== null &&
+    typeof workingValue === "object" &&
+    workingValue !== null &&
+    "kind" in baselineValue &&
+    "kind" in workingValue
+  ) {
+    return baselineValue.raw === workingValue.raw
+  }
+
+  return baselineValue === workingValue
 }
 
 function channelFieldEquals(
@@ -542,6 +603,7 @@ export {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
   reconcileChannelMembershipChanges,
+  reconcileFunctionSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
   reconcileScanListEditChanges,

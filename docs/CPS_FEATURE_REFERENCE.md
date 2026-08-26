@@ -528,6 +528,11 @@ Documented settings include:
 - call hold time — P2
 - A-side operating mode — P1
 - B-side operating mode — P1
+- Auto Repeater — P2
+- Auto AM Mode: Off / 108.0–136.0 MHz / 108.0–137.0 MHz — P2
+- CI-T USB CDC enable — P2
+- CI-T Bluetooth SPP enable — P2
+- CI-T Bluetooth BLE enable — P2
 
 A/B operating modes include Channel, VFO/frequency, Call Channel and Weather Channel modes.
 
@@ -549,6 +554,9 @@ A/B operating modes include Channel, VFO/frequency, Call Channel and Weather Cha
 
 - scan mode — P1
 - MR scan type: Normal / Priority — P1
+- CO Resume Delay: 0.0–10.0 seconds in 0.1-second increments — P1
+- TO Hold Time: 1.0–10.0 seconds in 0.1-second increments — P1
+- Scan Dwell Time: 10 / 20 / 30 / 40 / 50 ms — P1
 
 ---
 

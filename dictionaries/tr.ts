@@ -18,6 +18,172 @@ const tr = {
   navConfiguration: "Programlama",
   navAprs: "APRS",
   navSettings: "Telsiz Ayarları",
+  radioSettingsTitle: "Telsiz Temel Ayarları",
+  radioSettingsDescription:
+    "Çalışma Codeplug'ındaki telsiz genel davranışlarını düzenleyin. Değişiklikler Telsize Yaz kullanılabilir olana kadar yerel kalır.",
+  functionSettingsReadRequiredTitle:
+    "Fonksiyon Ayarlarını düzenlemek için telsizi okuyun",
+  settingsCategoryFunctions: "Fonksiyonlar",
+  settingsCategoryDisplay: "Ekran",
+  settingsCategorySounds: "Sesler",
+  settingsCategoryKeyboard: "Tuşlar",
+  settingsCategoryMenu: "Menü",
+  functionSectionTrx: "TRX",
+  functionSectionTrxDescription:
+    "Alım, gönderim, band çalışma modları ve otomatik frekans davranışları.",
+  functionSectionCit: "CI-T",
+  functionSectionCitDescription:
+    "Telsizin veri arayüzlerini birbirinden bağımsız olarak açın veya kapatın.",
+  functionSectionSte: "STE",
+  functionSectionSteDescription:
+    "Squelch kuyruğu giderme ve gönderim sonu sinyallemesi.",
+  functionSectionToneBurst: "Tone Burst",
+  functionSectionToneBurstDescription:
+    "Atanmış telsiz kontrolünün gönderdiği tek tonlu burst sinyalini yapılandırın.",
+  functionSectionScan: "Tarama",
+  functionSectionScanDescription:
+    "Tarama davranışı, devam gecikmesi, bekleme süresi ve kanal dinleme süresi.",
+  functionSectionPowerSave: "Güç Tasarrufu",
+  functionSectionPowerSaveDescription:
+    "Seçilen gecikmeden sonra boştaki güç tüketimini azaltın.",
+  functionSectionWeather: "WX CH",
+  functionSectionWeatherDescription:
+    "Hava Durumu Kanalları izleme, tarama üyeliği ve sinyal sıfırlama davranışı.",
+  settingRxTxMode: "RX/TX modu",
+  settingCrossBandRepeaterMode: "Cross-band röle modu",
+  settingCrossBandRepeaterMonitoring: "Cross-band röle izleme",
+  settingSquelchLevel: "Squelch seviyesi",
+  settingTransmitTimeout: "TX zaman aşımı sayacı",
+  settingTransmitChannelSelection: "TX kanal seçimi",
+  settingCallHoldTime: "Call bekleme süresi",
+  settingBandAOperatingMode: "Band A çalışma modu",
+  settingBandBOperatingMode: "Band B çalışma modu",
+  settingAutoRepeater: "Otomatik Röle",
+  settingAutoAmMode: "Otomatik AM Modu",
+  settingCitUsbCdc: "USB CDC",
+  settingCitBluetoothSpp: "Bluetooth SPP",
+  settingCitBluetoothBle: "Bluetooth BLE",
+  settingNoSignalingTailTone: "Sinyalsiz kuyruk tonu",
+  settingCtcssTailBehavior: "CTCSS kuyruk davranışı",
+  settingDcsTailBehavior: "DCS kuyruk davranışı",
+  settingTailSignalingDuration: "Kuyruk sinyal süresi",
+  settingToneBurstFrequency: "Tone Burst frekansı",
+  settingToneBurstDuration: "Tone Burst süresi",
+  settingToneBurstSidetone: "Tone Burst yan tonu",
+  settingScanMode: "Tarama modu",
+  settingMemoryScanType: "MR tarama tipi",
+  settingCoResumeDelay: "CO Devam Gecikmesi",
+  settingToHoldTime: "TO Bekleme Süresi",
+  settingScanDwellTime: "Tarama Dinleme Süresi",
+  settingPowerSave: "Güç tasarrufu",
+  settingPowerSaveDelay: "Güç tasarrufu gecikmesi",
+  settingWeatherSquelchControl: "Squelch kontrolü",
+  settingWeatherReceiveMode: "Alım modu",
+  settingWeatherScanChannels: "WX taramasına dahil kanallar",
+  settingWeatherDecodeReset: "Decode sıfırlama süresi",
+  settingHelpLabel: "{setting} hakkında bilgi",
+  settingHintRxTxMode:
+    "İki ekran bandının nasıl alım yapacağını ve hangi bandın gönderim yapabileceğini belirler.",
+  settingHintCrossBandRepeaterMode:
+    "Cross-band röle modu açıkken tek yönlü veya çift yönlü aktarmayı seçer.",
+  settingHintCrossBandRepeaterMonitoring:
+    "Telsiz cross-band röle olarak çalışırken alım tarafının duyulmasını sağlar.",
+  settingHintSquelchLevel:
+    "Alıcı sesinin açılması için gereken sinyal gücünü belirler. Yüksek seviyeler daha güçlü sinyal gerektirir.",
+  settingHintTransmitTimeout:
+    "Telsizi korumak ve kanalı boşaltmak için kesintisiz gönderimi seçilen sürenin sonunda durdurur.",
+  settingHintTransmitChannelSelection:
+    "PTT'nin ana kanaldan mı yoksa en son çağrı alınan kanaldan mı gönderim yapacağını seçer.",
+  settingHintCallHoldTime:
+    "En son çağrı alınan kanalı bu süre boyunca yanıt vermeye hazır tutar.",
+  settingHintBandAOperatingMode:
+    "Band A'nın Hafıza, VFO, CALL veya Hava Durumu modlarından hangisinde başlayacağını seçer.",
+  settingHintBandBOperatingMode:
+    "Band B'nin Hafıza, VFO, CALL veya Hava Durumu modlarından hangisinde başlayacağını seçer.",
+  settingHintAutoRepeater:
+    "Desteklenen frekanslarda telsizin otomatik röle davranışını etkinleştirir.",
+  settingHintAutoAmMode:
+    "Seçilen hava bandı aralığında AM alımını otomatik kullanır. Kapalı seçeneği otomatik geçişi devre dışı bırakır.",
+  settingHintCitUsbCdc:
+    "Uyumlu kontrol yazılımları için USB sanal seri port arayüzünü etkinleştirir.",
+  settingHintCitBluetoothSpp:
+    "Klasik Bluetooth Seri Port Profili veri arayüzünü etkinleştirir.",
+  settingHintCitBluetoothBle:
+    "Uyumlu istemciler için Bluetooth Low Energy veri arayüzünü etkinleştirir.",
+  settingHintNoSignalingTailTone:
+    "CTCSS veya DCS kullanılmayan bir gönderimin sonunda iletilecek kuyruk tonunu seçer.",
+  settingHintCtcssTailBehavior:
+    "Karşı telsizin squelch'inin gürültüsüz kapanmasına yardımcı olan CTCSS kuyruk yöntemini seçer.",
+  settingHintDcsTailBehavior:
+    "Karşı telsizin squelch'inin gürültüsüz kapanmasına yardımcı olan DCS kuyruk yöntemini seçer.",
+  settingHintTailSignalingDuration:
+    "Gönderim bittikten sonra seçilen kuyruk sinyalinin ne kadar süre gönderileceğini belirler.",
+  settingHintToneBurstFrequency:
+    "Atanmış Tone Burst kontrolünün göndereceği sinyal tonu frekansını seçer.",
+  settingHintToneBurstDuration:
+    "Tone Burst sinyalini bir saniye boyunca veya atanmış kontrol basılı tutuldukça kesintisiz gönderir.",
+  settingHintToneBurstSidetone:
+    "Gönderilen Tone Burst sinyalini operatörün duyabilmesi için telsiz hoparlöründen çalar.",
+  settingHintScanMode:
+    "Taramanın etkinlik algıladığında ne zaman duracağını ve ne zaman devam edeceğini belirler.",
+  settingHintMemoryScanType:
+    "Normal Hafıza Kanalı taramasını veya öncelikli kanala öncelik veren taramayı seçer.",
+  settingHintCoResumeDelay:
+    "Alınan taşıyıcı kaybolduktan sonra taramaya devam etmeden önce bu süre kadar bekler.",
+  settingHintToHoldTime:
+    "Zaman kontrollü taramanın devam etmeden önce etkin kanalda ne kadar kalacağını belirler.",
+  settingHintScanDwellTime:
+    "Tarayıcının her kanalı ne kadar süre dinleyeceğini belirler. Kısa değerler daha hızlı, uzun değerler daha uzun dinler.",
+  settingHintPowerSave:
+    "Pil tüketimini azaltmak için telsiz boştayken alıcı etkinliğini düşürmesine izin verir.",
+  settingHintPowerSaveDelay:
+    "Telsizin güç tasarrufuna geçmeden önce ne kadar süre boşta kalacağını belirler.",
+  settingHintWeatherSquelchControl:
+    "Normal squelch kullanır veya squelch'in açılması için 1050 Hz Hava Durumu uyarı sinyali gerektirir.",
+  settingHintWeatherReceiveMode:
+    "Seçili tek bir Hava Durumu Kanalını izler veya dahil edilen WX kanallarını sürekli tarar.",
+  settingHintWeatherScanChannels:
+    "On sabit Hava Durumu Kanalından hangilerinin çoklu WX taramasına katılacağını seçer.",
+  settingHintWeatherDecodeReset:
+    "Hava Durumu uyarı çözümlemesinin bir sonraki sinyal için sıfırlanmadan önce ne kadar etkin kalacağını belirler.",
+  settingTenthsRangeError:
+    "{min, number} ile {max, number} arasında, 0,1 saniyelik adımlarla bir değer girin.",
+  secondsUnit: "sn",
+  weatherChannel: "WX{channel, number}",
+  valueMinutes: "{value, number} dk",
+  valueSeconds: "{value, number} sn",
+  valueMilliseconds: "{value, number} ms",
+  valueHertz: "{value, number} Hz",
+  valueLevel: "Seviye {value, number}",
+  valueUnknownStored: "Bilinmeyen kayıtlı değer",
+  valueSingleRxTx: "Tek RX/TX",
+  valueDualWatchSingleTx: "Çift izleme, tek TX",
+  valueDualReceiveSingleTx: "Çift alım, tek TX",
+  valueCrossBandRepeater: "Cross-band röle",
+  valueOneWay: "Tek yönlü röle",
+  valueTwoWay: "Çift yönlü röle",
+  valueMainChannel: "Ana kanal",
+  valueLastCalledChannel: "Son çağrılan kanal",
+  valueMemoryMode: "Hafıza modu",
+  valueVfoMode: "VFO/frekans modu",
+  valueCallMode: "CALL modu",
+  valueWeatherMode: "Hava Durumu modu",
+  valueAutoAm108136: "108,0–136,0 MHz",
+  valueAutoAm108137: "108,0–137,0 MHz",
+  value55Point2Hz: "55,2 Hz",
+  value259Point2Hz: "259,2 Hz",
+  value55Hz: "55 Hz",
+  value134Point4Hz: "134,4 Hz",
+  valuePhaseShift120: "120° faz kaydırma",
+  valuePhaseShift180: "180° faz kaydırma",
+  valuePhaseShift240: "240° faz kaydırma",
+  valueOneSecond: "1 saniye",
+  valueContinuous: "Sürekli",
+  valueTime: "Zaman",
+  valueSearch: "Arama",
+  value1050HzSignaling: "1050 Hz sinyalleme",
+  valueSingleChannelWatch: "Tek kanal izleme",
+  valueMultiChannelScan: "Çoklu kanal tarama",
   navData: "Codeplug Verileri",
   navBackups: "Yedekler",
   navDiagnostics: "Tanılama",
@@ -207,7 +373,7 @@ const tr = {
   valueSkip: "Atla",
   valuePriority: "Öncelik",
   valueRepeater: "Röle",
-  valueCarrier: "Operatör",
+  valueCarrier: "Taşıyıcı",
   valueTone: "CTCSS/DCS Tonu",
   valueOptionalSignaling: "Opsiyonel Sinyal",
   valueToneAndOptional: "Ton VE Opsiyonel Sinyal",

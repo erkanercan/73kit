@@ -68,7 +68,12 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       label: t("navConfiguration"),
       items: [
         { title: t("navAprs"), icon: WaypointsIcon, planned: true },
-        { title: t("navSettings"), icon: Settings2Icon, planned: true },
+        {
+          title: t("navSettings"),
+          href: "/radio-settings/functions",
+          icon: Settings2Icon,
+          active: pathname.startsWith("/radio-settings"),
+        },
       ],
     },
     {
