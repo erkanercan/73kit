@@ -515,11 +515,13 @@ List selection.
 
 ### VFO Scan Edge editor — P1 / IMPLEMENTED; CURRENT-CPS-VERIFIED STORAGE
 
-The `/vfo-scan-edges` workspace presents all 32 fixed Scan Edge slots with
-name, low and high frequency, step, and mode columns. A complete-row Drawer
-validates 24-byte UTF-8 names, the 108–660 MHz range, ascending bounds, and the
-8.33 kHz AM-only rule before committing a record. Compact VFO A and VFO B
-controls independently select multiple configured edges.
+The `/vfo-scan-edges` workspace immediately presents all 32 fixed Scan Edge
+slots, including unused slots, in a searchable table with directly editable
+name, low and high frequency, step, and mode columns. Every cell commits
+immediately; the first edit to an unused slot initializes its remaining fields
+with safe defaults. Inline validation enforces 24-byte UTF-8 names, the 108–660
+MHz range, ascending bounds, and the 8.33 kHz AM-only rule. Compact VFO A and
+VFO B controls independently select multiple configured edges.
 
 The Codeplug module reads the legacy version-1 single-index header and the
 current `EDG1` version-2 bitmaps. An edit upgrades a legacy header to version 2

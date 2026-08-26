@@ -5,22 +5,18 @@ import {
   ChevronDownIcon,
   DownloadIcon,
   ScanLineIcon,
-  XIcon,
+  SearchIcon,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import {
+  EditableSelectCell,
+  EditableTextCell,
+} from "@/components/channels/editable-channel-cells"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -36,22 +32,12 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { Field, FieldLabel } from "@/components/ui/field"
 import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import {
   Table,
   TableBody,
@@ -66,12 +52,19 @@ import {
   VFO_SCAN_EDGE_MODES,
   VFO_SCAN_EDGE_STEPS,
   type ChannelModulation,
-  type ChannelStepKHz,
   type RadioBand,
   type VfoScanEdge,
   type VfoScanEdgePatch,
   type VfoScanEdgeSelections,
 } from "@/modules/codeplug/index"
+
+const EMPTY_SCAN_EDGE_DEFAULTS = {
+  name: "",
+  lowFrequencyHz: 144_000_000,
+  highFrequencyHz: 148_000_000,
+  stepKHz: 12.5,
+  modulation: "fm",
+} as const satisfies VfoScanEdgePatch
 
 function VfoScanEdgesWorkspace() {
   const {
@@ -84,7 +77,7 @@ function VfoScanEdgesWorkspace() {
     readRadio,
   } = useCpsWorkspace()
   const t = useTranslations()
-  const [selected, setSelected] = React.useState<VfoScanEdge | null>(null)
+  const [search, setSearch] = React.useState("")
   const codeplug = completedRead?.workingCodeplug.codeplug ?? null
 
   if (!codeplug) {
@@ -113,6 +106,31 @@ function VfoScanEdgesWorkspace() {
   }
 
   const edges = codeplug.getVfoScanEdges()
+  const normalizedSearch = search.trim().toLocaleLowerCase()
+  const visibleEdges = edges.filter((edge) => {
+    if (!normalizedSearch) return true
+
+    return [
+      edge.number,
+      String(edge.number).padStart(2, "0"),
+      edge.name,
+      edge.valid ? formatMHz(edge.lowFrequencyHz) : t("unused"),
+      edge.valid ? formatMHz(edge.highFrequencyHz) : "",
+      edge.valid ? edge.stepKHz : "",
+      edge.valid ? modeLabel(t, edge.modulation) : "",
+    ]
+      .join(" ")
+      .toLocaleLowerCase()
+      .includes(normalizedSearch)
+  })
+
+  function updateEdge(edge: VfoScanEdge, patch: VfoScanEdgePatch) {
+    editVfoScanEdge(
+      edge.number,
+      edge.valid ? patch : { ...EMPTY_SCAN_EDGE_DEFAULTS, ...patch }
+    )
+  }
+
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden p-4 sm:p-6 lg:p-8">
       <PageHeader title={t("vfoScanEdgesTitle")}>
@@ -125,72 +143,206 @@ function VfoScanEdgesWorkspace() {
           onChange={editVfoScanEdgeSelection}
         />
       </PageHeader>
-      <div className="min-h-0 flex-1 overflow-hidden rounded-xl border bg-card">
-        <ScrollArea className="h-full">
-          <Table>
-            <TableHeader className="sticky top-0 z-10 bg-card">
+      <section className="flex min-h-0 flex-1 flex-col gap-3">
+        <InputGroup>
+          <InputGroupInput
+            value={search}
+            aria-label={t("searchScanEdges")}
+            placeholder={t("searchScanEdgesPlaceholder")}
+            onChange={(event) => setSearch(event.currentTarget.value)}
+          />
+          <InputGroupAddon>
+            <SearchIcon aria-hidden="true" />
+          </InputGroupAddon>
+        </InputGroup>
+        {visibleEdges.length === 0 ? (
+          <Empty className="min-h-72 border">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <SearchIcon />
+              </EmptyMedia>
+              <EmptyTitle>{t("noMatchingScanEdges")}</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <Table
+            containerClassName="min-h-0 flex-1 overflow-auto overscroll-contain rounded-lg border"
+            className="min-w-[54rem] table-fixed"
+          >
+            <TableHeader className="sticky top-0 z-10 bg-background">
               <TableRow>
-                <TableHead>{t("vfoScanEdgeName")}</TableHead>
-                <TableHead>{t("vfoScanEdgeLowFrequency")}</TableHead>
-                <TableHead>{t("vfoScanEdgeHighFrequency")}</TableHead>
-                <TableHead>{t("frequencyStep")}</TableHead>
-                <TableHead>{t("channelMode")}</TableHead>
+                <TableHead className="w-16">{t("channelNumber")}</TableHead>
+                <TableHead className="w-48">{t("vfoScanEdgeName")}</TableHead>
+                <TableHead className="w-44">
+                  {t("vfoScanEdgeLowFrequency")}
+                </TableHead>
+                <TableHead className="w-44">
+                  {t("vfoScanEdgeHighFrequency")}
+                </TableHead>
+                <TableHead className="w-28">{t("frequencyStep")}</TableHead>
+                <TableHead className="w-28">{t("channelMode")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {edges.map((edge) => (
+              {visibleEdges.map((edge) => (
                 <TableRow key={edge.number}>
+                  <TableCell className="font-mono font-medium">
+                    {String(edge.number).padStart(2, "0")}
+                  </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      className="h-auto w-full justify-start px-0 py-1"
-                      aria-label={t("vfoScanEdgeTitle", {
-                        number: edge.number,
-                      })}
-                      onClick={() => setSelected(edge)}
-                    >
-                      <span className="w-8 shrink-0 font-mono text-xs text-muted-foreground">
-                        {edge.number}
-                      </span>
-                      <span className="truncate">
-                        {edge.valid
+                    <EditableTextCell
+                      value={edge.name}
+                      displayValue={
+                        edge.valid
                           ? edge.name || t("unnamedScanEdge")
-                          : t("unused")}
-                      </span>
-                    </Button>
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {edge.valid ? formatMHz(edge.lowFrequencyHz) : "—"}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {edge.valid ? formatMHz(edge.highFrequencyHz) : "—"}
-                  </TableCell>
-                  <TableCell>
-                    {edge.valid ? `${edge.stepKHz} kHz` : "—"}
+                          : t("unused")
+                      }
+                      ariaLabel={`${t("vfoScanEdgeName")} ${edge.number}`}
+                      invalidMessage={t("vfoScanEdgeNameTooLong")}
+                      validate={(name) =>
+                        !name.includes("\0") &&
+                        new TextEncoder().encode(name).byteLength <= 24
+                      }
+                      onCommit={(name) => updateEdge(edge, { name })}
+                    />
                   </TableCell>
                   <TableCell>
-                    {edge.valid ? modeLabel(t, edge.modulation) : "—"}
+                    <ScanEdgeFrequencyCell
+                      value={
+                        edge.valid
+                          ? edge.lowFrequencyHz
+                          : EMPTY_SCAN_EDGE_DEFAULTS.lowFrequencyHz
+                      }
+                      displayValue={
+                        edge.valid ? formatMHz(edge.lowFrequencyHz) : "—"
+                      }
+                      otherValue={
+                        edge.valid
+                          ? edge.highFrequencyHz
+                          : EMPTY_SCAN_EDGE_DEFAULTS.highFrequencyHz
+                      }
+                      boundary="low"
+                      ariaLabel={`${t("vfoScanEdgeLowFrequency")} ${edge.number}`}
+                      invalidMessage={t("vfoScanEdgeFrequencyInvalid")}
+                      rangeInvalidMessage={t("vfoScanEdgeRangeInvalid")}
+                      onCommit={(lowFrequencyHz) =>
+                        updateEdge(edge, { lowFrequencyHz })
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <ScanEdgeFrequencyCell
+                      value={
+                        edge.valid
+                          ? edge.highFrequencyHz
+                          : EMPTY_SCAN_EDGE_DEFAULTS.highFrequencyHz
+                      }
+                      displayValue={
+                        edge.valid ? formatMHz(edge.highFrequencyHz) : "—"
+                      }
+                      otherValue={
+                        edge.valid
+                          ? edge.lowFrequencyHz
+                          : EMPTY_SCAN_EDGE_DEFAULTS.lowFrequencyHz
+                      }
+                      boundary="high"
+                      ariaLabel={`${t("vfoScanEdgeHighFrequency")} ${edge.number}`}
+                      invalidMessage={t("vfoScanEdgeFrequencyInvalid")}
+                      rangeInvalidMessage={t("vfoScanEdgeRangeInvalid")}
+                      onCommit={(highFrequencyHz) =>
+                        updateEdge(edge, { highFrequencyHz })
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <EditableSelectCell
+                      value={edge.valid ? String(edge.stepKHz) : ""}
+                      placeholder={edge.valid ? undefined : "—"}
+                      ariaLabel={`${t("frequencyStep")} ${edge.number}`}
+                      options={VFO_SCAN_EDGE_STEPS.filter(
+                        (step) =>
+                          step !== 8.33 ||
+                          (edge.valid &&
+                            (edge.modulation === "am" ||
+                              edge.modulation === "am-narrow"))
+                      ).map((step) => ({
+                        value: String(step),
+                        label: `${step} kHz`,
+                        original: step,
+                      }))}
+                      onCommit={(_, option) =>
+                        updateEdge(edge, { stepKHz: option.original })
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <EditableSelectCell
+                      value={edge.valid ? edge.modulation : ""}
+                      placeholder={edge.valid ? undefined : "—"}
+                      ariaLabel={`${t("channelMode")} ${edge.number}`}
+                      options={VFO_SCAN_EDGE_MODES.filter(
+                        (mode) =>
+                          !edge.valid ||
+                          edge.stepKHz !== 8.33 ||
+                          mode === "am" ||
+                          mode === "am-narrow"
+                      ).map((mode) => ({
+                        value: mode,
+                        label: modeLabel(t, mode),
+                        original: mode,
+                      }))}
+                      onCommit={(_, option) =>
+                        updateEdge(edge, { modulation: option.original })
+                      }
+                    />
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </ScrollArea>
-      </div>
-      <VfoScanEdgeDrawer
-        key={
-          selected
-            ? `${selected.number}-${selected.name}-${selected.lowFrequencyHz}-${selected.highFrequencyHz}-${selected.stepKHz}-${selected.modulation}`
-            : "closed"
-        }
-        edge={selected}
-        onOpenChange={(open) => !open && setSelected(null)}
-        onSave={(number, patch) => {
-          editVfoScanEdge(number, patch)
-          setSelected(null)
-        }}
-      />
+        )}
+      </section>
     </main>
+  )
+}
+
+function ScanEdgeFrequencyCell({
+  value,
+  displayValue,
+  otherValue,
+  boundary,
+  ariaLabel,
+  invalidMessage,
+  rangeInvalidMessage,
+  onCommit,
+}: {
+  value: number
+  displayValue: string
+  otherValue: number
+  boundary: "low" | "high"
+  ariaLabel: string
+  invalidMessage: string
+  rangeInvalidMessage: string
+  onCommit(value: number): void
+}) {
+  return (
+    <EditableTextCell
+      value={formatMHz(value)}
+      displayValue={displayValue}
+      ariaLabel={ariaLabel}
+      inputMode="decimal"
+      invalidMessage={`${invalidMessage} ${rangeInvalidMessage}`}
+      validate={(draft) => {
+        const parsed = parseMHz(draft)
+        if (parsed === null) return false
+        return boundary === "low" ? parsed <= otherValue : parsed >= otherValue
+      }}
+      onCommit={(draft) => {
+        const parsed = parseMHz(draft)
+        if (parsed === null) throw new RangeError(invalidMessage)
+        onCommit(parsed)
+      }}
+    />
   )
 }
 
@@ -285,244 +437,6 @@ function VfoScanEdgeSelector({
       </DropdownMenu>
     </Field>
   )
-}
-
-function VfoScanEdgeDrawer({
-  edge,
-  onOpenChange,
-  onSave,
-}: {
-  edge: VfoScanEdge | null
-  onOpenChange(open: boolean): void
-  onSave(number: number, patch: VfoScanEdgePatch): void
-}) {
-  const t = useTranslations()
-  const [draft, setDraft] = React.useState(() => edgeDraft(edge))
-  const validation = validateDraft(draft)
-  const stepItems = VFO_SCAN_EDGE_STEPS.map((step) => ({
-    value: String(step),
-    label: `${step} kHz`,
-  }))
-  const modeItems = VFO_SCAN_EDGE_MODES.map((mode) => ({
-    value: mode,
-    label: modeLabel(t, mode),
-  }))
-
-  return (
-    <Drawer
-      open={edge !== null}
-      swipeDirection="right"
-      onOpenChange={onOpenChange}
-    >
-      <DrawerContent className="w-[min(30rem,calc(100vw-1rem))]">
-        {edge && (
-          <>
-            <DrawerHeader className="flex-row items-center justify-between">
-              <DrawerTitle>
-                {t("vfoScanEdgeTitle", { number: edge.number })}
-              </DrawerTitle>
-              <DrawerClose
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={t("close")}
-                  />
-                }
-              >
-                <XIcon />
-              </DrawerClose>
-            </DrawerHeader>
-            <ScrollArea className="min-h-0 flex-1 px-4">
-              <FieldGroup>
-                <Field data-invalid={Boolean(validation.name)}>
-                  <FieldLabel htmlFor="scan-edge-name">
-                    {t("vfoScanEdgeName")}
-                  </FieldLabel>
-                  <Input
-                    id="scan-edge-name"
-                    value={draft.name}
-                    aria-invalid={Boolean(validation.name)}
-                    onChange={(event) =>
-                      setDraft({ ...draft, name: event.target.value })
-                    }
-                  />
-                  {validation.name && (
-                    <FieldError>{t(validation.name)}</FieldError>
-                  )}
-                </Field>
-                <FrequencyField
-                  id="scan-edge-low"
-                  label={t("vfoScanEdgeLowFrequency")}
-                  value={draft.low}
-                  error={validation.low ? t(validation.low) : undefined}
-                  onChange={(low) => setDraft({ ...draft, low })}
-                />
-                <FrequencyField
-                  id="scan-edge-high"
-                  label={t("vfoScanEdgeHighFrequency")}
-                  value={draft.high}
-                  error={validation.high ? t(validation.high) : undefined}
-                  onChange={(high) => setDraft({ ...draft, high })}
-                />
-                <Field>
-                  <FieldLabel htmlFor="scan-edge-step">
-                    {t("frequencyStep")}
-                  </FieldLabel>
-                  <Select
-                    items={stepItems}
-                    value={draft.step}
-                    onValueChange={(step) =>
-                      step && setDraft({ ...draft, step })
-                    }
-                  >
-                    <SelectTrigger id="scan-edge-step" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent align="start">
-                      <SelectGroup>
-                        {stepItems.map((item) => (
-                          <SelectItem key={item.value} value={item.value}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="scan-edge-mode">
-                    {t("channelMode")}
-                  </FieldLabel>
-                  <Select
-                    items={modeItems}
-                    value={draft.mode}
-                    onValueChange={(mode) =>
-                      mode && setDraft({ ...draft, mode })
-                    }
-                  >
-                    <SelectTrigger id="scan-edge-mode" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent align="start">
-                      <SelectGroup>
-                        {modeItems.map((item) => (
-                          <SelectItem key={item.value} value={item.value}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                {validation.combination && (
-                  <FieldError>{t(validation.combination)}</FieldError>
-                )}
-              </FieldGroup>
-            </ScrollArea>
-            <DrawerFooter>
-              <Button
-                disabled={Object.values(validation).some(Boolean)}
-                onClick={() => onSave(edge.number, draftPatch(draft))}
-              >
-                {t("saveScanEdge")}
-              </Button>
-              <DrawerClose render={<Button variant="outline" />}>
-                {t("close")}
-              </DrawerClose>
-            </DrawerFooter>
-          </>
-        )}
-      </DrawerContent>
-    </Drawer>
-  )
-}
-
-type Draft = {
-  name: string
-  low: string
-  high: string
-  step: string
-  mode: string
-}
-
-function FrequencyField({
-  id,
-  label,
-  value,
-  error,
-  onChange,
-}: {
-  id: string
-  label: string
-  value: string
-  error?: string
-  onChange(value: string): void
-}) {
-  return (
-    <Field data-invalid={Boolean(error)}>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <div className="relative">
-        <Input
-          id={id}
-          inputMode="decimal"
-          className="pr-12"
-          value={value}
-          aria-invalid={Boolean(error)}
-          onChange={(event) => onChange(event.target.value)}
-        />
-        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
-          MHz
-        </span>
-      </div>
-      {error && <FieldError>{error}</FieldError>}
-    </Field>
-  )
-}
-
-function edgeDraft(edge: VfoScanEdge | null): Draft {
-  return {
-    name: edge?.name ?? "",
-    low: edge?.valid ? formatMHz(edge.lowFrequencyHz) : "144.000000",
-    high: edge?.valid ? formatMHz(edge.highFrequencyHz) : "148.000000",
-    step: String(
-      edge?.valid && edge.stepKHz !== "unknown" ? edge.stepKHz : 12.5
-    ),
-    mode: edge?.valid && edge.modulation !== "unknown" ? edge.modulation : "fm",
-  }
-}
-
-function validateDraft(draft: Draft) {
-  const low = parseMHz(draft.low)
-  const high = parseMHz(draft.high)
-  return {
-    name:
-      new TextEncoder().encode(draft.name).byteLength > 24
-        ? ("vfoScanEdgeNameTooLong" as const)
-        : undefined,
-    low: low === null ? ("vfoScanEdgeFrequencyInvalid" as const) : undefined,
-    high:
-      high === null
-        ? ("vfoScanEdgeFrequencyInvalid" as const)
-        : low !== null && high < low
-          ? ("vfoScanEdgeRangeInvalid" as const)
-          : undefined,
-    combination:
-      draft.step === "8.33" &&
-      (draft.mode === "fm" || draft.mode === "fm-narrow")
-        ? ("vfoScanEdgeStepModeInvalid" as const)
-        : undefined,
-  }
-}
-
-function draftPatch(draft: Draft): VfoScanEdgePatch {
-  return {
-    name: draft.name,
-    lowFrequencyHz: parseMHz(draft.low)!,
-    highFrequencyHz: parseMHz(draft.high)!,
-    stepKHz: Number(draft.step) as Exclude<ChannelStepKHz, "unknown">,
-    modulation: draft.mode as Exclude<ChannelModulation, "unknown">,
-  }
 }
 
 function parseMHz(value: string) {
