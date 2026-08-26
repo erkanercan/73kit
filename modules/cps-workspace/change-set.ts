@@ -9,6 +9,8 @@ import type {
   FunctionSettingsPatch,
   MemoryChannelPatch,
   RadioBand,
+  SoundSettings,
+  SoundSettingsPatch,
   SpecialChannel,
   VfoChannelPatch,
 } from "../codeplug/index.ts"
@@ -68,6 +70,10 @@ type WorkspaceChange =
   | {
       readonly kind: "edit-display-setting"
       readonly field: keyof DisplaySettingsPatch
+    }
+  | {
+      readonly kind: "edit-sound-setting"
+      readonly field: keyof SoundSettingsPatch
     }
 
 type MemoryChannelStructureChange = {
@@ -538,6 +544,35 @@ function reconcileDisplaySettingChanges(
   ])
 }
 
+function reconcileSoundSettingChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  fields: readonly (keyof SoundSettingsPatch)[]
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) {
+    return Object.freeze([])
+  }
+
+  const affectedFields = new Set(fields)
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-sound-setting" || !affectedFields.has(change.field)
+  )
+  const baseline = baselineCodeplug.getSoundSettings()
+  const working = workingCodeplug.getSoundSettings()
+  const changedFields = fields.filter(
+    (field) => !soundSettingFieldEquals(baseline, working, field)
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) =>
+      Object.freeze({ kind: "edit-sound-setting" as const, field })
+    ),
+  ])
+}
+
 function numberArraysEqual(left: readonly number[], right: readonly number[]) {
   return (
     left.length === right.length &&
@@ -574,6 +609,28 @@ function displaySettingFieldEquals(
   baseline: DisplaySettings,
   working: DisplaySettings,
   field: keyof DisplaySettingsPatch
+) {
+  const baselineValue = baseline[field]
+  const workingValue = working[field]
+
+  if (
+    typeof baselineValue === "object" &&
+    baselineValue !== null &&
+    typeof workingValue === "object" &&
+    workingValue !== null &&
+    "kind" in baselineValue &&
+    "kind" in workingValue
+  ) {
+    return baselineValue.raw === workingValue.raw
+  }
+
+  return baselineValue === workingValue
+}
+
+function soundSettingFieldEquals(
+  baseline: SoundSettings,
+  working: SoundSettings,
+  field: keyof SoundSettingsPatch
 ) {
   const baselineValue = baseline[field]
   const workingValue = working[field]
@@ -663,6 +720,7 @@ export {
   reconcileChannelMembershipChanges,
   reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,
+  reconcileSoundSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
   reconcileScanListEditChanges,

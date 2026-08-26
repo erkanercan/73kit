@@ -25,6 +25,8 @@ const tr = {
     "Fonksiyon Ayarlarını düzenlemek için telsizi okuyun",
   displaySettingsReadRequiredTitle:
     "Ekran Ayarlarını düzenlemek için telsizi okuyun",
+  soundSettingsReadRequiredTitle:
+    "Ses Ayarlarını düzenlemek için telsizi okuyun",
   settingsCategoryFunctions: "Fonksiyonlar",
   settingsCategoryDisplay: "Ekran",
   settingsCategorySounds: "Sesler",
@@ -66,6 +68,21 @@ const tr = {
   displaySectionOther: "Diğer Ekran Ayarları",
   displaySectionOtherDescription:
     "Dil, telsiz teması, durum göstergeleri ve menü ekranı davranışı.",
+  soundSectionAlertTones: "Uyarı Sesleri",
+  soundSectionAlertTonesDescription:
+    "Hangi telsiz olaylarında uyarı sesi çalacağını seçin. Tarama sesleri, kayıt adresleri doğrulanana kadar devre dışıdır.",
+  soundSectionMicrophoneGain: "Mikrofon Kazancı",
+  soundSectionMicrophoneGainDescription:
+    "Gönderim sırasında kullanılacak mikrofon giriş seviyesini ayarlayın.",
+  soundSectionRxGain: "RX Kazancı",
+  soundSectionRxGainDescription:
+    "AM ve AM-N alıcı kazanç kontrolleri, kayıt adresleri doğrulanana kadar devre dışıdır.",
+  soundSectionAiVox: "AI VOX",
+  soundSectionAiVoxDescription:
+    "Sesle etkinleşen gönderimin hassasiyetini ve bırakma gecikmesini yapılandırın.",
+  soundSectionAiNoiseReduction: "AI Gürültü Azaltma",
+  soundSectionAiNoiseReductionDescription:
+    "Telsiz firmware'inin yönettiği alım gürültü azaltmasını etkinleştirin.",
   settingRxTxMode: "RX/TX modu",
   settingCrossBandRepeaterMode: "Cross-band röle modu",
   settingCrossBandRepeaterMonitoring: "Cross-band röle izleme",
@@ -125,6 +142,24 @@ const tr = {
   settingRxIndicatorLed: "RX gösterge LED'i",
   settingScreenOffIndicatorLed: "Ekran kapalı gösterge LED'i",
   settingReceivedSignalStrength: "Alınan sinyal gücü",
+  settingKeyBeep: "Tuş sesi",
+  settingLowBatteryBeep: "Düşük pil sesi",
+  settingPowerOnBeep: "Açılış sesi",
+  settingTxTimeoutBeep: "TX zaman aşımı sesi",
+  settingCallStartBeep: "Call başlangıç sesi",
+  settingCallEndBeep: "Call bitiş sesi",
+  settingScanStartBeep: "Tarama başlangıç sesi",
+  settingScanPauseBeep: "Tarama duraklama sesi",
+  settingScanStopBeep: "Tarama bitiş sesi",
+  settingMicrophoneGain: "Mikrofon kazancı",
+  settingAmAnalogGain: "AM analog kazancı",
+  settingAmDigitalGain: "AM dijital kazancı",
+  settingAmNAnalogGain: "AM-N analog kazancı",
+  settingAmNDigitalGain: "AM-N dijital kazancı",
+  settingAiVox: "AI VOX",
+  settingAiVoxSensitivity: "Hassasiyet",
+  settingAiVoxDelay: "Gecikme",
+  settingAiNoiseReduction: "AI gürültü azaltma",
   settingHelpLabel: "{setting} hakkında bilgi",
   settingHintRxTxMode:
     "İki ekran bandının nasıl alım yapacağını ve hangi bandın gönderim yapabileceğini belirler.",
@@ -239,6 +274,39 @@ const tr = {
     "Telsiz ekranı kapalıyken gösterge LED'inin kullanılmasını sağlar.",
   settingHintReceivedSignalStrength:
     "Alınan sinyal gücünü gizler, dBm olarak veya RSSI seviyesi ile dBm birlikte gösterir.",
+  settingHintKeyBeep: "Telsiz tuşuna basıldığında ses çalar.",
+  settingHintLowBatteryBeep:
+    "Pil seviyesi düştüğünde sesli uyarı çalar.",
+  settingHintPowerOnBeep: "Telsiz açıldığında ses çalar.",
+  settingHintTxTimeoutBeep:
+    "TX zaman aşımı sayacı gönderimi sonlandırdığında uyarı sesi çalar.",
+  settingHintCallStartBeep: "Call başladığında ses çalar.",
+  settingHintCallEndBeep: "Call sona erdiğinde ses çalar.",
+  settingHintScanStartBeep:
+    "Tarama başladığında ses çalar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
+  settingHintScanPauseBeep:
+    "Tarama durakladığında ses çalar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
+  settingHintScanStopBeep:
+    "Tarama sona erdiğinde ses çalar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
+  settingHintMicrophoneGain:
+    "Göndericinin kullanacağı mikrofon giriş seviyesini ayarlar.",
+  settingHintAmAnalogGain:
+    "AM analog alım kazancını 0 ile 15 arasında ayarlar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
+  settingHintAmDigitalGain:
+    "AM dijital alım kazancını -26,0 ile 5,0 dB arasında ayarlar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
+  settingHintAmNAnalogGain:
+    "AM-N analog alım kazancını 0 ile 15 arasında ayarlar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
+  settingHintAmNDigitalGain:
+    "AM-N dijital alım kazancını -26,0 ile 5,0 dB arasında ayarlar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
+  settingHintAiVox:
+    "PTT'ye basmadan konuşma algılandığında telsizin gönderime başlamasını sağlar.",
+  settingHintAiVoxSensitivity:
+    "AI VOX'un mikrofon sesine ne kadar kolay tepki vereceğini belirler.",
+  settingHintAiVoxDelay:
+    "Konuşma bittikten sonra gönderimi bu süre boyunca etkin tutar.",
+  settingHintAiNoiseReduction:
+    "Alınan ses için telsiz firmware'inin AI gürültü azaltmasını kullanır.",
+  storageMappingPending: "Adres bekleniyor",
   powerOnMessageCharacterCount: "{count, number} / {max, number} karakter",
   powerOnMessageTooLong:
     "En fazla 16 karakter girin ve metnin telsiz alanına sığdığından emin olun.",
@@ -494,6 +562,8 @@ const tr = {
   valueLow: "Düşük",
   valueMedium: "Orta",
   valueHigh: "Yüksek",
+  valueVeryHigh: "Çok yüksek",
+  valueNumber: "{value, number}",
   valueNormal: "Normal",
   valueSkip: "Atla",
   valuePriority: "Öncelik",

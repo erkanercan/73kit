@@ -7,7 +7,7 @@ import { Link } from "@/i18n/navigation"
 const categories = [
   ["functions", "settingsCategoryFunctions", "/radio-settings/functions"],
   ["display", "settingsCategoryDisplay", "/radio-settings/display"],
-  ["sounds", "settingsCategorySounds", null],
+  ["sounds", "settingsCategorySounds", "/radio-settings/sounds"],
   ["keyboard", "settingsCategoryKeyboard", null],
   ["menu", "settingsCategoryMenu", null],
 ] as const

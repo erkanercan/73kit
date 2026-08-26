@@ -22,6 +22,7 @@ const en = {
   functionSettingsReadRequiredTitle:
     "Read a Radio to edit its Function Settings",
   displaySettingsReadRequiredTitle: "Read a Radio to edit its Display Settings",
+  soundSettingsReadRequiredTitle: "Read a Radio to edit its Sound Settings",
   settingsCategoryFunctions: "Functions",
   settingsCategoryDisplay: "Display",
   settingsCategorySounds: "Sounds",
@@ -63,6 +64,21 @@ const en = {
   displaySectionOther: "Other Display Settings",
   displaySectionOtherDescription:
     "Language, Radio theme, status indicators, and menu display behavior.",
+  soundSectionAlertTones: "Alert Tones",
+  soundSectionAlertTonesDescription:
+    "Choose which Radio events produce an audible beep. Scan beeps remain disabled until their storage addresses are verified.",
+  soundSectionMicrophoneGain: "Microphone Gain",
+  soundSectionMicrophoneGainDescription:
+    "Set the microphone input level used while transmitting.",
+  soundSectionRxGain: "RX Gain",
+  soundSectionRxGainDescription:
+    "AM and AM-N receiver gain controls remain disabled until their storage addresses are verified.",
+  soundSectionAiVox: "AI VOX",
+  soundSectionAiVoxDescription:
+    "Configure voice-operated transmission sensitivity and release delay.",
+  soundSectionAiNoiseReduction: "AI Noise Reduction",
+  soundSectionAiNoiseReductionDescription:
+    "Enable the Radio's firmware-managed receive noise reduction.",
   settingRxTxMode: "RX/TX mode",
   settingCrossBandRepeaterMode: "Cross-band repeater mode",
   settingCrossBandRepeaterMonitoring: "Cross-band repeater monitoring",
@@ -122,6 +138,24 @@ const en = {
   settingRxIndicatorLed: "RX indicator LED",
   settingScreenOffIndicatorLed: "Screen-off indicator LED",
   settingReceivedSignalStrength: "Received signal strength",
+  settingKeyBeep: "Key beep",
+  settingLowBatteryBeep: "Low-battery beep",
+  settingPowerOnBeep: "Power-on beep",
+  settingTxTimeoutBeep: "TX timeout beep",
+  settingCallStartBeep: "Call-start beep",
+  settingCallEndBeep: "Call-end beep",
+  settingScanStartBeep: "Scan-start beep",
+  settingScanPauseBeep: "Scan-pause beep",
+  settingScanStopBeep: "Scan-stop beep",
+  settingMicrophoneGain: "Microphone gain",
+  settingAmAnalogGain: "AM analog gain",
+  settingAmDigitalGain: "AM digital gain",
+  settingAmNAnalogGain: "AM-N analog gain",
+  settingAmNDigitalGain: "AM-N digital gain",
+  settingAiVox: "AI VOX",
+  settingAiVoxSensitivity: "Sensitivity",
+  settingAiVoxDelay: "Delay",
+  settingAiNoiseReduction: "AI noise reduction",
   settingHelpLabel: "About {setting}",
   settingHintRxTxMode:
     "Chooses how the two display bands receive and which band can transmit.",
@@ -236,6 +270,39 @@ const en = {
     "Keeps the indicator LED available while the Radio screen is off.",
   settingHintReceivedSignalStrength:
     "Chooses whether received signal strength is hidden, shown in dBm, or shown as both RSSI level and dBm.",
+  settingHintKeyBeep: "Plays a beep when a Radio key is pressed.",
+  settingHintLowBatteryBeep:
+    "Plays an audible warning when the battery charge is low.",
+  settingHintPowerOnBeep: "Plays a beep when the Radio starts.",
+  settingHintTxTimeoutBeep:
+    "Plays a warning when the transmit timeout timer ends a transmission.",
+  settingHintCallStartBeep: "Plays a beep when a call begins.",
+  settingHintCallEndBeep: "Plays a beep when a call ends.",
+  settingHintScanStartBeep:
+    "Plays a beep when scanning starts. Editing is disabled until its storage address is verified.",
+  settingHintScanPauseBeep:
+    "Plays a beep when scanning pauses. Editing is disabled until its storage address is verified.",
+  settingHintScanStopBeep:
+    "Plays a beep when scanning stops. Editing is disabled until its storage address is verified.",
+  settingHintMicrophoneGain:
+    "Adjusts the microphone input level used by the transmitter.",
+  settingHintAmAnalogGain:
+    "Adjusts AM analog receive gain from 0 to 15. Editing is disabled until its storage address is verified.",
+  settingHintAmDigitalGain:
+    "Adjusts AM digital receive gain from -26.0 to 5.0 dB. Editing is disabled until its storage address is verified.",
+  settingHintAmNAnalogGain:
+    "Adjusts AM-N analog receive gain from 0 to 15. Editing is disabled until its storage address is verified.",
+  settingHintAmNDigitalGain:
+    "Adjusts AM-N digital receive gain from -26.0 to 5.0 dB. Editing is disabled until its storage address is verified.",
+  settingHintAiVox:
+    "Allows the Radio to begin transmitting when speech is detected without pressing PTT.",
+  settingHintAiVoxSensitivity:
+    "Sets how readily AI VOX reacts to microphone audio.",
+  settingHintAiVoxDelay:
+    "Keeps transmission active for this long after speech stops.",
+  settingHintAiNoiseReduction:
+    "Uses the Radio firmware's AI noise reduction for received audio.",
+  storageMappingPending: "Address pending",
   powerOnMessageCharacterCount: "{count, number} / {max, number} characters",
   powerOnMessageTooLong:
     "Enter no more than 16 characters that fit in the Radio's text field.",
@@ -491,6 +558,8 @@ const en = {
   valueLow: "Low",
   valueMedium: "Medium",
   valueHigh: "High",
+  valueVeryHigh: "Very high",
+  valueNumber: "{value, number}",
   valueNormal: "Normal",
   valueSkip: "Skip",
   valuePriority: "Priority",

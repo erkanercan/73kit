@@ -62,6 +62,14 @@ import type {
   DisplaySettings,
   DisplaySettingsPatch,
 } from "./display-settings.ts"
+import {
+  decodeSoundSettings,
+  editSoundSettingsBytes,
+} from "./sound-settings.ts"
+import type {
+  SoundSettings,
+  SoundSettingsPatch,
+} from "./sound-settings.ts"
 
 const CODEPLUG_SIZE = 0x19000
 
@@ -76,6 +84,7 @@ class Codeplug {
   readonly #bandScanListSelections: BandScanListSelections
   readonly #functionSettings: FunctionSettings
   readonly #displaySettings: DisplaySettings
+  readonly #soundSettings: SoundSettings
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -94,6 +103,7 @@ class Codeplug {
     this.#bandScanListSelections = decodeBandScanListSelections(this.#bytes)
     this.#functionSettings = decodeFunctionSettings(this.#bytes)
     this.#displaySettings = decodeDisplaySettings(this.#bytes)
+    this.#soundSettings = decodeSoundSettings(this.#bytes)
   }
 
   get byteLength() {
@@ -138,6 +148,10 @@ class Codeplug {
 
   getDisplaySettings() {
     return this.#displaySettings
+  }
+
+  getSoundSettings() {
+    return this.#soundSettings
   }
 
   moveMemoryChannel(fromNumber: number, toNumber: number) {
@@ -187,6 +201,10 @@ class Codeplug {
 
   editDisplaySettings(patch: DisplaySettingsPatch) {
     return new Codeplug(editDisplaySettingsBytes(this.#bytes, patch))
+  }
+
+  editSoundSettings(patch: SoundSettingsPatch) {
+    return new Codeplug(editSoundSettingsBytes(this.#bytes, patch))
   }
 
   editChannelMemberships(number: number, patch: ChannelMembershipPatch) {
@@ -256,3 +274,5 @@ export type {
   DisplaySettings,
   DisplaySettingsPatch,
 } from "./display-settings.ts"
+export { SOUND_SETTING_OPTIONS } from "./sound-settings.ts"
+export type { SoundSettings, SoundSettingsPatch } from "./sound-settings.ts"

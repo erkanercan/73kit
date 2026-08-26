@@ -96,6 +96,24 @@ const settingHintKey = {
   "rx-indicator-led": "settingHintRxIndicatorLed",
   "screen-off-indicator-led": "settingHintScreenOffIndicatorLed",
   "received-signal-strength": "settingHintReceivedSignalStrength",
+  "key-beep": "settingHintKeyBeep",
+  "low-battery-beep": "settingHintLowBatteryBeep",
+  "power-on-beep": "settingHintPowerOnBeep",
+  "tx-timeout-beep": "settingHintTxTimeoutBeep",
+  "call-start-beep": "settingHintCallStartBeep",
+  "call-end-beep": "settingHintCallEndBeep",
+  "scan-start-beep": "settingHintScanStartBeep",
+  "scan-pause-beep": "settingHintScanPauseBeep",
+  "scan-stop-beep": "settingHintScanStopBeep",
+  "microphone-gain": "settingHintMicrophoneGain",
+  "am-analog-gain": "settingHintAmAnalogGain",
+  "am-digital-gain": "settingHintAmDigitalGain",
+  "am-n-analog-gain": "settingHintAmNAnalogGain",
+  "am-n-digital-gain": "settingHintAmNDigitalGain",
+  "ai-vox": "settingHintAiVox",
+  "ai-vox-sensitivity": "settingHintAiVoxSensitivity",
+  "ai-vox-delay": "settingHintAiVoxDelay",
+  "ai-noise-reduction": "settingHintAiNoiseReduction",
 } as const
 
 type RadioSettingId = keyof typeof settingHintKey
@@ -222,6 +240,41 @@ function BooleanSettingField({
   )
 }
 
+function DisabledSettingField({
+  id,
+  label,
+  control,
+}: {
+  id: RadioSettingId
+  label: string
+  control: "switch" | "select"
+}) {
+  const t = useTranslations()
+
+  return (
+    <Field
+      orientation={control === "switch" ? "horizontal" : "responsive"}
+      data-disabled
+    >
+      <FieldContent>
+        <SettingLabel id={id} label={label} />
+      </FieldContent>
+      {control === "switch" ? (
+        <Switch id={id} checked={false} disabled />
+      ) : (
+        <Select disabled>
+          <SelectTrigger id={id} className="w-full sm:w-64">
+            <SelectValue placeholder={t("storageMappingPending")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup />
+          </SelectContent>
+        </Select>
+      )}
+    </Field>
+  )
+}
+
 function NumberSettingField({
   id,
   label,
@@ -337,6 +390,7 @@ function unknownLabel(
 
 export {
   BooleanSettingField,
+  DisabledSettingField,
   NumberSettingField,
   SelectSettingField,
   SettingHelp,

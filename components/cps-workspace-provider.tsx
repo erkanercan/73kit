@@ -20,6 +20,7 @@ import {
   reconcileChannelMembershipChanges,
   reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,
+  reconcileSoundSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
   reconcileScanListEditChanges,
@@ -35,6 +36,7 @@ import type {
   FunctionSettingsPatch,
   MemoryChannelPatch,
   RadioBand,
+  SoundSettingsPatch,
   VfoChannelPatch,
 } from "@/modules/codeplug/index"
 import {
@@ -71,6 +73,7 @@ interface CpsWorkspaceContextValue {
   ): void
   editFunctionSettings(patch: FunctionSettingsPatch): void
   editDisplaySettings(patch: DisplaySettingsPatch): void
+  editSoundSettings(patch: SoundSettingsPatch): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
 }
@@ -591,6 +594,41 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const editSoundSettings = React.useCallback(
+    (patch: SoundSettingsPatch) => {
+      const fields = Object.keys(patch) as (keyof SoundSettingsPatch)[]
+      if (fields.length === 0) {
+        return
+      }
+
+      setDocumentState((current) => {
+        if (!current.completedRead) {
+          return current
+        }
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editSoundSettings(patch)
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileSoundSettingChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
   const addMemoryChannel = React.useCallback(() => {
     setDocumentState((current) => {
       if (!current.completedRead) {
@@ -715,6 +753,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editBandScanListSelection,
       editFunctionSettings,
       editDisplaySettings,
+      editSoundSettings,
       moveMemoryChannel,
       resetWorkingCodeplug,
     }),
@@ -741,6 +780,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editBandScanListSelection,
       editFunctionSettings,
       editDisplaySettings,
+      editSoundSettings,
       moveMemoryChannel,
       resetWorkingCodeplug,
     ]

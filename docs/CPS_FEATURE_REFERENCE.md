@@ -1121,9 +1121,9 @@ firmware update commands
 ## P2 — Extended Codeplug Settings
 
 - [x] display settings
-- [ ] audio settings
-- [ ] AI voice control
-- [ ] AI noise reduction
+- [ ] audio settings — documented fields implemented; scan-beep and RX-gain storage mappings pending
+- [x] AI voice control
+- [x] AI noise reduction
 - [ ] GPS
 - [ ] Bluetooth settings
 - [ ] menu visibility
