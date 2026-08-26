@@ -29,6 +29,7 @@ import { AddCollectionChannelsDrawer } from "@/components/channel-collections/ad
 import { CollectionMemberRow } from "@/components/channel-collections/collection-member-row"
 import { ChannelEditorDrawer } from "@/components/channels/channel-editor-drawer"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
+import { PageHeader } from "@/components/page-header"
 import { BandScanListSelectors } from "@/components/scan-lists/band-scan-list-selectors"
 import { BandZoneSelectors } from "@/components/zones/band-zone-selectors"
 import { Badge } from "@/components/ui/badge"
@@ -113,7 +114,8 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
 
   if (!codeplug) {
     return (
-      <main className="flex min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
+      <main className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-6 lg:p-8">
+        <PageHeader title={t(labels.title)} />
         <Empty className="min-h-[32rem] border">
           <EmptyHeader>
             <EmptyMedia variant="icon">
@@ -166,10 +168,7 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden p-4 sm:p-6 lg:p-8">
-      <header className="flex flex-wrap items-center gap-3">
-        <h1 className="font-heading text-2xl font-medium tracking-tight">
-          {t(labels.title)}
-        </h1>
+      <PageHeader title={t(labels.title)}>
         {changes.length > 0 && (
           <Badge>{t("pendingChangeCount", { count: changes.length })}</Badge>
         )}
@@ -187,7 +186,7 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
             onChange={editBandScanListSelection}
           />
         )}
-      </header>
+      </PageHeader>
 
       <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[17rem_minmax(0,1fr)]">
         <Card className="min-h-0 gap-2 py-3">

@@ -14,6 +14,7 @@ import { useFormatter, useTranslations } from "next-intl"
 
 import { StatusBadge } from "@/components/cps-app-shell"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
+import { PageHeader } from "@/components/page-header"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -64,21 +65,16 @@ function RadioOverview() {
   const displayedRadio = sourceRadio ?? completedRead?.sourceRadio ?? null
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
-      <header className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
+    <div className="flex w-full flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col gap-2">
+        <PageHeader title="UVL-15W">
           <Badge variant="outline">{t("localConnection")}</Badge>
           <Badge variant="secondary">{t("readEnabled")}</Badge>
-        </div>
-        <div className="flex flex-col gap-2">
-          <h1 className="font-heading text-3xl font-medium tracking-tight">
-            UVL-15W
-          </h1>
-          <p className="max-w-2xl text-muted-foreground">
-            {t("overviewDescription")}
-          </p>
-        </div>
-      </header>
+        </PageHeader>
+        <p className="max-w-2xl text-muted-foreground">
+          {t("overviewDescription")}
+        </p>
+      </div>
 
       {capability === "unsupported" && (
         <Alert>

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 import { MemoryChannelsCard } from "@/components/channels/memory-channels-card"
 import { SpecialChannelsCard } from "@/components/channels/special-channels-card"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
+import { PageHeader } from "@/components/page-header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,7 +39,8 @@ function ChannelsWorkspace() {
 
   if (!codeplug) {
     return (
-      <main className="flex min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
+      <main className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-6 lg:p-8">
+        <PageHeader title={t("channelsTitle")} />
         <Empty className="min-h-[32rem] border">
           <EmptyHeader>
             <EmptyMedia variant="icon">
@@ -65,10 +67,7 @@ function ChannelsWorkspace() {
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden p-4 sm:p-6 lg:p-8">
-      <header className="flex flex-wrap items-center gap-3">
-        <h1 className="font-heading text-2xl font-medium tracking-tight">
-          {t("channelsTitle")}
-        </h1>
+      <PageHeader title={t("channelsTitle")}>
         <Badge variant="secondary">
           {t("channelsUsedCount", {
             used: usedCount,
@@ -78,7 +77,7 @@ function ChannelsWorkspace() {
         {changes.length > 0 && (
           <Badge>{t("pendingChangeCount", { count: changes.length })}</Badge>
         )}
-      </header>
+      </PageHeader>
 
       <Tabs defaultValue="memory" className="min-h-0 flex-1">
         <TabsList>

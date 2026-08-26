@@ -24,11 +24,7 @@ function NumericKeysCard({ settings, edit }: KeyboardSettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="numeric-keys"
-      title={t("keyboardSectionNumericKeys")}
-      description={t("keyboardSectionNumericKeysDescription")}
-    >
+    <SettingsCard id="numeric-keys" title={t("keyboardSectionNumericKeys")}>
       <FieldGroup>
         {numericKeys.map(([digit, id, field]) => (
           <KeyAssignmentField

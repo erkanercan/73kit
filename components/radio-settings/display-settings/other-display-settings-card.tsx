@@ -40,11 +40,7 @@ function OtherDisplaySettingsCard({
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="other-display-settings"
-      title={t("displaySectionOther")}
-      description={t("displaySectionOtherDescription")}
-    >
+    <SettingsCard id="other-display-settings" title={t("displaySectionOther")}>
       <FieldGroup>
         <SelectSettingField
           id="system-language"

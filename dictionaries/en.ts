@@ -19,8 +19,6 @@ const en = {
   navAprs: "APRS",
   navSettings: "Radio Settings",
   radioSettingsTitle: "Radio Basic Settings",
-  radioSettingsDescription:
-    "Edit the Working Codeplug's radio-wide behavior. Changes remain local until Radio Write is available.",
   functionSettingsReadRequiredTitle:
     "Read a Radio to edit its Function Settings",
   displaySettingsReadRequiredTitle: "Read a Radio to edit its Display Settings",
@@ -35,8 +33,6 @@ const en = {
   settingsCategoryKeyboard: "Keyboard",
   settingsCategoryMenu: "Menu",
   menuVisibilityTitle: "Menu Visibility",
-  menuVisibilityDescription:
-    "Choose which settings and information appear in the Radio's on-device menu. Parent controls apply to every submenu below them.",
   menuVisibilitySearchPlaceholder: "Search menu items",
   menuVisibilitySearchLabel: "Search Menu Visibility items",
   menuVisibilityShowAll: "Show all",
@@ -50,68 +46,26 @@ const en = {
   menuVisibilityNoResults: "No menu items match your search.",
   ...menuVisibilityMessagesEn,
   functionSectionTrx: "TRX",
-  functionSectionTrxDescription:
-    "Receive, transmit, band operating modes, and automatic frequency behavior.",
   functionSectionCit: "CI-T",
-  functionSectionCitDescription:
-    "Enable or disable the Radio's data interfaces independently.",
   functionSectionSte: "STE",
-  functionSectionSteDescription:
-    "Squelch-tail elimination and end-of-transmission signaling.",
   functionSectionToneBurst: "Tone Burst",
-  functionSectionToneBurstDescription:
-    "Configure the single-tone burst sent by the assigned Radio control.",
   functionSectionScan: "Scan",
-  functionSectionScanDescription:
-    "Scanning behavior, resume timing, hold time, and channel dwell time.",
   functionSectionPowerSave: "Power Save",
-  functionSectionPowerSaveDescription:
-    "Reduce idle power consumption after the selected delay.",
   functionSectionWeather: "WX CH",
-  functionSectionWeatherDescription:
-    "Weather Channel monitoring, scan membership, and signaling reset behavior.",
   displaySectionLcdBacklight: "LCD Backlight",
-  displaySectionLcdBacklightDescription:
-    "Set normal brightness and what the backlight does after the Radio is idle.",
   displaySectionPowerOn: "Power-On Display",
-  displaySectionPowerOnDescription:
-    "Choose the information shown while the Radio starts.",
   displaySectionMemoryChannel: "Channel Display",
-  displaySectionMemoryChannelDescription:
-    "Choose which Channel details appear on the Radio screen.",
   displaySectionUnits: "Units",
-  displaySectionUnitsDescription:
-    "Choose the formats and measurement units used by the Radio.",
   displaySectionOther: "Other Display Settings",
-  displaySectionOtherDescription:
-    "Language, Radio theme, status indicators, and menu display behavior.",
   soundSectionAlertTones: "Alert Tones",
-  soundSectionAlertTonesDescription:
-    "Choose which Radio events produce an audible beep. Scan beeps remain disabled until their storage addresses are verified.",
   soundSectionMicrophoneGain: "Microphone Gain",
-  soundSectionMicrophoneGainDescription:
-    "Set the microphone input level used while transmitting.",
   soundSectionRxGain: "RX Gain",
-  soundSectionRxGainDescription:
-    "AM and AM-N receiver gain controls remain disabled until their storage addresses are verified.",
   soundSectionAiVox: "AI VOX",
-  soundSectionAiVoxDescription:
-    "Configure voice-operated transmission sensitivity and release delay.",
   soundSectionAiNoiseReduction: "AI Noise Reduction",
-  soundSectionAiNoiseReductionDescription:
-    "Enable the Radio's firmware-managed receive noise reduction.",
   keyboardSectionSideAndTop: "Side and Top Keys",
-  keyboardSectionSideAndTopDescription:
-    "Assign separate actions to short and long presses of the two Side Keys and Top Key.",
   keyboardSectionNumericKeys: "Numeric Keys",
-  keyboardSectionNumericKeysDescription:
-    "Choose the action performed when each numeric key is held.",
   keyboardSectionMenuAndBack: "Menu and Back Keys",
-  keyboardSectionMenuAndBackDescription:
-    "Choose the actions performed when the Menu and Back keys are held.",
   keyboardSectionLock: "Key and Encoder Lock",
-  keyboardSectionLockDescription:
-    "Configure automatic locking, which controls are locked, and the idle delay.",
   settingRxTxMode: "RX/TX mode",
   settingCrossBandRepeaterMode: "Cross-band repeater mode",
   settingCrossBandRepeaterMonitoring: "Cross-band repeater monitoring",
@@ -321,22 +275,17 @@ const en = {
     "Plays a warning when the transmit timeout timer ends a transmission.",
   settingHintCallStartBeep: "Plays a beep when a call begins.",
   settingHintCallEndBeep: "Plays a beep when a call ends.",
-  settingHintScanStartBeep:
-    "Plays a beep when scanning starts. Editing is disabled until its storage address is verified.",
-  settingHintScanPauseBeep:
-    "Plays a beep when scanning pauses. Editing is disabled until its storage address is verified.",
-  settingHintScanStopBeep:
-    "Plays a beep when scanning stops. Editing is disabled until its storage address is verified.",
+  settingHintScanStartBeep: "Plays a beep when scanning starts.",
+  settingHintScanPauseBeep: "Plays a beep when scanning pauses.",
+  settingHintScanStopBeep: "Plays a beep when scanning stops.",
   settingHintMicrophoneGain:
     "Adjusts the microphone input level used by the transmitter.",
-  settingHintAmAnalogGain:
-    "Adjusts AM analog receive gain from 0 to 15. Editing is disabled until its storage address is verified.",
+  settingHintAmAnalogGain: "Adjusts AM analog receive gain from 0 to 15.",
   settingHintAmDigitalGain:
-    "Adjusts AM digital receive gain from -26.0 to 5.0 dB. Editing is disabled until its storage address is verified.",
-  settingHintAmNAnalogGain:
-    "Adjusts AM-N analog receive gain from 0 to 15. Editing is disabled until its storage address is verified.",
+    "Adjusts AM digital receive gain from -26.0 to 5.5 dB in 0.5 dB increments.",
+  settingHintAmNAnalogGain: "Adjusts AM-N analog receive gain from 0 to 15.",
   settingHintAmNDigitalGain:
-    "Adjusts AM-N digital receive gain from -26.0 to 5.0 dB. Editing is disabled until its storage address is verified.",
+    "Adjusts AM-N digital receive gain from -26.0 to 5.5 dB in 0.5 dB increments.",
   settingHintAiVox:
     "Allows the Radio to begin transmitting when speech is detected without pressing PTT.",
   settingHintAiVoxSensitivity:
@@ -396,7 +345,6 @@ const en = {
   lockTypePttAndKeys: "PTT + Keys",
   lockTypePttAndEncoder: "PTT + Encoder",
   lockTypePttEncoderAndKeys: "PTT + Encoder + Keys",
-  storageMappingPending: "Address pending",
   powerOnMessageCharacterCount: "{count, number} / {max, number} characters",
   powerOnMessageTooLong:
     "Enter no more than 16 characters that fit in the Radio's text field.",
@@ -654,6 +602,7 @@ const en = {
   valueHigh: "High",
   valueVeryHigh: "Very high",
   valueNumber: "{value, number}",
+  valueDecibels: "{value, number} dB",
   valueNormal: "Normal",
   valueSkip: "Skip",
   valuePriority: "Priority",

@@ -42,11 +42,7 @@ function UnitsCard({ settings, edit }: DisplaySettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="display-units"
-      title={t("displaySectionUnits")}
-      description={t("displaySectionUnitsDescription")}
-    >
+    <SettingsCard id="display-units" title={t("displaySectionUnits")}>
       <FieldGroup>
         <SelectSettingField
           id="coordinate-format"

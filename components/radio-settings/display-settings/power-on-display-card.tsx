@@ -26,11 +26,7 @@ function PowerOnDisplayCard({ settings, edit }: DisplaySettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="power-on-display"
-      title={t("displaySectionPowerOn")}
-      description={t("displaySectionPowerOnDescription")}
-    >
+    <SettingsCard id="power-on-display" title={t("displaySectionPowerOn")}>
       <FieldGroup>
         <BooleanSettingField
           id="show-boot-image"

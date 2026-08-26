@@ -27,11 +27,7 @@ function ScanSettingsCard({ settings, edit }: FunctionSettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="scan"
-      title={t("functionSectionScan")}
-      description={t("functionSectionScanDescription")}
-    >
+    <SettingsCard id="scan" title={t("functionSectionScan")}>
       <FieldGroup>
         <SelectSettingField
           id="scan-mode"

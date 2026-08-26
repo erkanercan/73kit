@@ -9,7 +9,6 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -52,7 +51,6 @@ function MenuVisibilityCard({
     <Card>
       <CardHeader>
         <CardTitle>{t("menuVisibilityTitle")}</CardTitle>
-        <CardDescription>{t("menuVisibilityDescription")}</CardDescription>
         <CardAction className="hidden sm:block">
           <span className="text-sm text-muted-foreground">
             {t("menuVisibilityVisibleCount", {

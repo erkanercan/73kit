@@ -4,6 +4,7 @@ import { DownloadIcon, KeyboardIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
+import { PageHeader } from "@/components/page-header"
 import { SettingsCategoryTabs } from "@/components/radio-settings/settings-category-tabs"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -37,14 +38,7 @@ function KeyboardSettingsWorkspace() {
   if (!codeplug) {
     return (
       <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
-        <header className="flex flex-col gap-2">
-          <h1 className="font-heading text-2xl font-medium tracking-tight">
-            {t("radioSettingsTitle")}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {t("radioSettingsDescription")}
-          </p>
-        </header>
+        <PageHeader title={t("radioSettingsTitle")} />
         <SettingsCategoryTabs active="keyboard" />
         <Empty className="min-h-[32rem] border">
           <EmptyHeader>
@@ -77,21 +71,13 @@ function KeyboardSettingsWorkspace() {
 
   return (
     <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
-      <header className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="font-heading text-2xl font-medium tracking-tight">
-            {t("radioSettingsTitle")}
-          </h1>
-          {keyboardChangeCount > 0 && (
-            <Badge>
-              {t("pendingChangeCount", { count: keyboardChangeCount })}
-            </Badge>
-          )}
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {t("radioSettingsDescription")}
-        </p>
-      </header>
+      <PageHeader title={t("radioSettingsTitle")}>
+        {keyboardChangeCount > 0 && (
+          <Badge>
+            {t("pendingChangeCount", { count: keyboardChangeCount })}
+          </Badge>
+        )}
+      </PageHeader>
 
       <SettingsCategoryTabs active="keyboard" />
 

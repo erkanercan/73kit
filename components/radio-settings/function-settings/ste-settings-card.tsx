@@ -32,11 +32,7 @@ function SteSettingsCard({ settings, edit }: FunctionSettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="ste"
-      title={t("functionSectionSte")}
-      description={t("functionSectionSteDescription")}
-    >
+    <SettingsCard id="ste" title={t("functionSectionSte")}>
       <FieldGroup>
         <SelectSettingField
           id="no-signaling-tail-tone"

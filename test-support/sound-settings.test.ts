@@ -22,7 +22,14 @@ test("decodes every documented Sound Setting", () => {
   bytes[offset(0x1541d)] = 0b1010_0011
   bytes[offset(0x1541e)] = 34
   bytes[offset(0x1541f)] = 1
+  bytes[offset(0x15426)] = 1
+  bytes[offset(0x15427)] = 15
+  bytes[offset(0x15428)] = 63
+  bytes[offset(0x15429)] = 7
   bytes[offset(0x1542a)] = 1
+  bytes[offset(0x1542f)] = 1
+  bytes[offset(0x15446)] = 1
+  bytes[offset(0x15447)] = 1
 
   assert.deepEqual(createCodeplug(bytes).getSoundSettings(), {
     keyBeep: true,
@@ -31,7 +38,14 @@ test("decodes every documented Sound Setting", () => {
     txTimeoutBeep: true,
     callStartBeep: true,
     callEndBeep: true,
+    scanStartBeep: true,
+    scanPauseBeep: true,
+    scanStopBeep: true,
     microphoneGain: 31,
+    amAnalogGain: 15,
+    amDigitalGain: 5.5,
+    amNAnalogGain: 7,
+    amNDigitalGain: -25.5,
     aiVox: true,
     aiVoxSensitivity: "very-high",
     aiVoxDelaySeconds: 5,
@@ -47,7 +61,14 @@ test("edits Sound Settings and preserves unrelated call-beep bits", () => {
     keyBeep: true,
     callStartBeep: true,
     callEndBeep: false,
+    scanStartBeep: true,
+    scanPauseBeep: true,
+    scanStopBeep: true,
     microphoneGain: "high",
+    amAnalogGain: 1,
+    amDigitalGain: -25.5,
+    amNAnalogGain: 15,
+    amNDigitalGain: 5.5,
     aiVoxSensitivity: "medium",
     aiVoxDelaySeconds: 2.5,
   })
@@ -56,6 +77,13 @@ test("edits Sound Settings and preserves unrelated call-beep bits", () => {
   assert.equal(result[offset(0x1541a)], 1)
   assert.equal(result[offset(0x1541d)], 0b1010_0001)
   assert.equal(result[offset(0x1541e)], 2)
+  assert.equal(result[offset(0x15426)], 1)
+  assert.equal(result[offset(0x15427)], 1)
+  assert.equal(result[offset(0x15428)], 1)
+  assert.equal(result[offset(0x15429)], 15)
+  assert.equal(result[offset(0x1542f)], 63)
+  assert.equal(result[offset(0x15446)], 1)
+  assert.equal(result[offset(0x15447)], 1)
   assert.equal(result[offset(0x1540e)], 1)
   assert.equal(result[offset(0x1540f)], 4)
   assert.deepEqual(baseline.toBytes(), bytes)
@@ -65,17 +93,29 @@ test("rejects invalid Sound Settings and preserves unknown values", () => {
   const bytes = new Uint8Array(CODEPLUG_SIZE)
   bytes[offset(0x1541a)] = 0xff
   bytes[offset(0x1541e)] = 0xff
+  bytes[offset(0x15427)] = 0xff
+  bytes[offset(0x15428)] = 0xff
   const codeplug = createCodeplug(bytes)
   const settings = codeplug.getSoundSettings()
 
   assert.equal(isUnknownSettingValue(settings.keyBeep), true)
   assert.equal(isUnknownSettingValue(settings.microphoneGain), true)
+  assert.equal(isUnknownSettingValue(settings.amAnalogGain), true)
+  assert.equal(isUnknownSettingValue(settings.amDigitalGain), true)
   assert.throws(
     () => codeplug.editSoundSettings({ microphoneGain: 32 as 31 }),
     /Unsupported Sound Setting value/
   )
   assert.throws(
     () => codeplug.editSoundSettings({ aiVoxDelaySeconds: 0 as 0.5 }),
+    /Unsupported Sound Setting value/
+  )
+  assert.throws(
+    () => codeplug.editSoundSettings({ amAnalogGain: 16 }),
+    /Unsupported Sound Setting value/
+  )
+  assert.throws(
+    () => codeplug.editSoundSettings({ amDigitalGain: 5.25 }),
     /Unsupported Sound Setting value/
   )
 })

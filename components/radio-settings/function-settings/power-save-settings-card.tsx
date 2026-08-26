@@ -18,11 +18,7 @@ function PowerSaveSettingsCard({
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="power-save"
-      title={t("functionSectionPowerSave")}
-      description={t("functionSectionPowerSaveDescription")}
-    >
+    <SettingsCard id="power-save" title={t("functionSectionPowerSave")}>
       <FieldGroup>
         <BooleanSettingField
           id="power-save-switch"

@@ -10,11 +10,7 @@ function CitSettingsCard({ settings, edit }: FunctionSettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="cit"
-      title={t("functionSectionCit")}
-      description={t("functionSectionCitDescription")}
-    >
+    <SettingsCard id="cit" title={t("functionSectionCit")}>
       <FieldGroup>
         <BooleanSettingField
           id="cit-usb-cdc"

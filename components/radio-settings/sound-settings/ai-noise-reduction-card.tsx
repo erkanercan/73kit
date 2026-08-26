@@ -13,7 +13,6 @@ function AiNoiseReductionCard({ settings, edit }: SoundSettingsSectionProps) {
     <SettingsCard
       id="ai-noise-reduction"
       title={t("soundSectionAiNoiseReduction")}
-      description={t("soundSectionAiNoiseReductionDescription")}
     >
       <FieldGroup>
         <BooleanSettingField

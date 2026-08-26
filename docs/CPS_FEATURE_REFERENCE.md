@@ -604,7 +604,12 @@ Documented languages: Simplified Chinese, Traditional Chinese, English, Turkish.
 - TX timeout beep — P2
 - call-start beep — P2
 - call-end beep — P2
+- scan-start beep — P2
+- scan-pause beep — P2
+- scan-stop beep — P2
 - microphone gain — P2
+- AM / AM-N analog RX gain: 0–15 — P2
+- AM / AM-N digital RX gain: −26.0–+5.5 dB in 0.5 dB increments — P2
 - AI voice control enable/sensitivity/delay — P2
 - AI noise reduction enable — P2
 
@@ -1126,7 +1131,7 @@ firmware update commands
 ## P2 — Extended Codeplug Settings
 
 - [x] display settings
-- [ ] audio settings — documented fields implemented; scan-beep and RX-gain storage mappings pending
+- [x] audio settings
 - [x] AI voice control
 - [x] AI noise reduction
 - [ ] GPS

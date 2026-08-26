@@ -23,11 +23,7 @@ function AiVoxCard({ settings, edit }: SoundSettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="ai-vox"
-      title={t("soundSectionAiVox")}
-      description={t("soundSectionAiVoxDescription")}
-    >
+    <SettingsCard id="ai-vox" title={t("soundSectionAiVox")}>
       <FieldGroup>
         <BooleanSettingField
           id="ai-vox"

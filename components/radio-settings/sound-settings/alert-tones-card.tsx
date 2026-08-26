@@ -1,9 +1,6 @@
 import { useTranslations } from "next-intl"
 
-import {
-  BooleanSettingField,
-  DisabledSettingField,
-} from "@/components/radio-settings/setting-fields"
+import { BooleanSettingField } from "@/components/radio-settings/setting-fields"
 import { SettingsCard } from "@/components/radio-settings/settings-card"
 import { FieldGroup } from "@/components/ui/field"
 
@@ -13,11 +10,7 @@ function AlertTonesCard({ settings, edit }: SoundSettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="alert-tones"
-      title={t("soundSectionAlertTones")}
-      description={t("soundSectionAlertTonesDescription")}
-    >
+    <SettingsCard id="alert-tones" title={t("soundSectionAlertTones")}>
       <FieldGroup>
         <BooleanSettingField
           id="key-beep"
@@ -55,20 +48,23 @@ function AlertTonesCard({ settings, edit }: SoundSettingsSectionProps) {
           value={settings.callEndBeep}
           onChange={(value) => edit("callEndBeep", value)}
         />
-        <DisabledSettingField
+        <BooleanSettingField
           id="scan-start-beep"
           label={t("settingScanStartBeep")}
-          control="switch"
+          value={settings.scanStartBeep}
+          onChange={(value) => edit("scanStartBeep", value)}
         />
-        <DisabledSettingField
+        <BooleanSettingField
           id="scan-pause-beep"
           label={t("settingScanPauseBeep")}
-          control="switch"
+          value={settings.scanPauseBeep}
+          onChange={(value) => edit("scanPauseBeep", value)}
         />
-        <DisabledSettingField
+        <BooleanSettingField
           id="scan-stop-beep"
           label={t("settingScanStopBeep")}
-          control="switch"
+          value={settings.scanStopBeep}
+          onChange={(value) => edit("scanStopBeep", value)}
         />
       </FieldGroup>
     </SettingsCard>

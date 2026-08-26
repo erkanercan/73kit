@@ -24,11 +24,7 @@ function ToneBurstSettingsCard({
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="tone-burst"
-      title={t("functionSectionToneBurst")}
-      description={t("functionSectionToneBurstDescription")}
-    >
+    <SettingsCard id="tone-burst" title={t("functionSectionToneBurst")}>
       <FieldGroup>
         <SelectSettingField
           id="tone-burst-frequency"

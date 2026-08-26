@@ -12,7 +12,14 @@ const ADDRESS = {
   callBeep: 0x1541d,
   microphoneGain: 0x1541e,
   powerOnBeep: 0x1541f,
+  scanPauseBeep: 0x15426,
+  amAnalogGain: 0x15427,
+  amDigitalGain: 0x15428,
+  amNAnalogGain: 0x15429,
   txTimeoutBeep: 0x1542a,
+  amNDigitalGain: 0x1542f,
+  scanStartBeep: 0x15446,
+  scanStopBeep: 0x15447,
 } as const
 
 const SOUND_SETTING_OPTIONS = Object.freeze({
@@ -55,6 +62,10 @@ const SOUND_SETTING_OPTIONS = Object.freeze({
   ] as const,
   aiVoxSensitivities: ["low", "medium", "high", "very-high"] as const,
   aiVoxDelaySeconds: [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5] as const,
+  analogRxGains: Object.freeze(Array.from({ length: 16 }, (_, value) => value)),
+  digitalRxGainsDb: Object.freeze(
+    Array.from({ length: 64 }, (_, raw) => (raw - 52) / 2)
+  ),
 })
 
 type SettingValue<Value> = Value | UnknownSettingValue
@@ -68,8 +79,23 @@ interface SoundSettings {
   readonly txTimeoutBeep: BooleanSetting
   readonly callStartBeep: boolean
   readonly callEndBeep: boolean
+  readonly scanStartBeep: BooleanSetting
+  readonly scanPauseBeep: BooleanSetting
+  readonly scanStopBeep: BooleanSetting
   readonly microphoneGain: SettingValue<
     OptionValue<typeof SOUND_SETTING_OPTIONS.microphoneGains>
+  >
+  readonly amAnalogGain: SettingValue<
+    OptionValue<typeof SOUND_SETTING_OPTIONS.analogRxGains>
+  >
+  readonly amDigitalGain: SettingValue<
+    OptionValue<typeof SOUND_SETTING_OPTIONS.digitalRxGainsDb>
+  >
+  readonly amNAnalogGain: SettingValue<
+    OptionValue<typeof SOUND_SETTING_OPTIONS.analogRxGains>
+  >
+  readonly amNDigitalGain: SettingValue<
+    OptionValue<typeof SOUND_SETTING_OPTIONS.digitalRxGainsDb>
   >
   readonly aiVox: BooleanSetting
   readonly aiVoxSensitivity: SettingValue<
@@ -99,9 +125,28 @@ function decodeSoundSettings(bytes: Uint8Array): SoundSettings {
     txTimeoutBeep: decodeBoolean(read(ADDRESS.txTimeoutBeep)),
     callStartBeep: (callBeep & 0b0000_0001) !== 0,
     callEndBeep: (callBeep & 0b0000_0010) !== 0,
+    scanStartBeep: decodeBoolean(read(ADDRESS.scanStartBeep)),
+    scanPauseBeep: decodeBoolean(read(ADDRESS.scanPauseBeep)),
+    scanStopBeep: decodeBoolean(read(ADDRESS.scanStopBeep)),
     microphoneGain: decodeIndex(
       read(ADDRESS.microphoneGain),
       SOUND_SETTING_OPTIONS.microphoneGains
+    ),
+    amAnalogGain: decodeIndex(
+      read(ADDRESS.amAnalogGain),
+      SOUND_SETTING_OPTIONS.analogRxGains
+    ),
+    amDigitalGain: decodeIndex(
+      read(ADDRESS.amDigitalGain),
+      SOUND_SETTING_OPTIONS.digitalRxGainsDb
+    ),
+    amNAnalogGain: decodeIndex(
+      read(ADDRESS.amNAnalogGain),
+      SOUND_SETTING_OPTIONS.analogRxGains
+    ),
+    amNDigitalGain: decodeIndex(
+      read(ADDRESS.amNDigitalGain),
+      SOUND_SETTING_OPTIONS.digitalRxGainsDb
     ),
     aiVox: decodeBoolean(read(ADDRESS.aiVox)),
     aiVoxSensitivity: decodeIndex(
@@ -116,10 +161,7 @@ function decodeSoundSettings(bytes: Uint8Array): SoundSettings {
   })
 }
 
-function editSoundSettingsBytes(
-  source: Uint8Array,
-  patch: SoundSettingsPatch
-) {
+function editSoundSettingsBytes(source: Uint8Array, patch: SoundSettingsPatch) {
   const bytes = source.slice()
 
   for (const field of Object.keys(patch) as (keyof SoundSettingsPatch)[]) {
@@ -131,6 +173,9 @@ function editSoundSettingsBytes(
       case "lowBatteryBeep":
       case "powerOnBeep":
       case "txTimeoutBeep":
+      case "scanStartBeep":
+      case "scanPauseBeep":
+      case "scanStopBeep":
       case "aiVox":
       case "aiNoiseReduction":
         writeBoolean(bytes, ADDRESS[field], value)
@@ -146,6 +191,24 @@ function editSoundSettingsBytes(
           bytes,
           ADDRESS.microphoneGain,
           SOUND_SETTING_OPTIONS.microphoneGains,
+          value
+        )
+        break
+      case "amAnalogGain":
+      case "amNAnalogGain":
+        writeIndex(
+          bytes,
+          ADDRESS[field],
+          SOUND_SETTING_OPTIONS.analogRxGains,
+          value
+        )
+        break
+      case "amDigitalGain":
+      case "amNDigitalGain":
+        writeIndex(
+          bytes,
+          ADDRESS[field],
+          SOUND_SETTING_OPTIONS.digitalRxGainsDb,
           value
         )
         break
@@ -222,9 +285,5 @@ function toCodeplugOffset(absoluteAddress: number) {
   return absoluteAddress - CODEPLUG_FLASH_START
 }
 
-export {
-  SOUND_SETTING_OPTIONS,
-  decodeSoundSettings,
-  editSoundSettingsBytes,
-}
+export { SOUND_SETTING_OPTIONS, decodeSoundSettings, editSoundSettingsBytes }
 export type { SoundSettings, SoundSettingsPatch }

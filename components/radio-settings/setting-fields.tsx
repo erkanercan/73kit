@@ -261,41 +261,6 @@ function BooleanSettingField({
   )
 }
 
-function DisabledSettingField({
-  id,
-  label,
-  control,
-}: {
-  id: RadioSettingId
-  label: string
-  control: "switch" | "select"
-}) {
-  const t = useTranslations()
-
-  return (
-    <Field
-      orientation={control === "switch" ? "horizontal" : "responsive"}
-      data-disabled
-    >
-      <FieldContent>
-        <SettingLabel id={id} label={label} />
-      </FieldContent>
-      {control === "switch" ? (
-        <Switch id={id} checked={false} disabled />
-      ) : (
-        <Select disabled>
-          <SelectTrigger id={id} className="w-full! sm:w-64!">
-            <SelectValue placeholder={t("storageMappingPending")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup />
-          </SelectContent>
-        </Select>
-      )}
-    </Field>
-  )
-}
-
 function NumberSettingField({
   id,
   label,
@@ -411,7 +376,6 @@ function unknownLabel(
 
 export {
   BooleanSettingField,
-  DisabledSettingField,
   NumberSettingField,
   SelectSettingField,
   SettingHelp,

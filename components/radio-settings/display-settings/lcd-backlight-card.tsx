@@ -16,11 +16,7 @@ function LcdBacklightCard({ settings, edit }: DisplaySettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="lcd-backlight"
-      title={t("displaySectionLcdBacklight")}
-      description={t("displaySectionLcdBacklightDescription")}
-    >
+    <SettingsCard id="lcd-backlight" title={t("displaySectionLcdBacklight")}>
       <FieldGroup>
         <SelectSettingField
           id="backlight-level"

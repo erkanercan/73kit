@@ -42,11 +42,7 @@ function TrxSettingsCard({ settings, edit }: FunctionSettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="trx"
-      title={t("functionSectionTrx")}
-      description={t("functionSectionTrxDescription")}
-    >
+    <SettingsCard id="trx" title={t("functionSectionTrx")}>
       <div className="grid gap-5 lg:grid-cols-2">
         <FieldGroup>
           <SelectSettingField

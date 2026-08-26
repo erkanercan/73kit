@@ -14,7 +14,6 @@ function MenuAndBackKeysCard({ settings, edit }: KeyboardSettingsSectionProps) {
     <SettingsCard
       id="menu-and-back-keys"
       title={t("keyboardSectionMenuAndBack")}
-      description={t("keyboardSectionMenuAndBackDescription")}
     >
       <FieldGroup>
         <KeyAssignmentField

@@ -11,11 +11,7 @@ function SideAndTopKeysCard({ settings, edit }: KeyboardSettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="side-and-top-keys"
-      title={t("keyboardSectionSideAndTop")}
-      description={t("keyboardSectionSideAndTopDescription")}
-    >
+    <SettingsCard id="side-and-top-keys" title={t("keyboardSectionSideAndTop")}>
       <FieldGroup>
         <KeyAssignmentField
           id="side-key-1-short-press"

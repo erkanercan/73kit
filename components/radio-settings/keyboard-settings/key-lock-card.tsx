@@ -26,11 +26,7 @@ function KeyLockCard({ settings, edit }: KeyboardSettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="key-and-encoder-lock"
-      title={t("keyboardSectionLock")}
-      description={t("keyboardSectionLockDescription")}
-    >
+    <SettingsCard id="key-and-encoder-lock" title={t("keyboardSectionLock")}>
       <FieldGroup>
         <BooleanSettingField
           id="auto-lock"

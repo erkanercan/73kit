@@ -20,8 +20,6 @@ const tr = {
   navAprs: "APRS",
   navSettings: "Telsiz Ayarları",
   radioSettingsTitle: "Telsiz Temel Ayarları",
-  radioSettingsDescription:
-    "Çalışma Codeplug'ındaki telsiz genel davranışlarını düzenleyin. Değişiklikler Telsize Yaz kullanılabilir olana kadar yerel kalır.",
   functionSettingsReadRequiredTitle:
     "Fonksiyon Ayarlarını düzenlemek için telsizi okuyun",
   displaySettingsReadRequiredTitle:
@@ -38,8 +36,6 @@ const tr = {
   settingsCategoryKeyboard: "Tuşlar",
   settingsCategoryMenu: "Menü",
   menuVisibilityTitle: "Menü Görünürlüğü",
-  menuVisibilityDescription:
-    "Telsizin kendi menüsünde hangi ayarların ve bilgilerin görüneceğini seçin. Üst kontroller altındaki tüm menülere uygulanır.",
   menuVisibilitySearchPlaceholder: "Menü öğelerinde ara",
   menuVisibilitySearchLabel: "Menü Görünürlüğü öğelerinde ara",
   menuVisibilityShowAll: "Tümünü göster",
@@ -54,68 +50,26 @@ const tr = {
   menuVisibilityNoResults: "Aramanızla eşleşen menü öğesi yok.",
   ...menuVisibilityMessagesTr,
   functionSectionTrx: "TRX",
-  functionSectionTrxDescription:
-    "Alım, gönderim, band çalışma modları ve otomatik frekans davranışları.",
   functionSectionCit: "CI-T",
-  functionSectionCitDescription:
-    "Telsizin veri arayüzlerini birbirinden bağımsız olarak açın veya kapatın.",
   functionSectionSte: "STE",
-  functionSectionSteDescription:
-    "Squelch kuyruğu giderme ve gönderim sonu sinyallemesi.",
   functionSectionToneBurst: "Tone Burst",
-  functionSectionToneBurstDescription:
-    "Atanmış telsiz kontrolünün gönderdiği tek tonlu burst sinyalini yapılandırın.",
   functionSectionScan: "Tarama",
-  functionSectionScanDescription:
-    "Tarama davranışı, devam gecikmesi, bekleme süresi ve kanal dinleme süresi.",
   functionSectionPowerSave: "Güç Tasarrufu",
-  functionSectionPowerSaveDescription:
-    "Seçilen gecikmeden sonra boştaki güç tüketimini azaltın.",
   functionSectionWeather: "WX CH",
-  functionSectionWeatherDescription:
-    "Hava Durumu Kanalları izleme, tarama üyeliği ve sinyal sıfırlama davranışı.",
   displaySectionLcdBacklight: "LCD Arka Aydınlatma",
-  displaySectionLcdBacklightDescription:
-    "Normal parlaklığı ve telsiz boşta kaldığında arka aydınlatmanın davranışını ayarlayın.",
   displaySectionPowerOn: "Açılış Ekranı",
-  displaySectionPowerOnDescription:
-    "Telsiz açılırken gösterilecek bilgileri seçin.",
   displaySectionMemoryChannel: "Kanal Ekranı",
-  displaySectionMemoryChannelDescription:
-    "Telsiz ekranında gösterilecek Kanal ayrıntılarını seçin.",
   displaySectionUnits: "Birimler",
-  displaySectionUnitsDescription:
-    "Telsizin kullanacağı biçimleri ve ölçü birimlerini seçin.",
   displaySectionOther: "Diğer Ekran Ayarları",
-  displaySectionOtherDescription:
-    "Dil, telsiz teması, durum göstergeleri ve menü ekranı davranışı.",
   soundSectionAlertTones: "Uyarı Sesleri",
-  soundSectionAlertTonesDescription:
-    "Hangi telsiz olaylarında uyarı sesi çalacağını seçin. Tarama sesleri, kayıt adresleri doğrulanana kadar devre dışıdır.",
   soundSectionMicrophoneGain: "Mikrofon Kazancı",
-  soundSectionMicrophoneGainDescription:
-    "Gönderim sırasında kullanılacak mikrofon giriş seviyesini ayarlayın.",
   soundSectionRxGain: "RX Kazancı",
-  soundSectionRxGainDescription:
-    "AM ve AM-N alıcı kazanç kontrolleri, kayıt adresleri doğrulanana kadar devre dışıdır.",
   soundSectionAiVox: "AI VOX",
-  soundSectionAiVoxDescription:
-    "Sesle etkinleşen gönderimin hassasiyetini ve bırakma gecikmesini yapılandırın.",
   soundSectionAiNoiseReduction: "AI Gürültü Azaltma",
-  soundSectionAiNoiseReductionDescription:
-    "Telsiz firmware'inin yönettiği alım gürültü azaltmasını etkinleştirin.",
   keyboardSectionSideAndTop: "Yan ve Üst Tuşlar",
-  keyboardSectionSideAndTopDescription:
-    "İki Yan Tuşun ve Üst Tuşun kısa ve uzun basma işlevlerini ayrı ayrı atayın.",
   keyboardSectionNumericKeys: "Rakam Tuşları",
-  keyboardSectionNumericKeysDescription:
-    "Her rakam tuşu basılı tutulduğunda çalışacak işlevi seçin.",
   keyboardSectionMenuAndBack: "Menü ve Geri Tuşları",
-  keyboardSectionMenuAndBackDescription:
-    "Menü ve Geri tuşları basılı tutulduğunda çalışacak işlevleri seçin.",
   keyboardSectionLock: "Tuş ve Enkoder Kilidi",
-  keyboardSectionLockDescription:
-    "Otomatik kilidi, kilitlenecek kontrolleri ve boşta kalma gecikmesini yapılandırın.",
   settingRxTxMode: "RX/TX modu",
   settingCrossBandRepeaterMode: "Cross-band röle modu",
   settingCrossBandRepeaterMonitoring: "Cross-band röle izleme",
@@ -324,22 +278,19 @@ const tr = {
     "TX zaman aşımı sayacı gönderimi sonlandırdığında uyarı sesi çalar.",
   settingHintCallStartBeep: "Call başladığında ses çalar.",
   settingHintCallEndBeep: "Call sona erdiğinde ses çalar.",
-  settingHintScanStartBeep:
-    "Tarama başladığında ses çalar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
-  settingHintScanPauseBeep:
-    "Tarama durakladığında ses çalar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
-  settingHintScanStopBeep:
-    "Tarama sona erdiğinde ses çalar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
+  settingHintScanStartBeep: "Tarama başladığında ses çalar.",
+  settingHintScanPauseBeep: "Tarama durakladığında ses çalar.",
+  settingHintScanStopBeep: "Tarama sona erdiğinde ses çalar.",
   settingHintMicrophoneGain:
     "Göndericinin kullanacağı mikrofon giriş seviyesini ayarlar.",
   settingHintAmAnalogGain:
-    "AM analog alım kazancını 0 ile 15 arasında ayarlar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
+    "AM analog alım kazancını 0 ile 15 arasında ayarlar.",
   settingHintAmDigitalGain:
-    "AM dijital alım kazancını -26,0 ile 5,0 dB arasında ayarlar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
+    "AM dijital alım kazancını -26,0 ile 5,5 dB arasında 0,5 dB'lik adımlarla ayarlar.",
   settingHintAmNAnalogGain:
-    "AM-N analog alım kazancını 0 ile 15 arasında ayarlar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
+    "AM-N analog alım kazancını 0 ile 15 arasında ayarlar.",
   settingHintAmNDigitalGain:
-    "AM-N dijital alım kazancını -26,0 ile 5,0 dB arasında ayarlar. Kayıt adresi doğrulanana kadar düzenleme devre dışıdır.",
+    "AM-N dijital alım kazancını -26,0 ile 5,5 dB arasında 0,5 dB'lik adımlarla ayarlar.",
   settingHintAiVox:
     "PTT'ye basmadan konuşma algılandığında telsizin gönderime başlamasını sağlar.",
   settingHintAiVoxSensitivity:
@@ -399,7 +350,6 @@ const tr = {
   lockTypePttAndKeys: "PTT + Tuşlar",
   lockTypePttAndEncoder: "PTT + Enkoder",
   lockTypePttEncoderAndKeys: "PTT + Enkoder + Tuşlar",
-  storageMappingPending: "Adres bekleniyor",
   powerOnMessageCharacterCount: "{count, number} / {max, number} karakter",
   powerOnMessageTooLong:
     "En fazla 16 karakter girin ve metnin telsiz alanına sığdığından emin olun.",
@@ -657,6 +607,7 @@ const tr = {
   valueHigh: "Yüksek",
   valueVeryHigh: "Çok yüksek",
   valueNumber: "{value, number}",
+  valueDecibels: "{value, number} dB",
   valueNormal: "Normal",
   valueSkip: "Atla",
   valuePriority: "Öncelik",

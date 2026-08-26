@@ -35,11 +35,7 @@ function WeatherSettingsCard({ settings, edit }: FunctionSettingsSectionProps) {
   const t = useTranslations()
 
   return (
-    <SettingsCard
-      id="weather-channels"
-      title={t("functionSectionWeather")}
-      description={t("functionSectionWeatherDescription")}
-    >
+    <SettingsCard id="weather-channels" title={t("functionSectionWeather")}>
       <FieldGroup>
         <SelectSettingField
           id="weather-squelch-control"

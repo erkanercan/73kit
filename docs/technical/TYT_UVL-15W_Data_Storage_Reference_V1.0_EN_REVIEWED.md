@@ -301,6 +301,9 @@ English developer edition: terminology and descriptions have been normalized for
 | TX-timeout beep | 0x2A | 1 B | 0=Off1=On |
 | Call-start beep | 0x1D (bit0) | 1 bit | 0=Off1=On |
 | Call-end beep | 0x1D (bit1) | 1 bit | 0=Off1=On |
+| Scan-start beep | 0x46 / 0x00015446 | 1 B | 0=Off, 1=On |
+| Scan-pause beep | 0x26 / 0x00015426 | 1 B | 0=Off, 1=On |
+| Scan-stop beep | 0x47 / 0x00015447 | 1 B | 0=Off, 1=On |
 
 <a id="sec2_3_2"></a>
 
@@ -312,7 +315,18 @@ English developer edition: terminology and descriptions have been normalized for
 
 <a id="sec2_3_3"></a>
 
-#### 2.4.3 AI Voice Control (VOX)
+#### 2.4.3 RX Gain
+
+| UI option | Offset / absolute address | Length | Storage format / options |
+| --- | --- | --- | --- |
+| AM analog gain | 0x27 / 0x00015427 | 1 B | Raw value 0~15 maps directly to gain 0~15 |
+| AM digital gain | 0x28 / 0x00015428 | 1 B | Raw value 0~63; gain in dB = raw × 0.5 − 26.0, giving −26.0~+5.5 dB in 0.5 dB increments |
+| AM-N analog gain | 0x29 / 0x00015429 | 1 B | Raw value 0~15 maps directly to gain 0~15 |
+| AM-N digital gain | 0x2F / 0x0001542F | 1 B | Raw value 0~63; gain in dB = raw × 0.5 − 26.0, giving −26.0~+5.5 dB in 0.5 dB increments |
+
+<a id="sec2_3_4"></a>
+
+#### 2.4.4 AI Voice Control (VOX)
 
 | UI option | Offset / absolute address | Length | Storage format / options |
 | --- | --- | --- | --- |
@@ -320,9 +334,9 @@ English developer edition: terminology and descriptions have been normalized for
 | AI voice-control sensitivity | 0x0E | 1 B | 0=Low1=Medium2=High3=Very high |
 | AI voice-control delay | 0x0F | 1 B | 0=0.5s1=1.0s2=1.5s3=2.0s4=2.5s5=3.0s6=3.5s7=4.0s8=4.5s9=5.0s |
 
-<a id="sec2_3_4"></a>
+<a id="sec2_3_5"></a>
 
-#### 2.4.4 AI Noise Reduction
+#### 2.4.5 AI Noise Reduction
 
 | UI option | Offset / absolute address | Length | Storage format / options |
 | --- | --- | --- | --- |

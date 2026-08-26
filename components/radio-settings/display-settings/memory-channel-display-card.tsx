@@ -16,7 +16,6 @@ function MemoryChannelDisplayCard({
     <SettingsCard
       id="memory-channel-display"
       title={t("displaySectionMemoryChannel")}
-      description={t("displaySectionMemoryChannelDescription")}
     >
       <FieldGroup>
         <BooleanSettingField

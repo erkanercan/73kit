@@ -25,11 +25,7 @@ function MicrophoneGainCard({ settings, edit }: SoundSettingsSectionProps) {
   }))
 
   return (
-    <SettingsCard
-      id="microphone-gain"
-      title={t("soundSectionMicrophoneGain")}
-      description={t("soundSectionMicrophoneGainDescription")}
-    >
+    <SettingsCard id="microphone-gain" title={t("soundSectionMicrophoneGain")}>
       <FieldGroup>
         <SelectSettingField
           id="microphone-gain"
