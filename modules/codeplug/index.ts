@@ -66,10 +66,15 @@ import {
   decodeSoundSettings,
   editSoundSettingsBytes,
 } from "./sound-settings.ts"
+import type { SoundSettings, SoundSettingsPatch } from "./sound-settings.ts"
+import {
+  decodeKeyboardSettings,
+  editKeyboardSettingsBytes,
+} from "./keyboard-settings.ts"
 import type {
-  SoundSettings,
-  SoundSettingsPatch,
-} from "./sound-settings.ts"
+  KeyboardSettings,
+  KeyboardSettingsPatch,
+} from "./keyboard-settings.ts"
 
 const CODEPLUG_SIZE = 0x19000
 
@@ -85,6 +90,7 @@ class Codeplug {
   readonly #functionSettings: FunctionSettings
   readonly #displaySettings: DisplaySettings
   readonly #soundSettings: SoundSettings
+  readonly #keyboardSettings: KeyboardSettings
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -104,6 +110,7 @@ class Codeplug {
     this.#functionSettings = decodeFunctionSettings(this.#bytes)
     this.#displaySettings = decodeDisplaySettings(this.#bytes)
     this.#soundSettings = decodeSoundSettings(this.#bytes)
+    this.#keyboardSettings = decodeKeyboardSettings(this.#bytes)
   }
 
   get byteLength() {
@@ -152,6 +159,10 @@ class Codeplug {
 
   getSoundSettings() {
     return this.#soundSettings
+  }
+
+  getKeyboardSettings() {
+    return this.#keyboardSettings
   }
 
   moveMemoryChannel(fromNumber: number, toNumber: number) {
@@ -205,6 +216,10 @@ class Codeplug {
 
   editSoundSettings(patch: SoundSettingsPatch) {
     return new Codeplug(editSoundSettingsBytes(this.#bytes, patch))
+  }
+
+  editKeyboardSettings(patch: KeyboardSettingsPatch) {
+    return new Codeplug(editKeyboardSettingsBytes(this.#bytes, patch))
   }
 
   editChannelMemberships(number: number, patch: ChannelMembershipPatch) {
@@ -276,3 +291,12 @@ export type {
 } from "./display-settings.ts"
 export { SOUND_SETTING_OPTIONS } from "./sound-settings.ts"
 export type { SoundSettings, SoundSettingsPatch } from "./sound-settings.ts"
+export { KEYBOARD_SETTING_OPTIONS } from "./keyboard-settings.ts"
+export type {
+  KeyboardSettings,
+  KeyboardSettingsPatch,
+  LockDelaySeconds,
+  LockType,
+  LongPressAction,
+  ShortPressAction,
+} from "./keyboard-settings.ts"

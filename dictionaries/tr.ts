@@ -27,6 +27,8 @@ const tr = {
     "Ekran Ayarlarını düzenlemek için telsizi okuyun",
   soundSettingsReadRequiredTitle:
     "Ses Ayarlarını düzenlemek için telsizi okuyun",
+  keyboardSettingsReadRequiredTitle:
+    "Tuş Ayarlarını düzenlemek için telsizi okuyun",
   settingsCategoryFunctions: "Fonksiyonlar",
   settingsCategoryDisplay: "Ekran",
   settingsCategorySounds: "Sesler",
@@ -83,6 +85,18 @@ const tr = {
   soundSectionAiNoiseReduction: "AI Gürültü Azaltma",
   soundSectionAiNoiseReductionDescription:
     "Telsiz firmware'inin yönettiği alım gürültü azaltmasını etkinleştirin.",
+  keyboardSectionSideAndTop: "Yan ve Üst Tuşlar",
+  keyboardSectionSideAndTopDescription:
+    "İki Yan Tuşun ve Üst Tuşun kısa ve uzun basma işlevlerini ayrı ayrı atayın.",
+  keyboardSectionNumericKeys: "Rakam Tuşları",
+  keyboardSectionNumericKeysDescription:
+    "Her rakam tuşu basılı tutulduğunda çalışacak işlevi seçin.",
+  keyboardSectionMenuAndBack: "Menü ve Geri Tuşları",
+  keyboardSectionMenuAndBackDescription:
+    "Menü ve Geri tuşları basılı tutulduğunda çalışacak işlevleri seçin.",
+  keyboardSectionLock: "Tuş ve Enkoder Kilidi",
+  keyboardSectionLockDescription:
+    "Otomatik kilidi, kilitlenecek kontrolleri ve boşta kalma gecikmesini yapılandırın.",
   settingRxTxMode: "RX/TX modu",
   settingCrossBandRepeaterMode: "Cross-band röle modu",
   settingCrossBandRepeaterMonitoring: "Cross-band röle izleme",
@@ -160,6 +174,16 @@ const tr = {
   settingAiVoxSensitivity: "Hassasiyet",
   settingAiVoxDelay: "Gecikme",
   settingAiNoiseReduction: "AI gürültü azaltma",
+  settingSideKeyShortPress: "Yan Tuş {key, number} — Kısa Basma",
+  settingSideKeyLongPress: "Yan Tuş {key, number} — Uzun Basma",
+  settingTopKeyShortPress: "Üst Tuş — Kısa Basma",
+  settingTopKeyLongPress: "Üst Tuş — Uzun Basma",
+  settingDigitKeyLongPress: "Rakam {digit, number} — Uzun Basma",
+  settingMenuKeyLongPress: "Menü Tuşu — Uzun Basma",
+  settingBackKeyLongPress: "Geri Tuşu — Uzun Basma",
+  settingAutoLock: "Otomatik kilit",
+  settingLockType: "Kilit türü",
+  settingLockDelay: "Kilit gecikmesi",
   settingHelpLabel: "{setting} hakkında bilgi",
   settingHintRxTxMode:
     "İki ekran bandının nasıl alım yapacağını ve hangi bandın gönderim yapabileceğini belirler.",
@@ -275,8 +299,7 @@ const tr = {
   settingHintReceivedSignalStrength:
     "Alınan sinyal gücünü gizler, dBm olarak veya RSSI seviyesi ile dBm birlikte gösterir.",
   settingHintKeyBeep: "Telsiz tuşuna basıldığında ses çalar.",
-  settingHintLowBatteryBeep:
-    "Pil seviyesi düştüğünde sesli uyarı çalar.",
+  settingHintLowBatteryBeep: "Pil seviyesi düştüğünde sesli uyarı çalar.",
   settingHintPowerOnBeep: "Telsiz açıldığında ses çalar.",
   settingHintTxTimeoutBeep:
     "TX zaman aşımı sayacı gönderimi sonlandırdığında uyarı sesi çalar.",
@@ -306,6 +329,57 @@ const tr = {
     "Konuşma bittikten sonra gönderimi bu süre boyunca etkin tutar.",
   settingHintAiNoiseReduction:
     "Alınan ses için telsiz firmware'inin AI gürültü azaltmasını kullanır.",
+  settingHintShortPressAssignment:
+    "Bu kontrole kısa basıldığında etkinleşecek işlevi seçer.",
+  settingHintLongPressAssignment:
+    "Bu kontrol basılı tutulduğunda etkinleşecek işlevi seçer. Tone Burst yalnızca uzun basmada kullanılabilir.",
+  settingHintDigitLongPressAssignment:
+    "Bu rakam tuşu basılı tutulduğunda etkinleşecek kısayolu seçer.",
+  settingHintMenuKeyLongPressAssignment:
+    "Menü tuşu basılı tutulduğunda etkinleşecek kısayolu seçer.",
+  settingHintBackKeyLongPressAssignment:
+    "Geri tuşu basılı tutulduğunda etkinleşecek kısayolu seçer.",
+  settingHintAutoLock:
+    "Yapılandırılan süre boyunca işlem yapılmadığında seçili telsiz kontrollerini otomatik kilitler.",
+  settingHintLockType:
+    "Tuş, enkoder ve PTT kontrollerinin hangi birleşiminin kilitleneceğini seçer.",
+  settingHintLockDelay:
+    "Telsizin Otomatik Kilidi uygulamadan önce işlemsiz ne kadar bekleyeceğini belirler.",
+  keyActionNone: "Yok",
+  keyActionVoiceControl: "Ses Kontrolü",
+  keyActionSendToneBurst: "Tone Burst Gönder",
+  keyActionSendBeacon: "Beacon Gönder",
+  keyActionSquelchOff: "Squelch Kapalı",
+  keyActionScan: "Tarama",
+  keyActionScrambler: "Karıştırıcı",
+  keyActionTalkAround: "Talk Around",
+  keyActionNoiseReduction: "Gürültü Azaltma",
+  keyActionOneKeyFrequencyCopy: "Tek Tuşla Frekans Kopyalama",
+  keyActionPowerLevel: "Güç Seviyesi",
+  keyActionReverse: "Ters Frekans",
+  keyActionFmRadio: "FM Radyo Aç/Kapat",
+  keyActionChannelMode: "Kanal Modu",
+  keyActionEmergencyAlarm: "Acil Durum Alarmı",
+  keyActionAprsStations: "APRS İstasyonları",
+  keyActionSquelchLevel: "Squelch Seviyesi",
+  keyActionToneScan: "Ton Tarama",
+  keyActionGps: "GPS Aç/Kapat",
+  keyActionGpsPosition: "GPS Konumu",
+  keyActionGpsSatellites: "GPS Uyduları",
+  keyActionBluetooth: "Bluetooth Aç/Kapat",
+  keyActionZoneSelection: "Bölge Seçimi",
+  keyActionScanListSelection: "Tarama Listesi Seçimi",
+  keyActionSpectrum: "Spektrum",
+  keyActionCopyToMr: "MR'ye Kopyala",
+  keyActionMonitor: "Monitör",
+  keyActionDebugInformation: "Hata Ayıklama Bilgisi",
+  lockTypeKeys: "Tuşlar",
+  lockTypeEncoder: "Enkoder",
+  lockTypeKeysAndEncoder: "Tuşlar + Enkoder",
+  lockTypePtt: "PTT",
+  lockTypePttAndKeys: "PTT + Tuşlar",
+  lockTypePttAndEncoder: "PTT + Enkoder",
+  lockTypePttEncoderAndKeys: "PTT + Enkoder + Tuşlar",
   storageMappingPending: "Adres bekleniyor",
   powerOnMessageCharacterCount: "{count, number} / {max, number} karakter",
   powerOnMessageTooLong:

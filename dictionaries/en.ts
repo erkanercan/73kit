@@ -23,6 +23,8 @@ const en = {
     "Read a Radio to edit its Function Settings",
   displaySettingsReadRequiredTitle: "Read a Radio to edit its Display Settings",
   soundSettingsReadRequiredTitle: "Read a Radio to edit its Sound Settings",
+  keyboardSettingsReadRequiredTitle:
+    "Read a Radio to edit its Keyboard Settings",
   settingsCategoryFunctions: "Functions",
   settingsCategoryDisplay: "Display",
   settingsCategorySounds: "Sounds",
@@ -79,6 +81,18 @@ const en = {
   soundSectionAiNoiseReduction: "AI Noise Reduction",
   soundSectionAiNoiseReductionDescription:
     "Enable the Radio's firmware-managed receive noise reduction.",
+  keyboardSectionSideAndTop: "Side and Top Keys",
+  keyboardSectionSideAndTopDescription:
+    "Assign separate actions to short and long presses of the two Side Keys and Top Key.",
+  keyboardSectionNumericKeys: "Numeric Keys",
+  keyboardSectionNumericKeysDescription:
+    "Choose the action performed when each numeric key is held.",
+  keyboardSectionMenuAndBack: "Menu and Back Keys",
+  keyboardSectionMenuAndBackDescription:
+    "Choose the actions performed when the Menu and Back keys are held.",
+  keyboardSectionLock: "Key and Encoder Lock",
+  keyboardSectionLockDescription:
+    "Configure automatic locking, which controls are locked, and the idle delay.",
   settingRxTxMode: "RX/TX mode",
   settingCrossBandRepeaterMode: "Cross-band repeater mode",
   settingCrossBandRepeaterMonitoring: "Cross-band repeater monitoring",
@@ -156,6 +170,16 @@ const en = {
   settingAiVoxSensitivity: "Sensitivity",
   settingAiVoxDelay: "Delay",
   settingAiNoiseReduction: "AI noise reduction",
+  settingSideKeyShortPress: "Side Key {key, number} — Short Press",
+  settingSideKeyLongPress: "Side Key {key, number} — Long Press",
+  settingTopKeyShortPress: "Top Key — Short Press",
+  settingTopKeyLongPress: "Top Key — Long Press",
+  settingDigitKeyLongPress: "Digit {digit, number} — Long Press",
+  settingMenuKeyLongPress: "Menu Key — Long Press",
+  settingBackKeyLongPress: "Back Key — Long Press",
+  settingAutoLock: "Auto lock",
+  settingLockType: "Lock type",
+  settingLockDelay: "Lock delay",
   settingHelpLabel: "About {setting}",
   settingHintRxTxMode:
     "Chooses how the two display bands receive and which band can transmit.",
@@ -302,6 +326,57 @@ const en = {
     "Keeps transmission active for this long after speech stops.",
   settingHintAiNoiseReduction:
     "Uses the Radio firmware's AI noise reduction for received audio.",
+  settingHintShortPressAssignment:
+    "Selects the function activated by a brief press of this control.",
+  settingHintLongPressAssignment:
+    "Selects the function activated when this control is pressed and held. Tone Burst is available only for long presses.",
+  settingHintDigitLongPressAssignment:
+    "Selects the shortcut activated when this numeric key is pressed and held.",
+  settingHintMenuKeyLongPressAssignment:
+    "Selects the shortcut activated when the Menu key is pressed and held.",
+  settingHintBackKeyLongPressAssignment:
+    "Selects the shortcut activated when the Back key is pressed and held.",
+  settingHintAutoLock:
+    "Automatically locks the selected Radio controls after the configured period without activity.",
+  settingHintLockType:
+    "Chooses which combination of keys, encoder, and PTT is protected by the lock.",
+  settingHintLockDelay:
+    "Sets how long the Radio waits without activity before applying Auto Lock.",
+  keyActionNone: "None",
+  keyActionVoiceControl: "Voice Control",
+  keyActionSendToneBurst: "Send Tone Burst",
+  keyActionSendBeacon: "Send Beacon",
+  keyActionSquelchOff: "Squelch Off",
+  keyActionScan: "Scan",
+  keyActionScrambler: "Scrambler",
+  keyActionTalkAround: "Talk Around",
+  keyActionNoiseReduction: "Noise Reduction",
+  keyActionOneKeyFrequencyCopy: "One-Key Frequency Copy",
+  keyActionPowerLevel: "Power Level",
+  keyActionReverse: "Reverse",
+  keyActionFmRadio: "FM Radio On/Off",
+  keyActionChannelMode: "Channel Mode",
+  keyActionEmergencyAlarm: "Emergency Alarm",
+  keyActionAprsStations: "APRS Stations",
+  keyActionSquelchLevel: "Squelch Level",
+  keyActionToneScan: "Tone Scan",
+  keyActionGps: "GPS On/Off",
+  keyActionGpsPosition: "GPS Position",
+  keyActionGpsSatellites: "GPS Satellites",
+  keyActionBluetooth: "Bluetooth On/Off",
+  keyActionZoneSelection: "Zone Selection",
+  keyActionScanListSelection: "Scan List Selection",
+  keyActionSpectrum: "Spectrum",
+  keyActionCopyToMr: "Copy to MR",
+  keyActionMonitor: "Monitor",
+  keyActionDebugInformation: "Debug Information",
+  lockTypeKeys: "Keys",
+  lockTypeEncoder: "Encoder",
+  lockTypeKeysAndEncoder: "Keys + Encoder",
+  lockTypePtt: "PTT",
+  lockTypePttAndKeys: "PTT + Keys",
+  lockTypePttAndEncoder: "PTT + Encoder",
+  lockTypePttEncoderAndKeys: "PTT + Encoder + Keys",
   storageMappingPending: "Address pending",
   powerOnMessageCharacterCount: "{count, number} / {max, number} characters",
   powerOnMessageTooLong:

@@ -20,6 +20,7 @@ import {
   reconcileChannelMembershipChanges,
   reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,
+  reconcileKeyboardSettingChanges,
   reconcileSoundSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
@@ -34,6 +35,7 @@ import type {
   ChannelCollectionPatch,
   DisplaySettingsPatch,
   FunctionSettingsPatch,
+  KeyboardSettingsPatch,
   MemoryChannelPatch,
   RadioBand,
   SoundSettingsPatch,
@@ -74,6 +76,7 @@ interface CpsWorkspaceContextValue {
   editFunctionSettings(patch: FunctionSettingsPatch): void
   editDisplaySettings(patch: DisplaySettingsPatch): void
   editSoundSettings(patch: SoundSettingsPatch): void
+  editKeyboardSettings(patch: KeyboardSettingsPatch): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
 }
@@ -594,9 +597,41 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
-  const editSoundSettings = React.useCallback(
-    (patch: SoundSettingsPatch) => {
-      const fields = Object.keys(patch) as (keyof SoundSettingsPatch)[]
+  const editSoundSettings = React.useCallback((patch: SoundSettingsPatch) => {
+    const fields = Object.keys(patch) as (keyof SoundSettingsPatch)[]
+    if (fields.length === 0) {
+      return
+    }
+
+    setDocumentState((current) => {
+      if (!current.completedRead) {
+        return current
+      }
+      const completedRead = current.completedRead
+      const nextCodeplug =
+        completedRead.workingCodeplug.codeplug.editSoundSettings(patch)
+
+      return Object.freeze({
+        completedRead: Object.freeze({
+          ...completedRead,
+          workingCodeplug: Object.freeze({
+            ...completedRead.workingCodeplug,
+            codeplug: nextCodeplug,
+          }),
+        }),
+        changes: reconcileSoundSettingChanges(
+          current.changes,
+          completedRead.baselineBackup.codeplug,
+          nextCodeplug,
+          fields
+        ),
+      })
+    })
+  }, [])
+
+  const editKeyboardSettings = React.useCallback(
+    (patch: KeyboardSettingsPatch) => {
+      const fields = Object.keys(patch) as (keyof KeyboardSettingsPatch)[]
       if (fields.length === 0) {
         return
       }
@@ -607,7 +642,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
         }
         const completedRead = current.completedRead
         const nextCodeplug =
-          completedRead.workingCodeplug.codeplug.editSoundSettings(patch)
+          completedRead.workingCodeplug.codeplug.editKeyboardSettings(patch)
 
         return Object.freeze({
           completedRead: Object.freeze({
@@ -617,7 +652,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
               codeplug: nextCodeplug,
             }),
           }),
-          changes: reconcileSoundSettingChanges(
+          changes: reconcileKeyboardSettingChanges(
             current.changes,
             completedRead.baselineBackup.codeplug,
             nextCodeplug,
@@ -754,6 +789,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editFunctionSettings,
       editDisplaySettings,
       editSoundSettings,
+      editKeyboardSettings,
       moveMemoryChannel,
       resetWorkingCodeplug,
     }),
@@ -781,6 +817,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editFunctionSettings,
       editDisplaySettings,
       editSoundSettings,
+      editKeyboardSettings,
       moveMemoryChannel,
       resetWorkingCodeplug,
     ]

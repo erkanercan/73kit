@@ -114,6 +114,27 @@ const settingHintKey = {
   "ai-vox-sensitivity": "settingHintAiVoxSensitivity",
   "ai-vox-delay": "settingHintAiVoxDelay",
   "ai-noise-reduction": "settingHintAiNoiseReduction",
+  "side-key-1-short-press": "settingHintShortPressAssignment",
+  "side-key-1-long-press": "settingHintLongPressAssignment",
+  "side-key-2-short-press": "settingHintShortPressAssignment",
+  "side-key-2-long-press": "settingHintLongPressAssignment",
+  "top-key-short-press": "settingHintShortPressAssignment",
+  "top-key-long-press": "settingHintLongPressAssignment",
+  "digit-0-long-press": "settingHintDigitLongPressAssignment",
+  "digit-1-long-press": "settingHintDigitLongPressAssignment",
+  "digit-2-long-press": "settingHintDigitLongPressAssignment",
+  "digit-3-long-press": "settingHintDigitLongPressAssignment",
+  "digit-4-long-press": "settingHintDigitLongPressAssignment",
+  "digit-5-long-press": "settingHintDigitLongPressAssignment",
+  "digit-6-long-press": "settingHintDigitLongPressAssignment",
+  "digit-7-long-press": "settingHintDigitLongPressAssignment",
+  "digit-8-long-press": "settingHintDigitLongPressAssignment",
+  "digit-9-long-press": "settingHintDigitLongPressAssignment",
+  "menu-key-long-press": "settingHintMenuKeyLongPressAssignment",
+  "back-key-long-press": "settingHintBackKeyLongPressAssignment",
+  "auto-lock": "settingHintAutoLock",
+  "lock-type": "settingHintLockType",
+  "lock-delay": "settingHintLockDelay",
 } as const
 
 type RadioSettingId = keyof typeof settingHintKey
@@ -180,7 +201,7 @@ function SelectSettingField<Value extends SelectValueType>({
           if (option) onChange(option.original)
         }}
       >
-        <SelectTrigger id={id} className="w-full sm:w-64">
+        <SelectTrigger id={id} className="w-full! sm:w-64!">
           <SelectValue>
             {(next) =>
               options.find((option) => option.value === next)?.label ??
@@ -263,7 +284,7 @@ function DisabledSettingField({
         <Switch id={id} checked={false} disabled />
       ) : (
         <Select disabled>
-          <SelectTrigger id={id} className="w-full sm:w-64">
+          <SelectTrigger id={id} className="w-full! sm:w-64!">
             <SelectValue placeholder={t("storageMappingPending")} />
           </SelectTrigger>
           <SelectContent>
@@ -398,3 +419,4 @@ export {
   settingValueKey,
   textOptions,
 }
+export type { RadioSettingId }

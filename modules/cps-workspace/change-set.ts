@@ -7,6 +7,8 @@ import type {
   DisplaySettingsPatch,
   FunctionSettings,
   FunctionSettingsPatch,
+  KeyboardSettings,
+  KeyboardSettingsPatch,
   MemoryChannelPatch,
   RadioBand,
   SoundSettings,
@@ -74,6 +76,10 @@ type WorkspaceChange =
   | {
       readonly kind: "edit-sound-setting"
       readonly field: keyof SoundSettingsPatch
+    }
+  | {
+      readonly kind: "edit-keyboard-setting"
+      readonly field: keyof KeyboardSettingsPatch
     }
 
 type MemoryChannelStructureChange = {
@@ -573,6 +579,36 @@ function reconcileSoundSettingChanges(
   ])
 }
 
+function reconcileKeyboardSettingChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  fields: readonly (keyof KeyboardSettingsPatch)[]
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) {
+    return Object.freeze([])
+  }
+
+  const affectedFields = new Set(fields)
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-keyboard-setting" ||
+      !affectedFields.has(change.field)
+  )
+  const baseline = baselineCodeplug.getKeyboardSettings()
+  const working = workingCodeplug.getKeyboardSettings()
+  const changedFields = fields.filter(
+    (field) => !keyboardSettingFieldEquals(baseline, working, field)
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) =>
+      Object.freeze({ kind: "edit-keyboard-setting" as const, field })
+    ),
+  ])
+}
+
 function numberArraysEqual(left: readonly number[], right: readonly number[]) {
   return (
     left.length === right.length &&
@@ -631,6 +667,28 @@ function soundSettingFieldEquals(
   baseline: SoundSettings,
   working: SoundSettings,
   field: keyof SoundSettingsPatch
+) {
+  const baselineValue = baseline[field]
+  const workingValue = working[field]
+
+  if (
+    typeof baselineValue === "object" &&
+    baselineValue !== null &&
+    typeof workingValue === "object" &&
+    workingValue !== null &&
+    "kind" in baselineValue &&
+    "kind" in workingValue
+  ) {
+    return baselineValue.raw === workingValue.raw
+  }
+
+  return baselineValue === workingValue
+}
+
+function keyboardSettingFieldEquals(
+  baseline: KeyboardSettings,
+  working: KeyboardSettings,
+  field: keyof KeyboardSettingsPatch
 ) {
   const baselineValue = baseline[field]
   const workingValue = working[field]
@@ -720,6 +778,7 @@ export {
   reconcileChannelMembershipChanges,
   reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,
+  reconcileKeyboardSettingChanges,
   reconcileSoundSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,

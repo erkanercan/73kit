@@ -8,7 +8,7 @@ const categories = [
   ["functions", "settingsCategoryFunctions", "/radio-settings/functions"],
   ["display", "settingsCategoryDisplay", "/radio-settings/display"],
   ["sounds", "settingsCategorySounds", "/radio-settings/sounds"],
-  ["keyboard", "settingsCategoryKeyboard", null],
+  ["keyboard", "settingsCategoryKeyboard", "/radio-settings/keyboard"],
   ["menu", "settingsCategoryMenu", null],
 ] as const
 
