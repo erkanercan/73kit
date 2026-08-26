@@ -21,6 +21,7 @@ import {
   reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,
   reconcileKeyboardSettingChanges,
+  reconcileMenuVisibilityChanges,
   reconcileSoundSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
@@ -36,6 +37,7 @@ import type {
   DisplaySettingsPatch,
   FunctionSettingsPatch,
   KeyboardSettingsPatch,
+  MenuVisibilityItemId,
   MemoryChannelPatch,
   RadioBand,
   SoundSettingsPatch,
@@ -77,6 +79,7 @@ interface CpsWorkspaceContextValue {
   editDisplaySettings(patch: DisplaySettingsPatch): void
   editSoundSettings(patch: SoundSettingsPatch): void
   editKeyboardSettings(patch: KeyboardSettingsPatch): void
+  setMenuVisibility(id: MenuVisibilityItemId, visible: boolean): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
 }
@@ -664,6 +667,35 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const setMenuVisibility = React.useCallback(
+    (id: MenuVisibilityItemId, visible: boolean) => {
+      setDocumentState((current) => {
+        if (!current.completedRead) {
+          return current
+        }
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.setMenuVisibility(id, visible)
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileMenuVisibilityChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug
+          ),
+        })
+      })
+    },
+    []
+  )
+
   const addMemoryChannel = React.useCallback(() => {
     setDocumentState((current) => {
       if (!current.completedRead) {
@@ -790,6 +822,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editDisplaySettings,
       editSoundSettings,
       editKeyboardSettings,
+      setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,
     }),
@@ -818,6 +851,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editDisplaySettings,
       editSoundSettings,
       editKeyboardSettings,
+      setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,
     ]

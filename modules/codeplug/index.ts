@@ -75,6 +75,11 @@ import type {
   KeyboardSettings,
   KeyboardSettingsPatch,
 } from "./keyboard-settings.ts"
+import {
+  decodeMenuVisibility,
+  editMenuVisibilityBytes,
+} from "./menu-visibility.ts"
+import type { MenuVisibility, MenuVisibilityItemId } from "./menu-visibility.ts"
 
 const CODEPLUG_SIZE = 0x19000
 
@@ -91,6 +96,7 @@ class Codeplug {
   readonly #displaySettings: DisplaySettings
   readonly #soundSettings: SoundSettings
   readonly #keyboardSettings: KeyboardSettings
+  readonly #menuVisibility: MenuVisibility
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -111,6 +117,7 @@ class Codeplug {
     this.#displaySettings = decodeDisplaySettings(this.#bytes)
     this.#soundSettings = decodeSoundSettings(this.#bytes)
     this.#keyboardSettings = decodeKeyboardSettings(this.#bytes)
+    this.#menuVisibility = decodeMenuVisibility(this.#bytes)
   }
 
   get byteLength() {
@@ -163,6 +170,10 @@ class Codeplug {
 
   getKeyboardSettings() {
     return this.#keyboardSettings
+  }
+
+  getMenuVisibility() {
+    return this.#menuVisibility
   }
 
   moveMemoryChannel(fromNumber: number, toNumber: number) {
@@ -220,6 +231,10 @@ class Codeplug {
 
   editKeyboardSettings(patch: KeyboardSettingsPatch) {
     return new Codeplug(editKeyboardSettingsBytes(this.#bytes, patch))
+  }
+
+  setMenuVisibility(id: MenuVisibilityItemId, visible: boolean) {
+    return new Codeplug(editMenuVisibilityBytes(this.#bytes, id, visible))
   }
 
   editChannelMemberships(number: number, patch: ChannelMembershipPatch) {
@@ -300,3 +315,10 @@ export type {
   LongPressAction,
   ShortPressAction,
 } from "./keyboard-settings.ts"
+export { MENU_VISIBILITY_ITEMS } from "./menu-visibility-items.ts"
+export type { MenuVisibilityItem } from "./menu-visibility-items.ts"
+export {
+  MENU_VISIBILITY_ADDRESS,
+  MENU_VISIBILITY_ASSIGNED_BIT_COUNT,
+} from "./menu-visibility.ts"
+export type { MenuVisibility, MenuVisibilityItemId } from "./menu-visibility.ts"

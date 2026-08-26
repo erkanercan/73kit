@@ -662,11 +662,16 @@ Lock combinations include keys, encoder, PTT and combinations thereof.
 
 ## 7.16 Menu Visibility
 
-Menu display mask: `0x0001BA00`, 256 bytes.
+Current Menu display mask: `0x0001EA00`, 256 bytes. Controlled exports from
+the 2026-07-23 TYT CPS leave the older `0x0001BA00` block unused.
 
-Bits `0–165` map to individual menu entries.
+Bits `0–173` use an LSB-first Show/Hide bitmap. Bits `166–173` add Image
+Version, Language Version, AM RX Gain, AM-N RX Gain, Auto Repeater, CI-T, Auto
+AM Mode, and Scan Edge INIT. GPS bit 20 is Time Zone.
 
-Do not present 166 raw checkboxes. Group settings by the radio menu hierarchy.
+Present the settings as the radio's hierarchy, with cascading and indeterminate
+parent controls, search, and Show All/Hide All actions. Preserve every bit after
+173 and all unrelated bytes.
 
 ---
 

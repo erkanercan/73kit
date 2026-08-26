@@ -1,4 +1,5 @@
 import type { Messages } from "@/dictionaries/en"
+import { menuVisibilityMessagesTr } from "./menu-visibility.ts"
 
 const tr = {
   metadataDescription:
@@ -29,11 +30,29 @@ const tr = {
     "Ses Ayarlarını düzenlemek için telsizi okuyun",
   keyboardSettingsReadRequiredTitle:
     "Tuş Ayarlarını düzenlemek için telsizi okuyun",
+  menuVisibilityReadRequiredTitle:
+    "Menü Görünürlüğü ayarlarını düzenlemek için telsizi okuyun",
   settingsCategoryFunctions: "Fonksiyonlar",
   settingsCategoryDisplay: "Ekran",
   settingsCategorySounds: "Sesler",
   settingsCategoryKeyboard: "Tuşlar",
   settingsCategoryMenu: "Menü",
+  menuVisibilityTitle: "Menü Görünürlüğü",
+  menuVisibilityDescription:
+    "Telsizin kendi menüsünde hangi ayarların ve bilgilerin görüneceğini seçin. Üst kontroller altındaki tüm menülere uygulanır.",
+  menuVisibilitySearchPlaceholder: "Menü öğelerinde ara",
+  menuVisibilitySearchLabel: "Menü Görünürlüğü öğelerinde ara",
+  menuVisibilityShowAll: "Tümünü göster",
+  menuVisibilityHideAll: "Tümünü gizle",
+  menuVisibilityVisibleCount:
+    "{total, number} öğenin {visible, number} tanesi gösteriliyor",
+  menuVisibilityGroupCount: "{total, number} öğenin {visible, number} tanesi",
+  menuVisibilityItemHint:
+    "{item} öğesinin telsizin kendi menüsünde görünüp görünmeyeceğini belirler.",
+  menuVisibilityGroupHint:
+    "{item} öğesini ve altında yer alan tüm alt menüleri birlikte kontrol eder.",
+  menuVisibilityNoResults: "Aramanızla eşleşen menü öğesi yok.",
+  ...menuVisibilityMessagesTr,
   functionSectionTrx: "TRX",
   functionSectionTrxDescription:
     "Alım, gönderim, band çalışma modları ve otomatik frekans davranışları.",

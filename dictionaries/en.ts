@@ -1,3 +1,5 @@
+import { menuVisibilityMessagesEn } from "./menu-visibility.ts"
+
 const en = {
   metadataDescription:
     "Read, inspect, and manage a TYT UVL-15W Codeplug locally.",
@@ -25,11 +27,28 @@ const en = {
   soundSettingsReadRequiredTitle: "Read a Radio to edit its Sound Settings",
   keyboardSettingsReadRequiredTitle:
     "Read a Radio to edit its Keyboard Settings",
+  menuVisibilityReadRequiredTitle:
+    "Read a Radio to edit its Menu Visibility settings",
   settingsCategoryFunctions: "Functions",
   settingsCategoryDisplay: "Display",
   settingsCategorySounds: "Sounds",
   settingsCategoryKeyboard: "Keyboard",
   settingsCategoryMenu: "Menu",
+  menuVisibilityTitle: "Menu Visibility",
+  menuVisibilityDescription:
+    "Choose which settings and information appear in the Radio's on-device menu. Parent controls apply to every submenu below them.",
+  menuVisibilitySearchPlaceholder: "Search menu items",
+  menuVisibilitySearchLabel: "Search Menu Visibility items",
+  menuVisibilityShowAll: "Show all",
+  menuVisibilityHideAll: "Hide all",
+  menuVisibilityVisibleCount:
+    "{visible, number} of {total, number} items shown",
+  menuVisibilityGroupCount: "{visible, number} of {total, number}",
+  menuVisibilityItemHint:
+    "Controls whether {item} appears in the Radio's on-device menu.",
+  menuVisibilityGroupHint: "Controls {item} and every submenu nested below it.",
+  menuVisibilityNoResults: "No menu items match your search.",
+  ...menuVisibilityMessagesEn,
   functionSectionTrx: "TRX",
   functionSectionTrxDescription:
     "Receive, transmit, band operating modes, and automatic frequency behavior.",

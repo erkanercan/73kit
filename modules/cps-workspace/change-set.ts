@@ -9,6 +9,8 @@ import type {
   FunctionSettingsPatch,
   KeyboardSettings,
   KeyboardSettingsPatch,
+  MenuVisibility,
+  MenuVisibilityItemId,
   MemoryChannelPatch,
   RadioBand,
   SoundSettings,
@@ -80,6 +82,10 @@ type WorkspaceChange =
   | {
       readonly kind: "edit-keyboard-setting"
       readonly field: keyof KeyboardSettingsPatch
+    }
+  | {
+      readonly kind: "edit-menu-visibility"
+      readonly id: MenuVisibilityItemId
     }
 
 type MemoryChannelStructureChange = {
@@ -609,11 +615,45 @@ function reconcileKeyboardSettingChanges(
   ])
 }
 
+function reconcileMenuVisibilityChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) {
+    return Object.freeze([])
+  }
+
+  const retained = current.filter(
+    (change) => change.kind !== "edit-menu-visibility"
+  )
+  const baseline = baselineCodeplug.getMenuVisibility()
+  const working = workingCodeplug.getMenuVisibility()
+  const changedIds = (Object.keys(working) as MenuVisibilityItemId[]).filter(
+    (id) => !menuVisibilityItemEquals(baseline, working, id)
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedIds.map((id) =>
+      Object.freeze({ kind: "edit-menu-visibility" as const, id })
+    ),
+  ])
+}
+
 function numberArraysEqual(left: readonly number[], right: readonly number[]) {
   return (
     left.length === right.length &&
     left.every((value, index) => value === right[index])
   )
+}
+
+function menuVisibilityItemEquals(
+  baseline: MenuVisibility,
+  working: MenuVisibility,
+  id: MenuVisibilityItemId
+) {
+  return baseline[id] === working[id]
 }
 
 function functionSettingFieldEquals(
@@ -779,6 +819,7 @@ export {
   reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,
   reconcileKeyboardSettingChanges,
+  reconcileMenuVisibilityChanges,
   reconcileSoundSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,

@@ -96,7 +96,7 @@ English developer edition: terminology and descriptions have been normalized for
 | A/B Zone selection bitmaps | 0x0001E342~0x0001E349 | 8 B | Two 32-bit little-endian bitmaps; lower 16 bits select Zones 0-15 |
 | Scan List name region | 0x0001E500~0x0001E67F | 384 B | 16 scan-list names (24 B each) |
 | A/B active Scan List selection bitmaps | 0x0001E822~0x0001E829 | 8 B | Two 32-bit little-endian bitmaps; lower 16 bits select Scan Lists 0-15 |
-| Menu Display Mask | 0x0001BA00~0x0001BAFF | 256 B | menu visibility bitmap |
+| Menu Display Mask | 0x0001EA00~0x0001EAFF | 256 B | current-CPS menu visibility bitmap; the legacy 0x0001BA00 block remains present but unused in verified current PF files |
 
 **Write strategy**: For blocks containing bit fields or reserved bits, use read-modify-write on the complete block to preserve unrelated/reserved values.
 
@@ -442,11 +442,11 @@ English developer edition: terminology and descriptions have been normalized for
 
 ### 2.6 Menu Settings (radio settings -> Menu Settings)
 
-**Primary storage block**:0x0001BA00(Menu Display Mask,256 B).
+**Primary storage block**: `0x0001EA00` (Menu Display Mask, 256 B), verified from controlled PF exports created by the 2026-07-23 TYT CPS. The earlier `0x0001BA00` block remains all `0xFF` in those exports and must not be treated as the current writable mask without legacy-version detection.
 
 | Data block | Absolute address | Length | Storage format / options |
 | --- | --- | --- | --- |
-| Menu visibility bitmap (Menu Display Mask) | 0x0001BA00 | 256 B | bit0~bit165 defined: bit=1 Show, bit=0 Hide; remaining bits are reserved. |
+| Menu visibility bitmap (Menu Display Mask) | 0x0001EA00 | 256 B | LSB-first; bit0~bit173 defined: bit=1 Show, bit=0 Hide; remaining bits are reserved and must be preserved. |
 
 <a id="sec2_5_1"></a>
 
@@ -474,7 +474,7 @@ English developer edition: terminology and descriptions have been normalized for
 | bit17 | Main menu > FM Broadcast Receiver | Memory Channel List | 1=Show, 0=Hide |
 | bit18 | Main menu > GPS | GPS on/off | 1=Show, 0=Hide |
 | bit19 | Main menu > GPS | GPS constellation mode | 1=Show, 0=Hide |
-| bit20 | Main menu > GPS | Zone Settings | 1=Show, 0=Hide |
+| bit20 | Main menu > GPS | Time Zone | 1=Show, 0=Hide |
 | bit21 | Main menu > GPS | GPS position information | 1=Show, 0=Hide |
 | bit22 | Main menu > GPS | GPS satellite information | 1=Show, 0=Hide |
 | bit23 | Main menu > Bluetooth | Bluetooth on/off | 1=Show, 0=Hide |
@@ -620,8 +620,18 @@ English developer edition: terminology and descriptions have been normalized for
 | bit163 | Main menu > Radio Settings > Display Settings > LCD Backlight | Exit dimming on RX | 1=Show, 0=Hide |
 | bit164 | Main menu > Radio Settings > Display Settings > LCD Backlight | Exit dimming on TX | 1=Show, 0=Hide |
 | bit165 | Main menu > Radio Settings > Display Settings | Display theme (new) | 1=Show, 0=Hide |
+| bit166 | Main menu > Radio Information | Image Version | 1=Show, 0=Hide |
+| bit167 | Main menu > Radio Information | Language Version | 1=Show, 0=Hide |
+| bit168 | Main menu > Radio Settings > Audio Settings | AM RX Gain | 1=Show, 0=Hide |
+| bit169 | Main menu > Radio Settings > Audio Settings | AM-N RX Gain | 1=Show, 0=Hide |
+| bit170 | Main menu > Radio Settings > Function Settings | Auto Repeater | 1=Show, 0=Hide |
+| bit171 | Main menu > Radio Settings > Function Settings | CI-T | 1=Show, 0=Hide |
+| bit172 | Main menu > Radio Settings > Function Settings | Auto AM Mode | 1=Show, 0=Hide |
+| bit173 | Main menu > Radio Settings > Function Settings | Scan Edge INIT | 1=Show, 0=Hide |
 
-**Implementation recommendation**: Use bit-level read-modify-write on the host side so only the intended bit changes and unrelated menu-visibility settings are preserved.
+Parent rows are hierarchical controls rather than independent leaf options. Disabling a parent clears its descendants; changing a leaf maintains the required ancestor bits. The controlled `Uncheck All Submenus` export clears exactly bits 0 through 173, yielding bytes `0x00` through `0x14` as `0x00` and byte `0x15` as `0xC0`.
+
+**Implementation recommendation**: Use bit-level read-modify-write on the host side so only the intended hierarchy changes and all reserved bits remain byte-for-byte intact.
 
 <a id="sec3"></a>
 
