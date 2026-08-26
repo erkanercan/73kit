@@ -1,6 +1,6 @@
 "use client"
 
-import { DownloadIcon, Settings2Icon } from "lucide-react"
+import { DownloadIcon, MonitorCogIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
@@ -14,24 +14,22 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import type { FunctionSettingsPatch } from "@/modules/codeplug/index"
+import type { DisplaySettingsPatch } from "@/modules/codeplug/index"
 
-import { CitSettingsCard } from "./cit-settings-card"
-import { PowerSaveSettingsCard } from "./power-save-settings-card"
-import { ScanSettingsCard } from "./scan-settings-card"
-import { SteSettingsCard } from "./ste-settings-card"
-import { ToneBurstSettingsCard } from "./tone-burst-settings-card"
-import { TrxSettingsCard } from "./trx-settings-card"
-import type { EditFunctionSetting } from "./types"
-import { WeatherSettingsCard } from "./weather-settings-card"
+import { LcdBacklightCard } from "./lcd-backlight-card"
+import { MemoryChannelDisplayCard } from "./memory-channel-display-card"
+import { OtherDisplaySettingsCard } from "./other-display-settings-card"
+import { PowerOnDisplayCard } from "./power-on-display-card"
+import type { EditDisplaySetting } from "./types"
+import { UnitsCard } from "./units-card"
 
-function FunctionSettingsWorkspace() {
+function DisplaySettingsWorkspace() {
   const {
     busy,
     capability,
     changes,
     completedRead,
-    editFunctionSettings,
+    editDisplaySettings,
     readRadio,
   } = useCpsWorkspace()
   const t = useTranslations()
@@ -48,13 +46,13 @@ function FunctionSettingsWorkspace() {
             {t("radioSettingsDescription")}
           </p>
         </header>
-        <SettingsCategoryTabs active="functions" />
+        <SettingsCategoryTabs active="display" />
         <Empty className="min-h-[32rem] border">
           <EmptyHeader>
             <EmptyMedia variant="icon">
-              <Settings2Icon />
+              <MonitorCogIcon />
             </EmptyMedia>
-            <EmptyTitle>{t("functionSettingsReadRequiredTitle")}</EmptyTitle>
+            <EmptyTitle>{t("displaySettingsReadRequiredTitle")}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
             <Button
@@ -70,13 +68,12 @@ function FunctionSettingsWorkspace() {
     )
   }
 
-  const settings = codeplug.getFunctionSettings()
-  const functionChangeCount = changes.filter(
-    (change) => change.kind === "edit-function-setting"
+  const settings = codeplug.getDisplaySettings()
+  const displayChangeCount = changes.filter(
+    (change) => change.kind === "edit-display-setting"
   ).length
-
-  const edit: EditFunctionSetting = (field, value) => {
-    editFunctionSettings({ [field]: value } as FunctionSettingsPatch)
+  const edit: EditDisplaySetting = (field, value) => {
+    editDisplaySettings({ [field]: value } as DisplaySettingsPatch)
   }
 
   return (
@@ -86,9 +83,9 @@ function FunctionSettingsWorkspace() {
           <h1 className="font-heading text-2xl font-medium tracking-tight">
             {t("radioSettingsTitle")}
           </h1>
-          {functionChangeCount > 0 && (
+          {displayChangeCount > 0 && (
             <Badge>
-              {t("pendingChangeCount", { count: functionChangeCount })}
+              {t("pendingChangeCount", { count: displayChangeCount })}
             </Badge>
           )}
         </div>
@@ -97,27 +94,21 @@ function FunctionSettingsWorkspace() {
         </p>
       </header>
 
-      <SettingsCategoryTabs active="functions" />
+      <SettingsCategoryTabs active="display" />
 
-      <div className="flex flex-col gap-4">
-        <TrxSettingsCard settings={settings} edit={edit} />
-
-        <div className="grid items-start gap-4 lg:grid-cols-2">
-          <div className="flex flex-col gap-4">
-            <CitSettingsCard settings={settings} edit={edit} />
-            <SteSettingsCard settings={settings} edit={edit} />
-            <ToneBurstSettingsCard settings={settings} edit={edit} />
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <ScanSettingsCard settings={settings} edit={edit} />
-            <PowerSaveSettingsCard settings={settings} edit={edit} />
-            <WeatherSettingsCard settings={settings} edit={edit} />
-          </div>
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <div className="flex flex-col gap-4">
+          <LcdBacklightCard settings={settings} edit={edit} />
+          <PowerOnDisplayCard settings={settings} edit={edit} />
+          <MemoryChannelDisplayCard settings={settings} edit={edit} />
+        </div>
+        <div className="flex flex-col gap-4">
+          <UnitsCard settings={settings} edit={edit} />
+          <OtherDisplaySettingsCard settings={settings} edit={edit} />
         </div>
       </div>
     </main>
   )
 }
 
-export { FunctionSettingsWorkspace }
+export { DisplaySettingsWorkspace }

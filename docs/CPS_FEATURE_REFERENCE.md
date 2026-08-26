@@ -1120,7 +1120,7 @@ firmware update commands
 
 ## P2 — Extended Codeplug Settings
 
-- [ ] display settings
+- [x] display settings
 - [ ] audio settings
 - [ ] AI voice control
 - [ ] AI noise reduction

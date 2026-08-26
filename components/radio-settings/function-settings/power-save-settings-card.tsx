@@ -7,8 +7,8 @@ import {
   BooleanSettingField,
   SelectSettingField,
   numberOptions,
-} from "./setting-fields"
-import { SettingsCard } from "./settings-card"
+} from "../setting-fields"
+import { SettingsCard } from "../settings-card"
 import type { FunctionSettingsSectionProps } from "./types"
 
 function PowerSaveSettingsCard({

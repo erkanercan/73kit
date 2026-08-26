@@ -8,7 +8,6 @@ import { SpecialChannelsCard } from "@/components/channels/special-channels-card
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import {
   Empty,
   EmptyContent,
@@ -39,28 +38,24 @@ function ChannelsWorkspace() {
 
   if (!codeplug) {
     return (
-      <main className="mx-auto flex w-full max-w-6xl flex-1 p-4 sm:p-6 lg:p-8">
-        <Card className="w-full">
-          <CardContent>
-            <Empty className="min-h-[32rem] border">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <ListIcon />
-                </EmptyMedia>
-                <EmptyTitle>{t("channelsReadRequiredTitle")}</EmptyTitle>
-              </EmptyHeader>
-              <EmptyContent>
-                <Button
-                  disabled={busy || capability !== "available"}
-                  onClick={() => void readRadio()}
-                >
-                  <DownloadIcon data-icon="inline-start" />
-                  {t("readRadio")}
-                </Button>
-              </EmptyContent>
-            </Empty>
-          </CardContent>
-        </Card>
+      <main className="flex min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
+        <Empty className="min-h-[32rem] border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ListIcon />
+            </EmptyMedia>
+            <EmptyTitle>{t("channelsReadRequiredTitle")}</EmptyTitle>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button
+              disabled={busy || capability !== "available"}
+              onClick={() => void readRadio()}
+            >
+              <DownloadIcon data-icon="inline-start" />
+              {t("readRadio")}
+            </Button>
+          </EmptyContent>
+        </Empty>
       </main>
     )
   }

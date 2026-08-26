@@ -8,19 +8,21 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
+type SettingsCardProps = {
+  id: string
+  title: string
+  description: string
+  className?: string
+  children: ReactNode
+}
+
 function SettingsCard({
   id,
   title,
   description,
   className,
   children,
-}: {
-  id: string
-  title: string
-  description: string
-  className?: string
-  children: ReactNode
-}) {
+}: SettingsCardProps) {
   return (
     <Card id={id} className={className}>
       <CardHeader>

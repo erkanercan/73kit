@@ -3,6 +3,8 @@ import type {
   ChannelCollectionPatch,
   Channel,
   Codeplug,
+  DisplaySettings,
+  DisplaySettingsPatch,
   FunctionSettings,
   FunctionSettingsPatch,
   MemoryChannelPatch,
@@ -62,6 +64,10 @@ type WorkspaceChange =
   | {
       readonly kind: "edit-function-setting"
       readonly field: keyof FunctionSettingsPatch
+    }
+  | {
+      readonly kind: "edit-display-setting"
+      readonly field: keyof DisplaySettingsPatch
     }
 
 type MemoryChannelStructureChange = {
@@ -502,6 +508,36 @@ function reconcileFunctionSettingChanges(
   ])
 }
 
+function reconcileDisplaySettingChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  fields: readonly (keyof DisplaySettingsPatch)[]
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) {
+    return Object.freeze([])
+  }
+
+  const affectedFields = new Set(fields)
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-display-setting" ||
+      !affectedFields.has(change.field)
+  )
+  const baseline = baselineCodeplug.getDisplaySettings()
+  const working = workingCodeplug.getDisplaySettings()
+  const changedFields = fields.filter(
+    (field) => !displaySettingFieldEquals(baseline, working, field)
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) =>
+      Object.freeze({ kind: "edit-display-setting" as const, field })
+    ),
+  ])
+}
+
 function numberArraysEqual(left: readonly number[], right: readonly number[]) {
   return (
     left.length === right.length &&
@@ -520,6 +556,28 @@ function functionSettingFieldEquals(
   if (Array.isArray(baselineValue) && Array.isArray(workingValue)) {
     return numberArraysEqual(baselineValue, workingValue)
   }
+  if (
+    typeof baselineValue === "object" &&
+    baselineValue !== null &&
+    typeof workingValue === "object" &&
+    workingValue !== null &&
+    "kind" in baselineValue &&
+    "kind" in workingValue
+  ) {
+    return baselineValue.raw === workingValue.raw
+  }
+
+  return baselineValue === workingValue
+}
+
+function displaySettingFieldEquals(
+  baseline: DisplaySettings,
+  working: DisplaySettings,
+  field: keyof DisplaySettingsPatch
+) {
+  const baselineValue = baseline[field]
+  const workingValue = working[field]
+
   if (
     typeof baselineValue === "object" &&
     baselineValue !== null &&
@@ -603,6 +661,7 @@ export {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
   reconcileChannelMembershipChanges,
+  reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,

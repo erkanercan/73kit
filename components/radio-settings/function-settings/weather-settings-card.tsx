@@ -18,8 +18,8 @@ import {
   SettingHelp,
   numberOptions,
   textOptions,
-} from "./setting-fields"
-import { SettingsCard } from "./settings-card"
+} from "../setting-fields"
+import { SettingsCard } from "../settings-card"
 import type { FunctionSettingsSectionProps } from "./types"
 
 const weatherSquelchLabel = {

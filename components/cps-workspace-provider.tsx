@@ -18,6 +18,7 @@ import {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
   reconcileChannelMembershipChanges,
+  reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
@@ -30,6 +31,7 @@ import type {
   CallChannelPatch,
   ChannelMembershipPatch,
   ChannelCollectionPatch,
+  DisplaySettingsPatch,
   FunctionSettingsPatch,
   MemoryChannelPatch,
   RadioBand,
@@ -68,6 +70,7 @@ interface CpsWorkspaceContextValue {
     scanListNumbers: readonly number[]
   ): void
   editFunctionSettings(patch: FunctionSettingsPatch): void
+  editDisplaySettings(patch: DisplaySettingsPatch): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
 }
@@ -553,6 +556,41 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const editDisplaySettings = React.useCallback(
+    (patch: DisplaySettingsPatch) => {
+      const fields = Object.keys(patch) as (keyof DisplaySettingsPatch)[]
+      if (fields.length === 0) {
+        return
+      }
+
+      setDocumentState((current) => {
+        if (!current.completedRead) {
+          return current
+        }
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editDisplaySettings(patch)
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileDisplaySettingChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
   const addMemoryChannel = React.useCallback(() => {
     setDocumentState((current) => {
       if (!current.completedRead) {
@@ -676,6 +714,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editBandZoneSelection,
       editBandScanListSelection,
       editFunctionSettings,
+      editDisplaySettings,
       moveMemoryChannel,
       resetWorkingCodeplug,
     }),
@@ -701,6 +740,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editBandZoneSelection,
       editBandScanListSelection,
       editFunctionSettings,
+      editDisplaySettings,
       moveMemoryChannel,
       resetWorkingCodeplug,
     ]

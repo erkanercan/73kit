@@ -21,6 +21,7 @@ const en = {
     "Edit the Working Codeplug's radio-wide behavior. Changes remain local until Radio Write is available.",
   functionSettingsReadRequiredTitle:
     "Read a Radio to edit its Function Settings",
+  displaySettingsReadRequiredTitle: "Read a Radio to edit its Display Settings",
   settingsCategoryFunctions: "Functions",
   settingsCategoryDisplay: "Display",
   settingsCategorySounds: "Sounds",
@@ -47,6 +48,21 @@ const en = {
   functionSectionWeather: "WX CH",
   functionSectionWeatherDescription:
     "Weather Channel monitoring, scan membership, and signaling reset behavior.",
+  displaySectionLcdBacklight: "LCD Backlight",
+  displaySectionLcdBacklightDescription:
+    "Set normal brightness and what the backlight does after the Radio is idle.",
+  displaySectionPowerOn: "Power-On Display",
+  displaySectionPowerOnDescription:
+    "Choose the information shown while the Radio starts.",
+  displaySectionMemoryChannel: "Channel Display",
+  displaySectionMemoryChannelDescription:
+    "Choose which Channel details appear on the Radio screen.",
+  displaySectionUnits: "Units",
+  displaySectionUnitsDescription:
+    "Choose the formats and measurement units used by the Radio.",
+  displaySectionOther: "Other Display Settings",
+  displaySectionOtherDescription:
+    "Language, Radio theme, status indicators, and menu display behavior.",
   settingRxTxMode: "RX/TX mode",
   settingCrossBandRepeaterMode: "Cross-band repeater mode",
   settingCrossBandRepeaterMonitoring: "Cross-band repeater monitoring",
@@ -79,6 +95,33 @@ const en = {
   settingWeatherReceiveMode: "Receive mode",
   settingWeatherScanChannels: "Channels included in WX scan",
   settingWeatherDecodeReset: "Decode reset time",
+  settingBacklightLevel: "Backlight level",
+  settingAutoDimmingMode: "Auto dimming",
+  settingAutoDimDelay: "Auto-dim delay",
+  settingExitAutoDimOnReceive: "Exit auto-dim on RX",
+  settingExitAutoDimOnTransmit: "Exit auto-dim on TX",
+  settingShowBootImage: "Show boot image",
+  settingShowFirmwareVersion: "Show firmware version",
+  settingShowPowerOnMessage: "Show power-on message",
+  settingShowBatteryVoltage: "Show battery voltage",
+  settingPowerOnMessage: "Power-on message",
+  settingShowChannelFrequency: "Show Channel frequency",
+  settingShowChannelName: "Show Channel name",
+  settingShowZoneName: "Show Zone name",
+  settingCoordinateFormat: "Coordinate format",
+  settingSpeedUnit: "Speed",
+  settingAltitudeUnit: "Altitude",
+  settingDistanceUnit: "Distance",
+  settingRainfallUnit: "Rainfall",
+  settingWindSpeedUnit: "Wind speed",
+  settingTemperatureUnit: "Temperature",
+  settingSystemLanguage: "Radio language",
+  settingSystemTheme: "Radio display theme",
+  settingMenuAutoExit: "Menu auto-exit",
+  settingBatteryDisplayStyle: "Battery display style",
+  settingRxIndicatorLed: "RX indicator LED",
+  settingScreenOffIndicatorLed: "Screen-off indicator LED",
+  settingReceivedSignalStrength: "Received signal strength",
   settingHelpLabel: "About {setting}",
   settingHintRxTxMode:
     "Chooses how the two display bands receive and which band can transmit.",
@@ -144,15 +187,96 @@ const en = {
     "Chooses which of the ten fixed Weather Channels participate in multi-channel WX scanning.",
   settingHintWeatherDecodeReset:
     "Sets how long Weather alert decoding remains active before it resets for the next signal.",
+  settingHintBacklightLevel:
+    "Sets the normal LCD backlight brightness from level 1 to level 9.",
+  settingHintAutoDimmingMode:
+    "Keeps the backlight unchanged, turns it off, or lowers it to the selected level after the delay.",
+  settingHintAutoDimDelay:
+    "Sets how long the Radio waits without activity before applying the automatic backlight action.",
+  settingHintExitAutoDimOnReceive:
+    "Restores normal backlight brightness when the Radio receives a signal.",
+  settingHintExitAutoDimOnTransmit:
+    "Restores normal backlight brightness when the Radio transmits.",
+  settingHintShowBootImage: "Shows the Radio's boot image during startup.",
+  settingHintShowFirmwareVersion:
+    "Shows the installed firmware version during startup.",
+  settingHintShowPowerOnMessage:
+    "Shows the custom power-on message during startup.",
+  settingHintShowBatteryVoltage:
+    "Shows the measured battery voltage during startup.",
+  settingHintPowerOnMessage:
+    "Sets the custom startup text. The Radio accepts up to 16 characters.",
+  settingHintShowChannelFrequency:
+    "Shows the active Channel's frequency on the Radio screen.",
+  settingHintShowChannelName:
+    "Shows the active Channel's programmed name on the Radio screen.",
+  settingHintShowZoneName: "Shows the active Zone name on the Radio screen.",
+  settingHintCoordinateFormat:
+    "Chooses how latitude and longitude coordinates are formatted.",
+  settingHintSpeedUnit: "Chooses the units used when the Radio displays speed.",
+  settingHintAltitudeUnit: "Chooses metres or feet for altitude values.",
+  settingHintDistanceUnit:
+    "Chooses metric, statute-mile, or nautical-mile distance units.",
+  settingHintRainfallUnit: "Chooses millimetres or inches for rainfall values.",
+  settingHintWindSpeedUnit:
+    "Chooses the units used when the Radio displays wind speed.",
+  settingHintTemperatureUnit:
+    "Chooses Celsius or Fahrenheit for temperature values.",
+  settingHintSystemLanguage:
+    "Changes the language of the Radio's own menus and labels.",
+  settingHintSystemTheme:
+    "Changes the Radio screen between its light and dark themes. This does not change the CPS theme.",
+  settingHintMenuAutoExit:
+    "Automatically closes the Radio menu after the selected period without input.",
+  settingHintBatteryDisplayStyle:
+    "Shows battery status as an icon, a voltage reading, or both.",
+  settingHintRxIndicatorLed:
+    "Lights the receive indicator while the Radio is receiving.",
+  settingHintScreenOffIndicatorLed:
+    "Keeps the indicator LED available while the Radio screen is off.",
+  settingHintReceivedSignalStrength:
+    "Chooses whether received signal strength is hidden, shown in dBm, or shown as both RSSI level and dBm.",
+  powerOnMessageCharacterCount: "{count, number} / {max, number} characters",
+  powerOnMessageTooLong:
+    "Enter no more than 16 characters that fit in the Radio's text field.",
   settingTenthsRangeError:
     "Enter a value from {min, number} to {max, number} in 0.1-second increments.",
   secondsUnit: "s",
   weatherChannel: "WX{channel, number}",
   valueMinutes: "{value, number} min",
+  valueHours: "{value, number} hr",
   valueSeconds: "{value, number} s",
   valueMilliseconds: "{value, number} ms",
   valueHertz: "{value, number} Hz",
   valueLevel: "Level {value, number}",
+  valueAutoOff: "Auto off",
+  valueAutoDimLevel: "Auto dim to level {value, number}",
+  valueDecimalDegrees: "Decimal degrees (D.D°)",
+  valueDegreesDecimalMinutes: "Degrees and decimal minutes (D°M.M′)",
+  valueDegreesMinutesSeconds: "Degrees, minutes and seconds (D°M′S″)",
+  valueMetricSpeed: "m/s and km/h",
+  valueMph: "MPH",
+  valueKnots: "Knots",
+  valueMeters: "Metres",
+  valueFeet: "Feet",
+  valueMetricDistance: "Metres and kilometres",
+  valueMiles: "Miles",
+  valueNauticalMiles: "Nautical miles",
+  valueMillimeters: "Millimetres",
+  valueInches: "Inches",
+  valueCelsius: "Celsius (°C)",
+  valueFahrenheit: "Fahrenheit (°F)",
+  valueSimplifiedChinese: "Simplified Chinese",
+  valueTraditionalChinese: "Traditional Chinese",
+  valueEnglish: "English",
+  valueTurkish: "Turkish",
+  valueLight: "Light",
+  valueDark: "Dark",
+  valueIcon: "Icon",
+  valueVoltage: "Voltage",
+  valueIconAndVoltage: "Icon + voltage",
+  valueDbm: "dBm",
+  valueRssiAndDbm: "RSSI level + dBm",
   valueUnknownStored: "Unknown stored value",
   valueSingleRxTx: "Single RX/TX",
   valueDualWatchSingleTx: "Dual-watch, single TX",

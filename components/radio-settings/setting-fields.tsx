@@ -69,11 +69,38 @@ const settingHintKey = {
   "weather-receive-mode": "settingHintWeatherReceiveMode",
   "weather-scan-channels": "settingHintWeatherScanChannels",
   "weather-decode-reset": "settingHintWeatherDecodeReset",
+  "backlight-level": "settingHintBacklightLevel",
+  "auto-dimming-mode": "settingHintAutoDimmingMode",
+  "auto-dim-delay": "settingHintAutoDimDelay",
+  "exit-auto-dim-on-receive": "settingHintExitAutoDimOnReceive",
+  "exit-auto-dim-on-transmit": "settingHintExitAutoDimOnTransmit",
+  "show-boot-image": "settingHintShowBootImage",
+  "show-firmware-version": "settingHintShowFirmwareVersion",
+  "show-power-on-message": "settingHintShowPowerOnMessage",
+  "show-battery-voltage": "settingHintShowBatteryVoltage",
+  "power-on-message": "settingHintPowerOnMessage",
+  "show-channel-frequency": "settingHintShowChannelFrequency",
+  "show-channel-name": "settingHintShowChannelName",
+  "show-zone-name": "settingHintShowZoneName",
+  "coordinate-format": "settingHintCoordinateFormat",
+  "speed-unit": "settingHintSpeedUnit",
+  "altitude-unit": "settingHintAltitudeUnit",
+  "distance-unit": "settingHintDistanceUnit",
+  "rainfall-unit": "settingHintRainfallUnit",
+  "wind-speed-unit": "settingHintWindSpeedUnit",
+  "temperature-unit": "settingHintTemperatureUnit",
+  "system-language": "settingHintSystemLanguage",
+  "system-theme": "settingHintSystemTheme",
+  "menu-auto-exit": "settingHintMenuAutoExit",
+  "battery-display-style": "settingHintBatteryDisplayStyle",
+  "rx-indicator-led": "settingHintRxIndicatorLed",
+  "screen-off-indicator-led": "settingHintScreenOffIndicatorLed",
+  "received-signal-strength": "settingHintReceivedSignalStrength",
 } as const
 
-type FunctionSettingId = keyof typeof settingHintKey
+type RadioSettingId = keyof typeof settingHintKey
 
-function SettingLabel({ id, label }: { id: FunctionSettingId; label: string }) {
+function SettingLabel({ id, label }: { id: RadioSettingId; label: string }) {
   return (
     <div className="flex min-w-0 items-center gap-1">
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
@@ -82,7 +109,7 @@ function SettingLabel({ id, label }: { id: FunctionSettingId; label: string }) {
   )
 }
 
-function SettingHelp({ id, label }: { id: FunctionSettingId; label: string }) {
+function SettingHelp({ id, label }: { id: RadioSettingId; label: string }) {
   const t = useTranslations()
 
   return (
@@ -113,7 +140,7 @@ function SelectSettingField<Value extends SelectValueType>({
   options,
   onChange,
 }: {
-  id: FunctionSettingId
+  id: RadioSettingId
   label: string
   value: Value | UnknownSettingValue
   options: readonly SelectOption<Value>[]
@@ -163,7 +190,7 @@ function BooleanSettingField({
   value,
   onChange,
 }: {
-  id: FunctionSettingId
+  id: RadioSettingId
   label: string
   value: boolean | UnknownSettingValue
   onChange(value: boolean): void
@@ -203,7 +230,7 @@ function NumberSettingField({
   max,
   onChange,
 }: {
-  id: FunctionSettingId
+  id: RadioSettingId
   label: string
   value: number | UnknownSettingValue
   min: number

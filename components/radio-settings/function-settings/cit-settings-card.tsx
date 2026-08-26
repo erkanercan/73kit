@@ -2,8 +2,8 @@ import { useTranslations } from "next-intl"
 
 import { FieldGroup } from "@/components/ui/field"
 
-import { BooleanSettingField } from "./setting-fields"
-import { SettingsCard } from "./settings-card"
+import { BooleanSettingField } from "../setting-fields"
+import { SettingsCard } from "../settings-card"
 import type { FunctionSettingsSectionProps } from "./types"
 
 function CitSettingsCard({ settings, edit }: FunctionSettingsSectionProps) {

@@ -113,28 +113,24 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
 
   if (!codeplug) {
     return (
-      <main className="mx-auto flex w-full max-w-6xl flex-1 p-4 sm:p-6 lg:p-8">
-        <Card className="w-full">
-          <CardContent>
-            <Empty className="min-h-[32rem] border">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <CollectionIcon />
-                </EmptyMedia>
-                <EmptyTitle>{t(labels.readRequiredTitle)}</EmptyTitle>
-              </EmptyHeader>
-              <EmptyContent>
-                <Button
-                  disabled={busy || capability !== "available"}
-                  onClick={() => void readRadio()}
-                >
-                  <DownloadIcon data-icon="inline-start" />
-                  {t("readRadio")}
-                </Button>
-              </EmptyContent>
-            </Empty>
-          </CardContent>
-        </Card>
+      <main className="flex min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
+        <Empty className="min-h-[32rem] border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <CollectionIcon />
+            </EmptyMedia>
+            <EmptyTitle>{t(labels.readRequiredTitle)}</EmptyTitle>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button
+              disabled={busy || capability !== "available"}
+              onClick={() => void readRadio()}
+            >
+              <DownloadIcon data-icon="inline-start" />
+              {t("readRadio")}
+            </Button>
+          </EmptyContent>
+        </Empty>
       </main>
     )
   }

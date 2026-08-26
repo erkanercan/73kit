@@ -23,6 +23,8 @@ const tr = {
     "Çalışma Codeplug'ındaki telsiz genel davranışlarını düzenleyin. Değişiklikler Telsize Yaz kullanılabilir olana kadar yerel kalır.",
   functionSettingsReadRequiredTitle:
     "Fonksiyon Ayarlarını düzenlemek için telsizi okuyun",
+  displaySettingsReadRequiredTitle:
+    "Ekran Ayarlarını düzenlemek için telsizi okuyun",
   settingsCategoryFunctions: "Fonksiyonlar",
   settingsCategoryDisplay: "Ekran",
   settingsCategorySounds: "Sesler",
@@ -49,6 +51,21 @@ const tr = {
   functionSectionWeather: "WX CH",
   functionSectionWeatherDescription:
     "Hava Durumu Kanalları izleme, tarama üyeliği ve sinyal sıfırlama davranışı.",
+  displaySectionLcdBacklight: "LCD Arka Aydınlatma",
+  displaySectionLcdBacklightDescription:
+    "Normal parlaklığı ve telsiz boşta kaldığında arka aydınlatmanın davranışını ayarlayın.",
+  displaySectionPowerOn: "Açılış Ekranı",
+  displaySectionPowerOnDescription:
+    "Telsiz açılırken gösterilecek bilgileri seçin.",
+  displaySectionMemoryChannel: "Kanal Ekranı",
+  displaySectionMemoryChannelDescription:
+    "Telsiz ekranında gösterilecek Kanal ayrıntılarını seçin.",
+  displaySectionUnits: "Birimler",
+  displaySectionUnitsDescription:
+    "Telsizin kullanacağı biçimleri ve ölçü birimlerini seçin.",
+  displaySectionOther: "Diğer Ekran Ayarları",
+  displaySectionOtherDescription:
+    "Dil, telsiz teması, durum göstergeleri ve menü ekranı davranışı.",
   settingRxTxMode: "RX/TX modu",
   settingCrossBandRepeaterMode: "Cross-band röle modu",
   settingCrossBandRepeaterMonitoring: "Cross-band röle izleme",
@@ -81,6 +98,33 @@ const tr = {
   settingWeatherReceiveMode: "Alım modu",
   settingWeatherScanChannels: "WX taramasına dahil kanallar",
   settingWeatherDecodeReset: "Decode sıfırlama süresi",
+  settingBacklightLevel: "Arka aydınlatma seviyesi",
+  settingAutoDimmingMode: "Otomatik karartma",
+  settingAutoDimDelay: "Otomatik karartma gecikmesi",
+  settingExitAutoDimOnReceive: "RX sırasında karartmadan çık",
+  settingExitAutoDimOnTransmit: "TX sırasında karartmadan çık",
+  settingShowBootImage: "Açılış görselini göster",
+  settingShowFirmwareVersion: "Firmware sürümünü göster",
+  settingShowPowerOnMessage: "Açılış mesajını göster",
+  settingShowBatteryVoltage: "Pil voltajını göster",
+  settingPowerOnMessage: "Açılış mesajı",
+  settingShowChannelFrequency: "Kanal frekansını göster",
+  settingShowChannelName: "Kanal adını göster",
+  settingShowZoneName: "Bölge adını göster",
+  settingCoordinateFormat: "Koordinat biçimi",
+  settingSpeedUnit: "Hız",
+  settingAltitudeUnit: "Rakım",
+  settingDistanceUnit: "Mesafe",
+  settingRainfallUnit: "Yağış",
+  settingWindSpeedUnit: "Rüzgâr hızı",
+  settingTemperatureUnit: "Sıcaklık",
+  settingSystemLanguage: "Telsiz dili",
+  settingSystemTheme: "Telsiz ekran teması",
+  settingMenuAutoExit: "Menüden otomatik çıkış",
+  settingBatteryDisplayStyle: "Pil gösterim biçimi",
+  settingRxIndicatorLed: "RX gösterge LED'i",
+  settingScreenOffIndicatorLed: "Ekran kapalı gösterge LED'i",
+  settingReceivedSignalStrength: "Alınan sinyal gücü",
   settingHelpLabel: "{setting} hakkında bilgi",
   settingHintRxTxMode:
     "İki ekran bandının nasıl alım yapacağını ve hangi bandın gönderim yapabileceğini belirler.",
@@ -146,15 +190,96 @@ const tr = {
     "On sabit Hava Durumu Kanalından hangilerinin çoklu WX taramasına katılacağını seçer.",
   settingHintWeatherDecodeReset:
     "Hava Durumu uyarı çözümlemesinin bir sonraki sinyal için sıfırlanmadan önce ne kadar etkin kalacağını belirler.",
+  settingHintBacklightLevel:
+    "LCD arka aydınlatmasının normal parlaklığını 1 ile 9 arasında ayarlar.",
+  settingHintAutoDimmingMode:
+    "Gecikme sonunda arka aydınlatmayı değiştirmez, tamamen kapatır veya seçilen seviyeye düşürür.",
+  settingHintAutoDimDelay:
+    "Telsizin otomatik arka aydınlatma işlemini uygulamadan önce ne kadar süre etkinlik bekleyeceğini belirler.",
+  settingHintExitAutoDimOnReceive:
+    "Telsiz sinyal aldığında arka aydınlatmayı normal parlaklığa döndürür.",
+  settingHintExitAutoDimOnTransmit:
+    "Telsiz gönderim yaptığında arka aydınlatmayı normal parlaklığa döndürür.",
+  settingHintShowBootImage: "Telsiz açılırken açılış görselini gösterir.",
+  settingHintShowFirmwareVersion:
+    "Telsiz açılırken yüklü firmware sürümünü gösterir.",
+  settingHintShowPowerOnMessage:
+    "Telsiz açılırken özel açılış mesajını gösterir.",
+  settingHintShowBatteryVoltage:
+    "Telsiz açılırken ölçülen pil voltajını gösterir.",
+  settingHintPowerOnMessage:
+    "Özel açılış metnini belirler. Telsiz en fazla 16 karakter kabul eder.",
+  settingHintShowChannelFrequency:
+    "Etkin Kanalın frekansını telsiz ekranında gösterir.",
+  settingHintShowChannelName:
+    "Etkin Kanalın programlanmış adını telsiz ekranında gösterir.",
+  settingHintShowZoneName: "Etkin Bölgenin adını telsiz ekranında gösterir.",
+  settingHintCoordinateFormat:
+    "Enlem ve boylam koordinatlarının gösterim biçimini seçer.",
+  settingHintSpeedUnit:
+    "Telsizin hız gösteriminde kullanacağı birimleri seçer.",
+  settingHintAltitudeUnit: "Rakım değerleri için metre veya feet seçer.",
+  settingHintDistanceUnit:
+    "Mesafe için metrik, kara mili veya deniz mili birimlerini seçer.",
+  settingHintRainfallUnit: "Yağış değerleri için milimetre veya inç seçer.",
+  settingHintWindSpeedUnit:
+    "Telsizin rüzgâr hızı gösteriminde kullanacağı birimleri seçer.",
+  settingHintTemperatureUnit:
+    "Sıcaklık değerleri için Celsius veya Fahrenheit seçer.",
+  settingHintSystemLanguage:
+    "Telsizin kendi menü ve etiketlerinin dilini değiştirir.",
+  settingHintSystemTheme:
+    "Telsiz ekranını açık veya koyu temaya geçirir. CPS temasını değiştirmez.",
+  settingHintMenuAutoExit:
+    "Seçilen süre boyunca giriş yapılmazsa telsiz menüsünü otomatik kapatır.",
+  settingHintBatteryDisplayStyle:
+    "Pil durumunu simge, voltaj değeri veya ikisi birlikte olacak şekilde gösterir.",
+  settingHintRxIndicatorLed: "Telsiz alım yaparken RX gösterge LED'ini yakar.",
+  settingHintScreenOffIndicatorLed:
+    "Telsiz ekranı kapalıyken gösterge LED'inin kullanılmasını sağlar.",
+  settingHintReceivedSignalStrength:
+    "Alınan sinyal gücünü gizler, dBm olarak veya RSSI seviyesi ile dBm birlikte gösterir.",
+  powerOnMessageCharacterCount: "{count, number} / {max, number} karakter",
+  powerOnMessageTooLong:
+    "En fazla 16 karakter girin ve metnin telsiz alanına sığdığından emin olun.",
   settingTenthsRangeError:
     "{min, number} ile {max, number} arasında, 0,1 saniyelik adımlarla bir değer girin.",
   secondsUnit: "sn",
   weatherChannel: "WX{channel, number}",
   valueMinutes: "{value, number} dk",
+  valueHours: "{value, number} sa",
   valueSeconds: "{value, number} sn",
   valueMilliseconds: "{value, number} ms",
   valueHertz: "{value, number} Hz",
   valueLevel: "Seviye {value, number}",
+  valueAutoOff: "Otomatik kapat",
+  valueAutoDimLevel: "{value, number}. seviyeye otomatik karart",
+  valueDecimalDegrees: "Ondalık derece (D.D°)",
+  valueDegreesDecimalMinutes: "Derece ve ondalık dakika (D°M.M′)",
+  valueDegreesMinutesSeconds: "Derece, dakika ve saniye (D°M′S″)",
+  valueMetricSpeed: "m/sn ve km/sa",
+  valueMph: "MPH",
+  valueKnots: "Knot",
+  valueMeters: "Metre",
+  valueFeet: "Feet",
+  valueMetricDistance: "Metre ve kilometre",
+  valueMiles: "Mil",
+  valueNauticalMiles: "Deniz mili",
+  valueMillimeters: "Milimetre",
+  valueInches: "İnç",
+  valueCelsius: "Celsius (°C)",
+  valueFahrenheit: "Fahrenheit (°F)",
+  valueSimplifiedChinese: "Basitleştirilmiş Çince",
+  valueTraditionalChinese: "Geleneksel Çince",
+  valueEnglish: "İngilizce",
+  valueTurkish: "Türkçe",
+  valueLight: "Açık",
+  valueDark: "Koyu",
+  valueIcon: "Simge",
+  valueVoltage: "Voltaj",
+  valueIconAndVoltage: "Simge + voltaj",
+  valueDbm: "dBm",
+  valueRssiAndDbm: "RSSI seviyesi + dBm",
   valueUnknownStored: "Bilinmeyen kayıtlı değer",
   valueSingleRxTx: "Tek RX/TX",
   valueDualWatchSingleTx: "Çift izleme, tek TX",

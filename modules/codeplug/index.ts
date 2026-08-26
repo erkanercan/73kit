@@ -54,6 +54,14 @@ import type {
   FunctionSettings,
   FunctionSettingsPatch,
 } from "./function-settings.ts"
+import {
+  decodeDisplaySettings,
+  editDisplaySettingsBytes,
+} from "./display-settings.ts"
+import type {
+  DisplaySettings,
+  DisplaySettingsPatch,
+} from "./display-settings.ts"
 
 const CODEPLUG_SIZE = 0x19000
 
@@ -67,6 +75,7 @@ class Codeplug {
   readonly #bandZoneSelections: BandZoneSelections
   readonly #bandScanListSelections: BandScanListSelections
   readonly #functionSettings: FunctionSettings
+  readonly #displaySettings: DisplaySettings
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -84,6 +93,7 @@ class Codeplug {
     this.#bandZoneSelections = decodeBandZoneSelections(this.#bytes)
     this.#bandScanListSelections = decodeBandScanListSelections(this.#bytes)
     this.#functionSettings = decodeFunctionSettings(this.#bytes)
+    this.#displaySettings = decodeDisplaySettings(this.#bytes)
   }
 
   get byteLength() {
@@ -124,6 +134,10 @@ class Codeplug {
 
   getFunctionSettings() {
     return this.#functionSettings
+  }
+
+  getDisplaySettings() {
+    return this.#displaySettings
   }
 
   moveMemoryChannel(fromNumber: number, toNumber: number) {
@@ -169,6 +183,10 @@ class Codeplug {
 
   editFunctionSettings(patch: FunctionSettingsPatch) {
     return new Codeplug(editFunctionSettingsBytes(this.#bytes, patch))
+  }
+
+  editDisplaySettings(patch: DisplaySettingsPatch) {
+    return new Codeplug(editDisplaySettingsBytes(this.#bytes, patch))
   }
 
   editChannelMemberships(number: number, patch: ChannelMembershipPatch) {
@@ -229,3 +247,12 @@ export type {
   FunctionSettingsPatch,
   UnknownSettingValue,
 } from "./function-settings.ts"
+export {
+  DISPLAY_SETTING_OPTIONS,
+  POWER_ON_MESSAGE_BYTES,
+  POWER_ON_MESSAGE_CHARACTERS,
+} from "./display-settings.ts"
+export type {
+  DisplaySettings,
+  DisplaySettingsPatch,
+} from "./display-settings.ts"
