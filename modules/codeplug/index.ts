@@ -94,6 +94,8 @@ import type {
 } from "./vfo-scan-edge.ts"
 import { decodeAprsSettings, editAprsSettingsBytes } from "./aprs-settings.ts"
 import type { AprsSettings, AprsSettingsPatch } from "./aprs-settings.ts"
+import { decodeGpsSettings, editGpsSettingsBytes } from "./gps-settings.ts"
+import type { GpsSettings, GpsSettingsPatch } from "./gps-settings.ts"
 
 const CODEPLUG_SIZE = 0x19000
 
@@ -114,6 +116,7 @@ class Codeplug {
   readonly #vfoScanEdges: readonly VfoScanEdge[]
   readonly #vfoScanEdgeSelections: VfoScanEdgeSelections
   readonly #aprsSettings: AprsSettings
+  readonly #gpsSettings: GpsSettings
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -138,6 +141,7 @@ class Codeplug {
     this.#vfoScanEdges = decodeVfoScanEdges(this.#bytes)
     this.#vfoScanEdgeSelections = decodeVfoScanEdgeSelections(this.#bytes)
     this.#aprsSettings = decodeAprsSettings(this.#bytes)
+    this.#gpsSettings = decodeGpsSettings(this.#bytes)
   }
 
   get byteLength() {
@@ -206,6 +210,10 @@ class Codeplug {
 
   getAprsSettings() {
     return this.#aprsSettings
+  }
+
+  getGpsSettings() {
+    return this.#gpsSettings
   }
 
   moveMemoryChannel(fromNumber: number, toNumber: number) {
@@ -281,6 +289,10 @@ class Codeplug {
 
   editAprsSettings(patch: AprsSettingsPatch) {
     return new Codeplug(editAprsSettingsBytes(this.#bytes, patch))
+  }
+
+  editGpsSettings(patch: GpsSettingsPatch) {
+    return new Codeplug(editGpsSettingsBytes(this.#bytes, patch))
   }
 
   editChannelMemberships(number: number, patch: ChannelMembershipPatch) {
@@ -391,6 +403,17 @@ export {
   APRS_SETTINGS_OFFSET,
   APRS_SETTINGS_SIZE,
 } from "./aprs-settings.ts"
+export {
+  GPS_SETTING_OPTIONS,
+  GPS_SETTINGS_ADDRESS,
+  GPS_SETTINGS_OFFSET,
+} from "./gps-settings.ts"
+export type {
+  GpsConstellation,
+  GpsSettings,
+  GpsSettingsPatch,
+  GpsTimezoneOffsetMinutes,
+} from "./gps-settings.ts"
 export {
   APRS_SYMBOL_CODES,
   aprsSymbolCode,

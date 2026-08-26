@@ -21,6 +21,7 @@ import {
   reconcileChannelMembershipChanges,
   reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,
+  reconcileGpsSettingChanges,
   reconcileKeyboardSettingChanges,
   reconcileMenuVisibilityChanges,
   reconcileSoundSettingChanges,
@@ -40,6 +41,7 @@ import type {
   ChannelCollectionPatch,
   DisplaySettingsPatch,
   FunctionSettingsPatch,
+  GpsSettingsPatch,
   KeyboardSettingsPatch,
   MenuVisibilityItemId,
   MemoryChannelPatch,
@@ -88,6 +90,7 @@ interface CpsWorkspaceContextValue {
   editSoundSettings(patch: SoundSettingsPatch): void
   editKeyboardSettings(patch: KeyboardSettingsPatch): void
   editAprsSettings(patch: AprsSettingsPatch): void
+  editGpsSettings(patch: GpsSettingsPatch): void
   setMenuVisibility(id: MenuVisibilityItemId, visible: boolean): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
@@ -764,6 +767,34 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
+  const editGpsSettings = React.useCallback((patch: GpsSettingsPatch) => {
+    const fields = Object.keys(patch) as (keyof GpsSettingsPatch)[]
+    if (fields.length === 0) return
+
+    setDocumentState((current) => {
+      if (!current.completedRead) return current
+      const completedRead = current.completedRead
+      const nextCodeplug =
+        completedRead.workingCodeplug.codeplug.editGpsSettings(patch)
+
+      return Object.freeze({
+        completedRead: Object.freeze({
+          ...completedRead,
+          workingCodeplug: Object.freeze({
+            ...completedRead.workingCodeplug,
+            codeplug: nextCodeplug,
+          }),
+        }),
+        changes: reconcileGpsSettingChanges(
+          current.changes,
+          completedRead.baselineBackup.codeplug,
+          nextCodeplug,
+          fields
+        ),
+      })
+    })
+  }, [])
+
   const setMenuVisibility = React.useCallback(
     (id: MenuVisibilityItemId, visible: boolean) => {
       setDocumentState((current) => {
@@ -958,6 +989,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editSoundSettings,
       editKeyboardSettings,
       editAprsSettings,
+      editGpsSettings,
       setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,
@@ -991,6 +1023,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editSoundSettings,
       editKeyboardSettings,
       editAprsSettings,
+      editGpsSettings,
       setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,

@@ -19,7 +19,23 @@ const tr = {
   navVfoScanEdges: "VFO Tarama Sınırı",
   navConfiguration: "Programlama",
   navAprs: "APRS",
+  navGps: "GPS",
   navSettings: "Telsiz Ayarları",
+  gpsTitle: "GPS",
+  gpsReadRequiredTitle: "GPS ayarlarını düzenlemek için telsizi okuyun",
+  gpsBasicTitle: "GPS Ayarları",
+  gpsReceiver: "GPS alıcısı",
+  gpsReceiverHint: "Telsizin uydu konumlandırma alıcısını açar veya kapatır.",
+  gpsTimezone: "GPS saat dilimi",
+  gpsTimezoneHint:
+    "Telsizin GPS'ten aldığı saat için kullanacağı sabit UTC farkını ayarlar.",
+  gpsConstellationsTitle: "Uydu Sistemleri",
+  gpsConstellationGps: "GPS",
+  gpsConstellationGpsHint: "Amerika Birleşik Devletleri uydu sistemi.",
+  gpsConstellationBds: "BDS (BeiDou)",
+  gpsConstellationBdsHint: "Çin'in BeiDou uydu sistemi.",
+  gpsConstellationGlonass: "GLONASS",
+  gpsConstellationGlonassHint: "Rusya'nın uydu sistemi.",
   radioSettingsTitle: "Telsiz Temel Ayarları",
   functionSettingsReadRequiredTitle:
     "Fonksiyon Ayarlarını düzenlemek için telsizi okuyun",
@@ -730,7 +746,8 @@ const tr = {
   aprsAutomaticBeaconIntervalHint:
     "Otomatik beacon gönderim sıklığını belirler. Kapalı seçeneği devre dışı bırakır.",
   aprsRfBeaconTransmission: "RF beacon",
-  aprsRfBeaconWarning: "Telsiz üzerinden APRS beacon gönderimini etkinleştirir.",
+  aprsRfBeaconWarning:
+    "Telsiz üzerinden APRS beacon gönderimini etkinleştirir.",
   aprsBeaconTxChannel: "Beacon TX kanalı",
   aprsBeaconTxChannelHint:
     "TX Kanalları sekmesindeki APRS kanal kayıtlarından birini seçer.",
@@ -792,11 +809,9 @@ const tr = {
   aprsReportDecode: "Decode",
   aprsReportDecodeHint: "Bu türde alınan APRS paketlerini çözer.",
   aprsReportPopup: "Açılır pencere süresi",
-  aprsReportPopupHint:
-    "Bu türde alınan raporun ekranda kalacağı süre.",
+  aprsReportPopupHint: "Bu türde alınan raporun ekranda kalacağı süre.",
   aprsReportAlert: "Uyarı tonu",
-  aprsReportAlertHint:
-    "Bu türde bir APRS paketi alındığında uyarı tonu çalar.",
+  aprsReportAlertHint: "Bu türde bir APRS paketi alındığında uyarı tonu çalar.",
   aprsTxChannel: "Kanal",
   aprsTxChannelHint: "APRS TX kanal kaydı numarası.",
   aprsTxChannelUsed: "Etkin",

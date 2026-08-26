@@ -956,6 +956,7 @@ Radio
 Channels
 Zones & Scanning
 APRS
+GPS
 Settings
 Backups
 ```
@@ -967,7 +968,6 @@ General
 Display
 Audio
 Keys
-GPS
 Bluetooth
 Signalling
 FM Radio

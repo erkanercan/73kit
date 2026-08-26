@@ -42,11 +42,11 @@ retained for this research.
 The repository's reviewed storage reference, reconstructed from the vendor Qt
 CPS UI and implementation, maps the settings as follows:
 
-| Setting | Flash address | Codeplug file offset | Encoding |
-| --- | ---: | ---: | --- |
-| GPS switch | `0x00015401` | `0xD401` | `0=Off`, `1=On` |
-| GNSS mode | `0x00015402` | `0xD402` | index `0..6`, in the seven-choice order below |
-| GPS time zone | `0x00015403` | `0xD403` | index `0..36` |
+| Setting       | Flash address | Codeplug file offset | Encoding                                      |
+| ------------- | ------------: | -------------------: | --------------------------------------------- |
+| GPS switch    |  `0x00015401` |             `0xD401` | `0=Off`, `1=On`                               |
+| GNSS mode     |  `0x00015402` |             `0xD402` | index `0..6`, in the seven-choice order below |
+| GPS time zone |  `0x00015403` |             `0xD403` | index `0..36`                                 |
 
 The file offset is the flash address minus the Codeplug start address
 `0x00008000`. The complete timezone table and the mode formula are in
@@ -54,14 +54,14 @@ The file offset is the flash address minus the Codeplug start address
 
 GNSS mode values are:
 
-| Raw | Mode |
-| ---: | --- |
-| `0` | GPS |
-| `1` | BeiDou |
-| `2` | GPS + BeiDou |
-| `3` | GLONASS |
-| `4` | GPS + GLONASS |
-| `5` | BeiDou + GLONASS |
+| Raw | Mode                   |
+| --: | ---------------------- |
+| `0` | GPS                    |
+| `1` | BeiDou                 |
+| `2` | GPS + BeiDou           |
+| `3` | GLONASS                |
+| `4` | GPS + GLONASS          |
+| `5` | BeiDou + GLONASS       |
 | `6` | GPS + BeiDou + GLONASS |
 
 The storage reference describes this as `(selected constellation bitmask - 1)`.
@@ -122,8 +122,8 @@ the same USB serial interface.
 
 ## Recommended implementation shape
 
-Add GPS as a desktop Radio Settings category consistent with the existing
-settings layouts.
+Add GPS as a standalone desktop workspace directly below APRS in the sidebar,
+using the existing APRS page shell and Radio Settings card patterns.
 
 1. Add a deep `gps-settings` Codeplug codec owning only offsets
    `0xD401..0xD403`.
@@ -131,7 +131,7 @@ settings layouts.
    an intentional edit, following the existing settings codecs.
 3. Expose `getGpsSettings()` and `editGpsSettings(patch)` on `Codeplug`.
 4. Add per-field `edit-gps-setting` Change Set reconciliation.
-5. Add `/radio-settings/gps` with:
+5. Add `/gps` with:
    - GPS switch
    - one seven-choice positioning-mode select
    - one 37-choice UTC-offset select

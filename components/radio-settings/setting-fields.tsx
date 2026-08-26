@@ -135,6 +135,8 @@ const settingHintKey = {
   "auto-lock": "settingHintAutoLock",
   "lock-type": "settingHintLockType",
   "lock-delay": "settingHintLockDelay",
+  "gps-switch": "gpsReceiverHint",
+  "gps-time-zone": "gpsTimezoneHint",
 } as const
 
 type RadioSettingId = keyof typeof settingHintKey

@@ -9,6 +9,8 @@ import type {
   DisplaySettingsPatch,
   FunctionSettings,
   FunctionSettingsPatch,
+  GpsSettings,
+  GpsSettingsPatch,
   KeyboardSettings,
   KeyboardSettingsPatch,
   MenuVisibility,
@@ -103,6 +105,10 @@ type WorkspaceChange =
   | {
       readonly kind: "edit-aprs-setting"
       readonly field: keyof AprsSettingsPatch
+    }
+  | {
+      readonly kind: "edit-gps-setting"
+      readonly field: keyof GpsSettingsPatch
     }
 
 type MemoryChannelStructureChange = {
@@ -747,6 +753,33 @@ function reconcileAprsSettingChanges(
   ])
 }
 
+function reconcileGpsSettingChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  fields: readonly (keyof GpsSettingsPatch)[]
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) return Object.freeze([])
+
+  const affectedFields = new Set(fields)
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-gps-setting" || !affectedFields.has(change.field)
+  )
+  const baseline = baselineCodeplug.getGpsSettings()
+  const working = workingCodeplug.getGpsSettings()
+  const changedFields = fields.filter(
+    (field) => !gpsSettingFieldEquals(baseline, working, field)
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) =>
+      Object.freeze({ kind: "edit-gps-setting" as const, field })
+    ),
+  ])
+}
+
 function numberArraysEqual(left: readonly number[], right: readonly number[]) {
   return (
     left.length === right.length &&
@@ -861,6 +894,14 @@ function aprsSettingFieldEquals(
   return JSON.stringify(baseline[field]) === JSON.stringify(working[field])
 }
 
+function gpsSettingFieldEquals(
+  baseline: GpsSettings,
+  working: GpsSettings,
+  field: keyof GpsSettingsPatch
+) {
+  return JSON.stringify(baseline[field]) === JSON.stringify(working[field])
+}
+
 function channelFieldEquals(
   baseline: Channel,
   working: Channel,
@@ -933,6 +974,7 @@ export {
   reconcileChannelMembershipChanges,
   reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,
+  reconcileGpsSettingChanges,
   reconcileKeyboardSettingChanges,
   reconcileMenuVisibilityChanges,
   reconcileSoundSettingChanges,

@@ -18,7 +18,24 @@ const en = {
   navVfoScanEdges: "VFO Scan Edge",
   navConfiguration: "Programming",
   navAprs: "APRS",
+  navGps: "GPS",
   navSettings: "Radio Settings",
+  gpsTitle: "GPS",
+  gpsReadRequiredTitle: "Read a Radio to edit its GPS settings",
+  gpsBasicTitle: "GPS Settings",
+  gpsReceiver: "GPS receiver",
+  gpsReceiverHint:
+    "Turns the Radio's satellite positioning receiver on or off.",
+  gpsTimezone: "GPS time zone",
+  gpsTimezoneHint:
+    "Sets the fixed UTC offset used by the Radio for GPS-derived time.",
+  gpsConstellationsTitle: "Satellite Systems",
+  gpsConstellationGps: "GPS",
+  gpsConstellationGpsHint: "United States satellite system.",
+  gpsConstellationBds: "BDS (BeiDou)",
+  gpsConstellationBdsHint: "China's BeiDou satellite system.",
+  gpsConstellationGlonass: "GLONASS",
+  gpsConstellationGlonassHint: "Russia's satellite system.",
   radioSettingsTitle: "Radio Basic Settings",
   functionSettingsReadRequiredTitle:
     "Read a Radio to edit its Function Settings",
@@ -781,8 +798,7 @@ const en = {
   aprsReportDecode: "Decode",
   aprsReportDecodeHint: "Decodes received APRS packets of this type.",
   aprsReportPopup: "Popup duration",
-  aprsReportPopupHint:
-    "How long received reports of this type stay on screen.",
+  aprsReportPopupHint: "How long received reports of this type stay on screen.",
   aprsReportAlert: "Alert tone",
   aprsReportAlertHint:
     "Plays a tone when an APRS packet of this type is received.",
