@@ -19,6 +19,10 @@ Triage uses the five canonical label names without overrides. See `docs/agents/t
 
 Domain documentation uses the single-context layout. See `docs/agents/domain.md`.
 
+### Target layout
+
+This application targets desktop browsers only. Keep page shells, spacing, and controls consistent with the existing desktop Radio Settings layouts; mobile-specific layouts and responsive behavior are out of scope unless explicitly requested.
+
 ### Browser validation
 
 Always use the `chrome:control-chrome` skill for browser validation and UI checks.

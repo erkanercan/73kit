@@ -92,6 +92,8 @@ import type {
   VfoScanEdgePatch,
   VfoScanEdgeSelections,
 } from "./vfo-scan-edge.ts"
+import { decodeAprsSettings, editAprsSettingsBytes } from "./aprs-settings.ts"
+import type { AprsSettings, AprsSettingsPatch } from "./aprs-settings.ts"
 
 const CODEPLUG_SIZE = 0x19000
 
@@ -111,6 +113,7 @@ class Codeplug {
   readonly #menuVisibility: MenuVisibility
   readonly #vfoScanEdges: readonly VfoScanEdge[]
   readonly #vfoScanEdgeSelections: VfoScanEdgeSelections
+  readonly #aprsSettings: AprsSettings
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -134,6 +137,7 @@ class Codeplug {
     this.#menuVisibility = decodeMenuVisibility(this.#bytes)
     this.#vfoScanEdges = decodeVfoScanEdges(this.#bytes)
     this.#vfoScanEdgeSelections = decodeVfoScanEdgeSelections(this.#bytes)
+    this.#aprsSettings = decodeAprsSettings(this.#bytes)
   }
 
   get byteLength() {
@@ -198,6 +202,10 @@ class Codeplug {
 
   getVfoScanEdgeSelections() {
     return this.#vfoScanEdgeSelections
+  }
+
+  getAprsSettings() {
+    return this.#aprsSettings
   }
 
   moveMemoryChannel(fromNumber: number, toNumber: number) {
@@ -269,6 +277,10 @@ class Codeplug {
 
   setMenuVisibility(id: MenuVisibilityItemId, visible: boolean) {
     return new Codeplug(editMenuVisibilityBytes(this.#bytes, id, visible))
+  }
+
+  editAprsSettings(patch: AprsSettingsPatch) {
+    return new Codeplug(editAprsSettingsBytes(this.#bytes, patch))
   }
 
   editChannelMemberships(number: number, patch: ChannelMembershipPatch) {
@@ -372,3 +384,31 @@ export type {
   VfoScanEdgePatch,
   VfoScanEdgeSelections,
 } from "./vfo-scan-edge.ts"
+export {
+  APRS_REPORT_KINDS,
+  APRS_SETTING_OPTIONS,
+  APRS_SETTINGS_ADDRESS,
+  APRS_SETTINGS_OFFSET,
+  APRS_SETTINGS_SIZE,
+} from "./aprs-settings.ts"
+export { APRS_SYMBOL_CODES, aprsSymbolLabel } from "./aprs-symbols.ts"
+export type {
+  AprsAltitudeUnit,
+  AprsBandwidth,
+  AprsBeaconType,
+  AprsDigipeaterEntry,
+  AprsFixedPosition,
+  AprsManualBeaconBand,
+  AprsManualBeaconMode,
+  AprsReportKind,
+  AprsReportSettings,
+  AprsSettings,
+  AprsSettingsPatch,
+  AprsSymbolTable,
+  AprsTncFormat,
+  AprsTncInterfaceSettings,
+  AprsTncOutput,
+  AprsToneType,
+  AprsTransmitChannel,
+  AprsTransmitPower,
+} from "./aprs-settings.ts"

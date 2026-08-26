@@ -39,7 +39,6 @@ function KeyboardSettingsWorkspace() {
     return (
       <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
         <PageHeader title={t("radioSettingsTitle")} />
-        <SettingsCategoryTabs active="keyboard" />
         <Empty className="min-h-[32rem] border">
           <EmptyHeader>
             <EmptyMedia variant="icon">

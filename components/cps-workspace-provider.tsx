@@ -17,6 +17,7 @@ import {
 import {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
+  reconcileAprsSettingChanges,
   reconcileChannelMembershipChanges,
   reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,
@@ -34,6 +35,7 @@ import {
 } from "@/modules/cps-workspace/change-set"
 import type {
   CallChannelPatch,
+  AprsSettingsPatch,
   ChannelMembershipPatch,
   ChannelCollectionPatch,
   DisplaySettingsPatch,
@@ -85,6 +87,7 @@ interface CpsWorkspaceContextValue {
   editDisplaySettings(patch: DisplaySettingsPatch): void
   editSoundSettings(patch: SoundSettingsPatch): void
   editKeyboardSettings(patch: KeyboardSettingsPatch): void
+  editAprsSettings(patch: AprsSettingsPatch): void
   setMenuVisibility(id: MenuVisibilityItemId, visible: boolean): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
@@ -733,6 +736,34 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const editAprsSettings = React.useCallback((patch: AprsSettingsPatch) => {
+    const fields = Object.keys(patch) as (keyof AprsSettingsPatch)[]
+    if (fields.length === 0) return
+
+    setDocumentState((current) => {
+      if (!current.completedRead) return current
+      const completedRead = current.completedRead
+      const nextCodeplug =
+        completedRead.workingCodeplug.codeplug.editAprsSettings(patch)
+
+      return Object.freeze({
+        completedRead: Object.freeze({
+          ...completedRead,
+          workingCodeplug: Object.freeze({
+            ...completedRead.workingCodeplug,
+            codeplug: nextCodeplug,
+          }),
+        }),
+        changes: reconcileAprsSettingChanges(
+          current.changes,
+          completedRead.baselineBackup.codeplug,
+          nextCodeplug,
+          fields
+        ),
+      })
+    })
+  }, [])
+
   const setMenuVisibility = React.useCallback(
     (id: MenuVisibilityItemId, visible: boolean) => {
       setDocumentState((current) => {
@@ -926,6 +957,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editDisplaySettings,
       editSoundSettings,
       editKeyboardSettings,
+      editAprsSettings,
       setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,
@@ -958,6 +990,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editDisplaySettings,
       editSoundSettings,
       editKeyboardSettings,
+      editAprsSettings,
       setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,

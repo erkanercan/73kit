@@ -1,5 +1,7 @@
 import type {
   CallChannelPatch,
+  AprsSettings,
+  AprsSettingsPatch,
   ChannelCollectionPatch,
   Channel,
   Codeplug,
@@ -97,6 +99,10 @@ type WorkspaceChange =
   | {
       readonly kind: "edit-menu-visibility"
       readonly id: MenuVisibilityItemId
+    }
+  | {
+      readonly kind: "edit-aprs-setting"
+      readonly field: keyof AprsSettingsPatch
     }
 
 type MemoryChannelStructureChange = {
@@ -714,6 +720,33 @@ function reconcileMenuVisibilityChanges(
   ])
 }
 
+function reconcileAprsSettingChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  fields: readonly (keyof AprsSettingsPatch)[]
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) return Object.freeze([])
+
+  const affectedFields = new Set(fields)
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-aprs-setting" || !affectedFields.has(change.field)
+  )
+  const baseline = baselineCodeplug.getAprsSettings()
+  const working = workingCodeplug.getAprsSettings()
+  const changedFields = fields.filter(
+    (field) => !aprsSettingFieldEquals(baseline, working, field)
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) =>
+      Object.freeze({ kind: "edit-aprs-setting" as const, field })
+    ),
+  ])
+}
+
 function numberArraysEqual(left: readonly number[], right: readonly number[]) {
   return (
     left.length === right.length &&
@@ -820,6 +853,14 @@ function keyboardSettingFieldEquals(
   return baselineValue === workingValue
 }
 
+function aprsSettingFieldEquals(
+  baseline: AprsSettings,
+  working: AprsSettings,
+  field: keyof AprsSettingsPatch
+) {
+  return JSON.stringify(baseline[field]) === JSON.stringify(working[field])
+}
+
 function channelFieldEquals(
   baseline: Channel,
   working: Channel,
@@ -888,6 +929,7 @@ function toneEquals(
 export {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
+  reconcileAprsSettingChanges,
   reconcileChannelMembershipChanges,
   reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,

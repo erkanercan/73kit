@@ -714,6 +714,24 @@ The Data Storage Reference's overall map describes `0x00015404–0x00015406` as 
 
 APRS block: `0x00015500`, 1024 bytes.
 
+### APRS editor — P1/P2 / IMPLEMENTED; CONTROLLED-CODEPLUG-VERIFIED STORAGE
+
+The localized `/aprs` page exposes Station Identity, Beacon Transmission,
+Fixed Beacon Position, Manual Beacon, Digipeater Path, Comment, RX Decode,
+eight APRS TX Channels and TNC output settings. Edits update only the Working
+Codeplug and reconcile each top-level APRS field against the immutable Baseline
+Backup. The page does not start a live TNC stream, send a beacon immediately or
+claim that fixed coordinates came from current GPS data.
+
+Controlled before/after Codeplug comparisons verified both SSID offsets, symbol
+index changes, 1–6-character destination callsigns, fixed-position coordinate
+decoding, metre altitude scaling, big-endian Hz TX frequency, digipeater entries,
+zero-padded comments and USB/SPP/BLE TNC pairs. TYT CPS can retain stale bytes in
+the unused tail of a shorter six-byte callsign. The Codeplug decoder ignores the
+invalid tail; intentional callsign edits clear and rewrite the complete field.
+The manual interval index 23 is presented as the corrected 45-second value; TYT
+CPS incorrectly displays it as a duplicate 55-second entry.
+
 Features:
 
 - callsign — P1
@@ -1137,7 +1155,7 @@ firmware update commands
 - [x] VFO/Call Channel editor
 - [ ] radio settings
 - [ ] programmable keys
-- [ ] APRS
+- [x] APRS
 - [ ] safe verified write
 - [ ] interrupted-write recovery
 - [ ] import binding and Unbound Codeplug enforcement
@@ -1153,7 +1171,7 @@ firmware update commands
 - [ ] menu visibility
 - [ ] power saving
 - [ ] Tone Burst
-- [ ] APRS TNC settings
+- [x] APRS TNC settings
 
 ## P3 — Advanced / Specialist
 
