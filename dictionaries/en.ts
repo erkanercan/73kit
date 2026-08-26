@@ -19,6 +19,7 @@ const en = {
   navConfiguration: "Programming",
   navAprs: "APRS",
   navGps: "GPS",
+  navBluetooth: "Bluetooth",
   navSettings: "Radio Settings",
   gpsTitle: "GPS",
   gpsReadRequiredTitle: "Read a Radio to edit its GPS settings",
@@ -36,6 +37,35 @@ const en = {
   gpsConstellationBdsHint: "China's BeiDou satellite system.",
   gpsConstellationGlonass: "GLONASS",
   gpsConstellationGlonassHint: "Russia's satellite system.",
+  bluetoothTitle: "Bluetooth",
+  bluetoothReadRequiredTitle: "Read a Radio to edit its Bluetooth settings",
+  bluetoothBasicTitle: "Bluetooth Settings",
+  bluetoothEnabled: "Bluetooth",
+  bluetoothEnabledHint: "Turns the Radio's Bluetooth function on or off.",
+  bluetoothRole: "Bluetooth role",
+  bluetoothRoleHint:
+    "Selects whether the Radio operates as the Bluetooth host or peripheral.",
+  bluetoothRoleUnknown: "Unknown stored value: {value}",
+  bluetoothRoleHost: "Host",
+  bluetoothRolePeripheral: "Peripheral",
+  bluetoothHoldTime: "BT hold time",
+  bluetoothHoldTimeHint:
+    "Sets the Radio's Bluetooth hold timer. Infinite removes the time limit.",
+  bluetoothLocalAudioTitle: "Local Audio",
+  bluetoothLocalSpeaker: "Built-in speaker",
+  bluetoothLocalSpeakerHint:
+    "Keeps the Radio's own speaker audible while Bluetooth is connected.",
+  bluetoothLocalMicrophone: "Built-in microphone",
+  bluetoothLocalMicrophoneHint:
+    "Keeps the Radio's own microphone active while Bluetooth is connected.",
+  bluetoothGainTitle: "Bluetooth Audio Gain",
+  bluetoothSpeakerGain: "Speaker gain",
+  bluetoothSpeakerGainHint:
+    "Sets the Bluetooth headset output level. Higher levels are louder.",
+  bluetoothMicrophoneGain: "Microphone gain",
+  bluetoothMicrophoneGainHint:
+    "Sets the Bluetooth microphone input level. Higher levels are louder.",
+  bluetoothGainLevel: "Level {level, number}",
   radioSettingsTitle: "Radio Basic Settings",
   functionSettingsReadRequiredTitle:
     "Read a Radio to edit its Function Settings",
@@ -374,6 +404,7 @@ const en = {
   valueHours: "{value, number} hr",
   valueSeconds: "{value, number} s",
   valueMilliseconds: "{value, number} ms",
+  valueInfinite: "Infinite",
   valueHertz: "{value, number} Hz",
   valueLevel: "Level {value, number}",
   valueAutoOff: "Auto off",

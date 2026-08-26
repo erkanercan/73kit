@@ -18,6 +18,7 @@ import {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
   reconcileAprsSettingChanges,
+  reconcileBluetoothSettingChanges,
   reconcileChannelMembershipChanges,
   reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,
@@ -37,6 +38,7 @@ import {
 import type {
   CallChannelPatch,
   AprsSettingsPatch,
+  BluetoothSettingsPatch,
   ChannelMembershipPatch,
   ChannelCollectionPatch,
   DisplaySettingsPatch,
@@ -91,6 +93,7 @@ interface CpsWorkspaceContextValue {
   editKeyboardSettings(patch: KeyboardSettingsPatch): void
   editAprsSettings(patch: AprsSettingsPatch): void
   editGpsSettings(patch: GpsSettingsPatch): void
+  editBluetoothSettings(patch: BluetoothSettingsPatch): void
   setMenuVisibility(id: MenuVisibilityItemId, visible: boolean): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
@@ -795,6 +798,37 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
+  const editBluetoothSettings = React.useCallback(
+    (patch: BluetoothSettingsPatch) => {
+      const fields = Object.keys(patch) as (keyof BluetoothSettingsPatch)[]
+      if (fields.length === 0) return
+
+      setDocumentState((current) => {
+        if (!current.completedRead) return current
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editBluetoothSettings(patch)
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileBluetoothSettingChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
   const setMenuVisibility = React.useCallback(
     (id: MenuVisibilityItemId, visible: boolean) => {
       setDocumentState((current) => {
@@ -990,6 +1024,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editKeyboardSettings,
       editAprsSettings,
       editGpsSettings,
+      editBluetoothSettings,
       setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,
@@ -1024,6 +1059,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editKeyboardSettings,
       editAprsSettings,
       editGpsSettings,
+      editBluetoothSettings,
       setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,

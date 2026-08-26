@@ -96,6 +96,14 @@ import { decodeAprsSettings, editAprsSettingsBytes } from "./aprs-settings.ts"
 import type { AprsSettings, AprsSettingsPatch } from "./aprs-settings.ts"
 import { decodeGpsSettings, editGpsSettingsBytes } from "./gps-settings.ts"
 import type { GpsSettings, GpsSettingsPatch } from "./gps-settings.ts"
+import {
+  decodeBluetoothSettings,
+  editBluetoothSettingsBytes,
+} from "./bluetooth-settings.ts"
+import type {
+  BluetoothSettings,
+  BluetoothSettingsPatch,
+} from "./bluetooth-settings.ts"
 
 const CODEPLUG_SIZE = 0x19000
 
@@ -117,6 +125,7 @@ class Codeplug {
   readonly #vfoScanEdgeSelections: VfoScanEdgeSelections
   readonly #aprsSettings: AprsSettings
   readonly #gpsSettings: GpsSettings
+  readonly #bluetoothSettings: BluetoothSettings
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -142,6 +151,7 @@ class Codeplug {
     this.#vfoScanEdgeSelections = decodeVfoScanEdgeSelections(this.#bytes)
     this.#aprsSettings = decodeAprsSettings(this.#bytes)
     this.#gpsSettings = decodeGpsSettings(this.#bytes)
+    this.#bluetoothSettings = decodeBluetoothSettings(this.#bytes)
   }
 
   get byteLength() {
@@ -214,6 +224,10 @@ class Codeplug {
 
   getGpsSettings() {
     return this.#gpsSettings
+  }
+
+  getBluetoothSettings() {
+    return this.#bluetoothSettings
   }
 
   moveMemoryChannel(fromNumber: number, toNumber: number) {
@@ -293,6 +307,10 @@ class Codeplug {
 
   editGpsSettings(patch: GpsSettingsPatch) {
     return new Codeplug(editGpsSettingsBytes(this.#bytes, patch))
+  }
+
+  editBluetoothSettings(patch: BluetoothSettingsPatch) {
+    return new Codeplug(editBluetoothSettingsBytes(this.#bytes, patch))
   }
 
   editChannelMemberships(number: number, patch: ChannelMembershipPatch) {
@@ -414,6 +432,20 @@ export type {
   GpsSettingsPatch,
   GpsTimezoneOffsetMinutes,
 } from "./gps-settings.ts"
+export {
+  BLUETOOTH_SETTING_OPTIONS,
+  BLUETOOTH_HOLD_TIME_ADDRESS,
+  BLUETOOTH_HOLD_TIME_OFFSET,
+  BLUETOOTH_SETTINGS_ADDRESS,
+  BLUETOOTH_SETTINGS_OFFSET,
+} from "./bluetooth-settings.ts"
+export type {
+  BluetoothGainLevel,
+  BluetoothHoldTime,
+  BluetoothRole,
+  BluetoothSettings,
+  BluetoothSettingsPatch,
+} from "./bluetooth-settings.ts"
 export {
   APRS_SYMBOL_CODES,
   aprsSymbolCode,

@@ -11,6 +11,7 @@ import {
   SatelliteIcon,
   ScanLineIcon,
   BetweenHorizontalStartIcon,
+  BluetoothIcon,
   Settings2Icon,
   WaypointsIcon,
 } from "lucide-react"
@@ -92,6 +93,12 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           href: "/gps",
           icon: SatelliteIcon,
           active: pathname === "/gps",
+        },
+        {
+          title: t("navBluetooth"),
+          href: "/bluetooth",
+          icon: BluetoothIcon,
+          active: pathname === "/bluetooth",
         },
       ],
     },

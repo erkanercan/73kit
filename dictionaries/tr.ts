@@ -20,6 +20,7 @@ const tr = {
   navConfiguration: "Programlama",
   navAprs: "APRS",
   navGps: "GPS",
+  navBluetooth: "Bluetooth",
   navSettings: "Telsiz Ayarları",
   gpsTitle: "GPS",
   gpsReadRequiredTitle: "GPS ayarlarını düzenlemek için telsizi okuyun",
@@ -36,6 +37,36 @@ const tr = {
   gpsConstellationBdsHint: "Çin'in BeiDou uydu sistemi.",
   gpsConstellationGlonass: "GLONASS",
   gpsConstellationGlonassHint: "Rusya'nın uydu sistemi.",
+  bluetoothTitle: "Bluetooth",
+  bluetoothReadRequiredTitle:
+    "Bluetooth ayarlarını düzenlemek için telsizi okuyun",
+  bluetoothBasicTitle: "Bluetooth Ayarları",
+  bluetoothEnabled: "Bluetooth",
+  bluetoothEnabledHint: "Telsizin Bluetooth işlevini açar veya kapatır.",
+  bluetoothRole: "Bluetooth rolü",
+  bluetoothRoleHint:
+    "Telsizin Bluetooth ana cihazı veya çevre birimi olarak çalışmasını seçer.",
+  bluetoothRoleUnknown: "Bilinmeyen kayıtlı değer: {value}",
+  bluetoothRoleHost: "Ana cihaz",
+  bluetoothRolePeripheral: "Çevre birimi",
+  bluetoothHoldTime: "BT bekletme süresi",
+  bluetoothHoldTimeHint:
+    "Telsizin Bluetooth bekletme zamanlayıcısını ayarlar. Sonsuz seçeneği süre sınırını kaldırır.",
+  bluetoothLocalAudioTitle: "Yerel Ses",
+  bluetoothLocalSpeaker: "Dahili hoparlör",
+  bluetoothLocalSpeakerHint:
+    "Bluetooth bağlıyken telsizin kendi hoparlörünü açık tutar.",
+  bluetoothLocalMicrophone: "Dahili mikrofon",
+  bluetoothLocalMicrophoneHint:
+    "Bluetooth bağlıyken telsizin kendi mikrofonunu etkin tutar.",
+  bluetoothGainTitle: "Bluetooth Ses Kazancı",
+  bluetoothSpeakerGain: "Hoparlör kazancı",
+  bluetoothSpeakerGainHint:
+    "Bluetooth kulaklık çıkış seviyesini ayarlar. Yüksek seviyeler daha yüksek ses verir.",
+  bluetoothMicrophoneGain: "Mikrofon kazancı",
+  bluetoothMicrophoneGainHint:
+    "Bluetooth mikrofon giriş seviyesini ayarlar. Yüksek seviyeler daha yüksek ses verir.",
+  bluetoothGainLevel: "Seviye {level, number}",
   radioSettingsTitle: "Telsiz Temel Ayarları",
   functionSettingsReadRequiredTitle:
     "Fonksiyon Ayarlarını düzenlemek için telsizi okuyun",
@@ -378,6 +409,7 @@ const tr = {
   valueHours: "{value, number} sa",
   valueSeconds: "{value, number} sn",
   valueMilliseconds: "{value, number} ms",
+  valueInfinite: "Sonsuz",
   valueHertz: "{value, number} Hz",
   valueLevel: "Seviye {value, number}",
   valueAutoOff: "Otomatik kapat",

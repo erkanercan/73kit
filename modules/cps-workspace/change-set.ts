@@ -2,6 +2,8 @@ import type {
   CallChannelPatch,
   AprsSettings,
   AprsSettingsPatch,
+  BluetoothSettings,
+  BluetoothSettingsPatch,
   ChannelCollectionPatch,
   Channel,
   Codeplug,
@@ -109,6 +111,10 @@ type WorkspaceChange =
   | {
       readonly kind: "edit-gps-setting"
       readonly field: keyof GpsSettingsPatch
+    }
+  | {
+      readonly kind: "edit-bluetooth-setting"
+      readonly field: keyof BluetoothSettingsPatch
     }
 
 type MemoryChannelStructureChange = {
@@ -780,6 +786,34 @@ function reconcileGpsSettingChanges(
   ])
 }
 
+function reconcileBluetoothSettingChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  fields: readonly (keyof BluetoothSettingsPatch)[]
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) return Object.freeze([])
+
+  const affectedFields = new Set(fields)
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-bluetooth-setting" ||
+      !affectedFields.has(change.field)
+  )
+  const baseline = baselineCodeplug.getBluetoothSettings()
+  const working = workingCodeplug.getBluetoothSettings()
+  const changedFields = fields.filter(
+    (field) => !bluetoothSettingFieldEquals(baseline, working, field)
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) =>
+      Object.freeze({ kind: "edit-bluetooth-setting" as const, field })
+    ),
+  ])
+}
+
 function numberArraysEqual(left: readonly number[], right: readonly number[]) {
   return (
     left.length === right.length &&
@@ -902,6 +936,14 @@ function gpsSettingFieldEquals(
   return JSON.stringify(baseline[field]) === JSON.stringify(working[field])
 }
 
+function bluetoothSettingFieldEquals(
+  baseline: BluetoothSettings,
+  working: BluetoothSettings,
+  field: keyof BluetoothSettingsPatch
+) {
+  return JSON.stringify(baseline[field]) === JSON.stringify(working[field])
+}
+
 function channelFieldEquals(
   baseline: Channel,
   working: Channel,
@@ -971,6 +1013,7 @@ export {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
   reconcileAprsSettingChanges,
+  reconcileBluetoothSettingChanges,
   reconcileChannelMembershipChanges,
   reconcileDisplaySettingChanges,
   reconcileFunctionSettingChanges,

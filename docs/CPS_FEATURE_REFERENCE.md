@@ -783,12 +783,23 @@ Supported GNSS combinations:
 
 ## 7.20 Bluetooth Settings
 
-- Bluetooth enable — P2
-- master/slave mode — P2
-- local speaker control — P2
-- local microphone control — P2
-- speaker gain (8 levels) — P2
-- microphone gain (8 levels) — P2
+### Bluetooth editor — P2 / IMPLEMENTED; DOCUMENTED STORAGE
+
+The localized `/bluetooth` page exposes Bluetooth enable, host/peripheral role,
+BT hold time from 1 to 300 seconds or Infinite, built-in speaker and microphone
+control, and eight-level Bluetooth speaker and microphone gain. Each edit
+updates only its owning byte in the Working Codeplug and reconciles a per-field
+Change Set entry against the immutable Baseline Backup. Unknown raw values
+remain visible and unchanged until the user makes an intentional selection.
+
+Controlled TYT CPS `.PF` exports identify BT hold time at `0x0001544B`. Raw
+indexes `0x00~0x22` select the ordered finite values and `0x23` selects
+Infinite. After masking this one byte, all ten controlled exports are identical.
+
+Pairing, paired-device history and Bluetooth module status remain Radio-side
+runtime features because no Codeplug layout or clone-protocol commands are
+documented for them. CI-T Bluetooth SPP/BLE controls remain in Function
+Settings, and APRS Bluetooth TNC output remains in APRS.
 
 ---
 
@@ -1169,7 +1180,7 @@ firmware update commands
 - [x] AI voice control
 - [x] AI noise reduction
 - [ ] GPS
-- [ ] Bluetooth settings
+- [x] Bluetooth settings
 - [ ] menu visibility
 - [ ] power saving
 - [ ] Tone Burst

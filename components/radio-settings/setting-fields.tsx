@@ -137,6 +137,13 @@ const settingHintKey = {
   "lock-delay": "settingHintLockDelay",
   "gps-switch": "gpsReceiverHint",
   "gps-time-zone": "gpsTimezoneHint",
+  "bluetooth-switch": "bluetoothEnabledHint",
+  "bluetooth-role": "bluetoothRoleHint",
+  "bluetooth-hold-time": "bluetoothHoldTimeHint",
+  "bluetooth-local-speaker": "bluetoothLocalSpeakerHint",
+  "bluetooth-local-microphone": "bluetoothLocalMicrophoneHint",
+  "bluetooth-speaker-gain": "bluetoothSpeakerGainHint",
+  "bluetooth-microphone-gain": "bluetoothMicrophoneGainHint",
 } as const
 
 type RadioSettingId = keyof typeof settingHintKey
@@ -381,6 +388,7 @@ export {
   NumberSettingField,
   SelectSettingField,
   SettingHelp,
+  SettingLabel,
   numberOptions,
   settingValueKey,
   textOptions,
