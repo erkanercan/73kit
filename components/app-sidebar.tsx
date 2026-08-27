@@ -2,6 +2,7 @@
 
 import {
   ArchiveIcon,
+  ChartNoAxesColumnIncreasingIcon,
   BookOpenIcon,
   CircleGaugeIcon,
   ListChecksIcon,
@@ -93,6 +94,12 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           href: "/gps",
           icon: SatelliteIcon,
           active: pathname === "/gps",
+        },
+        {
+          title: t("navSpectrum"),
+          href: "/spectrum",
+          icon: ChartNoAxesColumnIncreasingIcon,
+          active: pathname === "/spectrum",
         },
         {
           title: t("navBluetooth"),

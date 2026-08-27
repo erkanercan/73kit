@@ -26,6 +26,7 @@ import {
   reconcileKeyboardSettingChanges,
   reconcileMenuVisibilityChanges,
   reconcileSoundSettingChanges,
+  reconcileSpectrumSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
   reconcileScanListEditChanges,
@@ -49,6 +50,7 @@ import type {
   MemoryChannelPatch,
   RadioBand,
   SoundSettingsPatch,
+  SpectrumSettingsPatch,
   VfoChannelPatch,
   VfoScanEdgePatch,
 } from "@/modules/codeplug/index"
@@ -94,6 +96,7 @@ interface CpsWorkspaceContextValue {
   editAprsSettings(patch: AprsSettingsPatch): void
   editGpsSettings(patch: GpsSettingsPatch): void
   editBluetoothSettings(patch: BluetoothSettingsPatch): void
+  editSpectrumSettings(patch: SpectrumSettingsPatch): void
   setMenuVisibility(id: MenuVisibilityItemId, visible: boolean): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
@@ -829,6 +832,37 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const editSpectrumSettings = React.useCallback(
+    (patch: SpectrumSettingsPatch) => {
+      const fields = Object.keys(patch) as (keyof SpectrumSettingsPatch)[]
+      if (fields.length === 0) return
+
+      setDocumentState((current) => {
+        if (!current.completedRead) return current
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editSpectrumSettings(patch)
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileSpectrumSettingChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
   const setMenuVisibility = React.useCallback(
     (id: MenuVisibilityItemId, visible: boolean) => {
       setDocumentState((current) => {
@@ -1025,6 +1059,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editAprsSettings,
       editGpsSettings,
       editBluetoothSettings,
+      editSpectrumSettings,
       setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,
@@ -1060,6 +1095,7 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editAprsSettings,
       editGpsSettings,
       editBluetoothSettings,
+      editSpectrumSettings,
       setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,

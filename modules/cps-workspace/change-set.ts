@@ -21,6 +21,8 @@ import type {
   RadioBand,
   SoundSettings,
   SoundSettingsPatch,
+  SpectrumSettings,
+  SpectrumSettingsPatch,
   SpecialChannel,
   VfoChannelPatch,
   VfoScanEdge,
@@ -115,6 +117,10 @@ type WorkspaceChange =
   | {
       readonly kind: "edit-bluetooth-setting"
       readonly field: keyof BluetoothSettingsPatch
+    }
+  | {
+      readonly kind: "edit-spectrum-setting"
+      readonly field: keyof SpectrumSettingsPatch
     }
 
 type MemoryChannelStructureChange = {
@@ -814,6 +820,34 @@ function reconcileBluetoothSettingChanges(
   ])
 }
 
+function reconcileSpectrumSettingChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  fields: readonly (keyof SpectrumSettingsPatch)[]
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) return Object.freeze([])
+
+  const affectedFields = new Set(fields)
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-spectrum-setting" ||
+      !affectedFields.has(change.field)
+  )
+  const baseline = baselineCodeplug.getSpectrumSettings()
+  const working = workingCodeplug.getSpectrumSettings()
+  const changedFields = fields.filter(
+    (field) => !spectrumSettingFieldEquals(baseline, working, field)
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) =>
+      Object.freeze({ kind: "edit-spectrum-setting" as const, field })
+    ),
+  ])
+}
+
 function numberArraysEqual(left: readonly number[], right: readonly number[]) {
   return (
     left.length === right.length &&
@@ -944,6 +978,14 @@ function bluetoothSettingFieldEquals(
   return JSON.stringify(baseline[field]) === JSON.stringify(working[field])
 }
 
+function spectrumSettingFieldEquals(
+  baseline: SpectrumSettings,
+  working: SpectrumSettings,
+  field: keyof SpectrumSettingsPatch
+) {
+  return JSON.stringify(baseline[field]) === JSON.stringify(working[field])
+}
+
 function channelFieldEquals(
   baseline: Channel,
   working: Channel,
@@ -1021,6 +1063,7 @@ export {
   reconcileKeyboardSettingChanges,
   reconcileMenuVisibilityChanges,
   reconcileSoundSettingChanges,
+  reconcileSpectrumSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
   reconcileScanListEditChanges,

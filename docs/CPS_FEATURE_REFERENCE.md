@@ -576,7 +576,30 @@ A/B operating modes include Channel, VFO/frequency, Call Channel and Weather Cha
 
 ---
 
-## 7.11 Power Saving & Weather Channel Behavior
+## 7.11 Spectrum — P1 / IMPLEMENTED; CURRENT-CPS-VERIFIED STORAGE
+
+The `/spectrum` workspace edits the Radio's Spectrum configuration from the
+Radio Status block. Spectrum Mode supports Center, Edge, Zone, and Scan List.
+Scan Speed supports Slow, Mid, High, Very High, and Turbo.
+
+Edge mode always exposes frequency step and modulation. Its local Custom switch
+reveals lower and upper frequency inputs without writing a switch byte; current
+CPS exports made with Custom open and closed are identical. Frequency bounds,
+step, and modulation remain stored while the editor is closed. Validation
+enforces 108–660 MHz, ascending bounds, and the 8.33 kHz AM-only rule.
+
+Zone and Scan List modes use their respective 16-item collections. Leaving a
+mode restores that mode's fields from the Baseline Backup: Zone selections,
+Scan List selections, or Edge range, step, and modulation. Returning to the
+baseline mode therefore leaves no hidden mode-specific changes. Empty baseline
+masks remain empty; once a collection is edited, the interface requires at
+least one selection. The 32-bit Big-Endian masks preserve the upper 16 reserved
+bits. Every persisted Spectrum field participates in baseline-aware Change Set
+reconciliation; the Custom editor state does not.
+
+---
+
+## 7.12 Power Saving & Weather Channel Behavior
 
 - power save enable — P2
 - power-save delay — P2
@@ -587,7 +610,7 @@ A/B operating modes include Channel, VFO/frequency, Call Channel and Weather Cha
 
 ---
 
-## 7.12 Display Settings
+## 7.13 Display Settings
 
 - backlight level — P2
 - auto dim — P2
@@ -612,7 +635,7 @@ Documented languages: Simplified Chinese, Traditional Chinese, English, Turkish.
 
 ---
 
-## 7.13 Audio Settings
+## 7.14 Audio Settings
 
 - key beep — P2
 - low-battery beep — P2
@@ -633,7 +656,7 @@ The CPS only configures these persisted options; DSP behavior is firmware-intern
 
 ---
 
-## 7.14 Programmable Keys
+## 7.15 Programmable Keys
 
 Configurable controls include Side Key 1/2, top key, 0–9 long press, Menu long press and Back long press.
 
@@ -671,7 +694,7 @@ Long-press list also includes Tone Burst TX. Short-press and long-press index ma
 
 ---
 
-## 7.15 Keyboard Lock
+## 7.16 Keyboard Lock
 
 - auto lock — P2
 - lock type — P2
@@ -681,7 +704,7 @@ Lock combinations include keys, encoder, PTT and combinations thereof.
 
 ---
 
-## 7.16 Menu Visibility
+## 7.17 Menu Visibility
 
 Current Menu display mask: `0x0001EA00`, 256 bytes. Controlled exports from
 the 2026-07-23 TYT CPS leave the older `0x0001BA00` block unused.
@@ -696,7 +719,7 @@ parent controls, search, and Show All/Hide All actions. Preserve every bit after
 
 ---
 
-## 7.17 FM Broadcast Radio
+## 7.18 FM Broadcast Radio
 
 - 32 FM presets — P3
 - preset-valid bitmap — P3
@@ -712,7 +735,7 @@ The Data Storage Reference's overall map describes `0x00015404–0x00015406` as 
 
 ---
 
-## 7.18 APRS
+## 7.19 APRS
 
 APRS block: `0x00015500`, 1024 bytes.
 
@@ -763,7 +786,7 @@ TNC output modes are documented for USB virtual serial, classic Bluetooth SPP an
 
 ---
 
-## 7.19 GPS
+## 7.20 GPS
 
 - GPS enable — P2
 - timezone — P2
@@ -781,7 +804,7 @@ Supported GNSS combinations:
 
 ---
 
-## 7.20 Bluetooth Settings
+## 7.21 Bluetooth Settings
 
 ### Bluetooth editor — P2 / IMPLEMENTED; DOCUMENTED STORAGE
 
@@ -803,7 +826,7 @@ Settings, and APRS Bluetooth TNC output remains in APRS.
 
 ---
 
-## 7.21 DTMF
+## 7.22 DTMF
 
 DTMF block: `0x00016000`, 1024 bytes.
 
@@ -826,7 +849,7 @@ Features:
 
 ---
 
-## 7.22 2-Tone
+## 7.23 2-Tone
 
 Block: `0x00016800`, 512 bytes.
 
@@ -838,7 +861,7 @@ Block: `0x00016800`, 512 bytes.
 
 ---
 
-## 7.23 5-Tone
+## 7.24 5-Tone
 
 Block: `0x00017000`, 2048 bytes.
 
@@ -968,6 +991,7 @@ Channels
 Zones & Scanning
 APRS
 GPS
+Spectrum
 Settings
 Backups
 ```
@@ -1076,6 +1100,8 @@ Partial or changed-block writes are excluded until hardware-verified.
 
 ## Epic 8 — General radio settings
 
+- [x] Spectrum page, codec, validation, and semantic Change Set tracking
+
 ## Epic 9 — Programmable keys / menu visibility
 
 ## Epic 10 — APRS
@@ -1166,6 +1192,7 @@ firmware update commands
 - [x] zone editor
 - [x] scan-list editor
 - [x] VFO/Call Channel editor
+- [x] Spectrum settings
 - [ ] radio settings
 - [ ] programmable keys
 - [x] APRS

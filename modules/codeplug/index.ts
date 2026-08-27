@@ -104,6 +104,14 @@ import type {
   BluetoothSettings,
   BluetoothSettingsPatch,
 } from "./bluetooth-settings.ts"
+import {
+  decodeSpectrumSettings,
+  editSpectrumSettingsBytes,
+} from "./spectrum-settings.ts"
+import type {
+  SpectrumSettings,
+  SpectrumSettingsPatch,
+} from "./spectrum-settings.ts"
 
 const CODEPLUG_SIZE = 0x19000
 
@@ -126,6 +134,7 @@ class Codeplug {
   readonly #aprsSettings: AprsSettings
   readonly #gpsSettings: GpsSettings
   readonly #bluetoothSettings: BluetoothSettings
+  readonly #spectrumSettings: SpectrumSettings
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -152,6 +161,7 @@ class Codeplug {
     this.#aprsSettings = decodeAprsSettings(this.#bytes)
     this.#gpsSettings = decodeGpsSettings(this.#bytes)
     this.#bluetoothSettings = decodeBluetoothSettings(this.#bytes)
+    this.#spectrumSettings = decodeSpectrumSettings(this.#bytes)
   }
 
   get byteLength() {
@@ -228,6 +238,10 @@ class Codeplug {
 
   getBluetoothSettings() {
     return this.#bluetoothSettings
+  }
+
+  getSpectrumSettings() {
+    return this.#spectrumSettings
   }
 
   moveMemoryChannel(fromNumber: number, toNumber: number) {
@@ -311,6 +325,10 @@ class Codeplug {
 
   editBluetoothSettings(patch: BluetoothSettingsPatch) {
     return new Codeplug(editBluetoothSettingsBytes(this.#bytes, patch))
+  }
+
+  editSpectrumSettings(patch: SpectrumSettingsPatch) {
+    return new Codeplug(editSpectrumSettingsBytes(this.#bytes, patch))
   }
 
   editChannelMemberships(number: number, patch: ChannelMembershipPatch) {
@@ -446,6 +464,22 @@ export type {
   BluetoothSettings,
   BluetoothSettingsPatch,
 } from "./bluetooth-settings.ts"
+export {
+  MAX_FREQUENCY_HZ as SPECTRUM_MAX_FREQUENCY_HZ,
+  MIN_FREQUENCY_HZ as SPECTRUM_MIN_FREQUENCY_HZ,
+  SPECTRUM_SETTING_OPTIONS,
+  SPECTRUM_SETTINGS_ADDRESS,
+  SPECTRUM_SETTINGS_OFFSET,
+  createSpectrumModeChangePatch,
+} from "./spectrum-settings.ts"
+export type {
+  SpectrumMode,
+  SpectrumModulation,
+  SpectrumScanSpeed,
+  SpectrumSettings,
+  SpectrumSettingsPatch,
+  SpectrumStepKHz,
+} from "./spectrum-settings.ts"
 export {
   APRS_SYMBOL_CODES,
   aprsSymbolCode,

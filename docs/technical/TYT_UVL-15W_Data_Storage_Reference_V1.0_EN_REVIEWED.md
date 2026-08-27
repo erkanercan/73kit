@@ -39,6 +39,7 @@ English developer edition: terminology and descriptions have been normalized for
       4. [Key/Encoder Lock](#sec2_4_4)
    6. [Menu Settings](#sec2_5)
       1. [Detailed Bit Map](#sec2_5_1)
+   7. [Spectrum Settings](#sec2_6)
 3. [Channel List Reference](#sec3)
    1. [Memory Channels](#sec3_1)
       1. [48-byte Memory Channel Record (Byte-by-Byte)](#sec3_1_1)
@@ -67,7 +68,7 @@ English developer edition: terminology and descriptions have been normalized for
 ## 1. Overall Storage Map
 
 - **Valid address range**: 0x00008000 ~ 0x00021000 (total 102,400 bytes).
-- **Coverage**: This reference covers **radio basic information**, **radio settings**, **channel lists (Memory/VFO/CALL/Temp/WX)**, **Zones**, **Scan Lists**, **Signaling System**, **FM Broadcast Receiver**, **APRS**, **GPS**, **Bluetooth**.
+- **Coverage**: This reference covers **radio basic information**, **radio settings**, **Spectrum**, **channel lists (Memory/VFO/CALL/Temp/WX)**, **Zones**, **Scan Lists**, **Signaling System**, **FM Broadcast Receiver**, **APRS**, **GPS**, **Bluetooth**.
 
 | Block                                  | Address range         | Length  | UI page / purpose                                                                                                          |
 | -------------------------------------- | --------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------- |
@@ -80,6 +81,7 @@ English developer edition: terminology and descriptions have been normalized for
 | Memory Validity Bitmap                 | 0x00015000~0x0001507F | 128 B   | Channel List - Memory-channel validity flag (1 bit / channel)                                                              |
 | Memory Scan Bitmap                     | 0x00015080~0x0001517F | 256 B   | Channel List - Memory-channel scan flag (2 bits / channel)                                                                 |
 | Radio Status                           | 0x00015300~0x000153FF | 256 B   | runtime-state parameter region (e.g. A/B operating mode and FM VFO frequency), not the same as CMD 0xE1 device information |
+| Spectrum configuration                 | 0x0001531A~0x00015333 | 26 B    | Spectrum mode, Edge range, step, modulation, scan speed, Zone mask, and Scan List mask                                     |
 | Radio Settings                         | 0x00015400~0x000154FF | 256 B   | radio settings (Function Settings/Display Settings/Audio Settings/Key Settings)                                            |
 | GPS configuration bytes                | 0x00015401~0x00015403 | 3 B     | GPS page (on/off, mode, time zone)                                                                                         |
 | Bluetooth basic configuration bytes    | 0x00015440~0x00015445 | 6 B     | Bluetooth page (switch, mode, local audio control, gain)                                                                   |
@@ -661,6 +663,44 @@ kHz only with AM modes.
 Parent rows are hierarchical controls rather than independent leaf options. Disabling a parent clears its descendants; changing a leaf maintains the required ancestor bits. The controlled `Uncheck All Submenus` export clears exactly bits 0 through 173, yielding bytes `0x00` through `0x14` as `0x00` and byte `0x15` as `0xC0`.
 
 **Implementation recommendation**: Use bit-level read-modify-write on the host side so only the intended hierarchy changes and all reserved bits remain byte-for-byte intact.
+
+<a id="sec2_6"></a>
+
+### 2.7 Spectrum Settings
+
+**Primary storage block**: `0x00015300` (Radio Status, 256 B).
+
+This layout was verified with controlled current TYT CPS `.PF` comparisons in
+which one Spectrum control changed at a time.
+
+| UI option                    | Absolute address        | Length | Storage format / options                                                                |
+| ---------------------------- | ----------------------- | ------ | --------------------------------------------------------------------------------------- |
+| Spectrum mode                | `0x0001531A`            | 1 B    | `0`=Center, `1`=Edge, `2`=Zone, `3`=Scan List                                           |
+| Reserved                     | `0x0001531B`            | 1 B    | Current files contain `0xFF`; preserve unchanged                                        |
+| Edge lower frequency         | `0x0001531C~0x0001531F` | 4 B    | Integer Hz, 32-bit Big-Endian; valid range 108–660 MHz                                  |
+| Edge upper frequency         | `0x00015320~0x00015323` | 4 B    | Integer Hz, 32-bit Big-Endian; must not be below the lower frequency                    |
+| Edge frequency step          | `0x00015324`            | 1 B    | Shared frequency-step index; controlled comparisons confirm `6`=12.5 kHz and `9`=25 kHz |
+| Edge modulation              | `0x00015325`            | 1 B    | `0`=FM, `1`=FM-N, `2`=AM, `3`=AM-N                                                      |
+| Spectrum scan speed          | `0x00015326`            | 1 B    | `0`=Slow, `1`=Mid, `2`=High, `3`=Very High, `4`=Turbo                                   |
+| Reserved                     | `0x00015327~0x0001532B` | 5 B    | Preserve unchanged                                                                      |
+| Spectrum Zone selection      | `0x0001532C~0x0001532F` | 4 B    | 32-bit Big-Endian bitmap; lower 16 bits map to Zones 1–16; preserve upper bits          |
+| Spectrum Scan List selection | `0x00015330~0x00015333` | 4 B    | 32-bit Big-Endian bitmap; lower 16 bits map to Scan Lists 1–16; preserve upper bits     |
+
+The Edge page's **Custom** switch is CPS interface state, not Codeplug data.
+Exports made with the switch open and closed are byte-for-byte identical. Step
+and modulation remain editable while it is closed; opening it additionally
+reveals the stored lower and upper frequency fields. A host editor should keep
+the switch local, default it to closed when reopening a Codeplug, and retain the
+stored frequency values while closed.
+
+The current CPS normalizes an apparently empty Zone or Scan List selection to
+the first item (`mask = 1`) when it serializes that selection. A host editor
+must not synthesize the same collection-mask edit merely because Spectrum mode
+changed. When leaving a mode, restore its mode-specific fields from the
+Baseline Backup so hidden edits do not remain in the Change Set. This includes
+the Zone mask, Scan List mask, or the Edge range, step, and modulation. A zero
+baseline mask remains zero; once the user edits a collection, at least one
+selection should remain selected.
 
 <a id="sec3"></a>
 

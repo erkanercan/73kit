@@ -144,6 +144,13 @@ const settingHintKey = {
   "bluetooth-local-microphone": "bluetoothLocalMicrophoneHint",
   "bluetooth-speaker-gain": "bluetoothSpeakerGainHint",
   "bluetooth-microphone-gain": "bluetoothMicrophoneGainHint",
+  "spectrum-mode": "spectrumModeHint",
+  "spectrum-scan-speed": "spectrumScanSpeedHint",
+  "spectrum-step": "spectrumStepHint",
+  "spectrum-modulation": "spectrumModulationHint",
+  "spectrum-custom": "spectrumCustomHint",
+  "spectrum-lower-frequency": "spectrumLowerFrequencyHint",
+  "spectrum-upper-frequency": "spectrumUpperFrequencyHint",
 } as const
 
 type RadioSettingId = keyof typeof settingHintKey
