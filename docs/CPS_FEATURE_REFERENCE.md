@@ -11,6 +11,7 @@
 > - **PROVEN** — verified against a physical UVL-15W using the browser PoC.
 > - **DOCUMENTED** — explicitly supported by the supplied TYT protocol/storage documentation.
 > - **IMPLEMENTED** — present in production source and covered by automated verification; this does not by itself claim physical Radio validation.
+> - **PARTIALLY IMPLEMENTED** — a usable subset is present and verified; the remaining scope is stated explicitly.
 > - **PLANNED** — product capability we intend to implement using documented data/protocol behavior.
 > - **OPTIONAL** — enhancement that is not required to reproduce the vendor CPS.
 > - **FUTURE / RESEARCH** — requires additional protocol work, browser transport work, or product decisions.
@@ -217,11 +218,13 @@ Why:
 - a UI object model must not accidentally zero or regenerate unknown data
 - the UI and CPS Workspace must not manipulate addresses, offsets, bitfields or raw bytes directly
 
-The production Codeplug core exposes immutable typed Channel results and
-read-modify-write operations for implemented Memory Channel fields while
-keeping the memory map, binary helpers, lookup tables and raw bytes private.
-Unknown or reserved values remain opaque, untouched record bytes are preserved,
-and every edit creates a new immutable Working Codeplug.
+The production Codeplug core exposes immutable typed results and
+read-modify-write operations for Channels, VFOs, Call Channels, Zones, Scan
+Lists, Radio Settings, APRS, GPS, Bluetooth, Spectrum, signalling systems and
+FM Broadcast Radio while keeping memory-map details, binary helpers, lookup
+tables and raw bytes private. Unknown or reserved values remain opaque,
+untouched bytes are preserved, and every edit creates a new immutable Working
+Codeplug.
 
 ---
 
@@ -253,9 +256,14 @@ Display model, firmware, hardware, serial number, CPU ID, bootloader model, reso
 
 Read `0x8000 → 0x21000` into a complete 102,400-byte Codeplug. A successful Radio Read creates an immutable Baseline Backup and a separate Working Codeplug. An incomplete or invalid read creates neither.
 
-### Raw Backup Export — P0 / PLANNED
+### Raw Backup Export — P0 / IMPLEMENTED PRODUCT
 
-Export only the exact Codeplug bytes. A Raw Backup Export contains no Source Radio identity or interpretation metadata. Importing it creates an Unbound Codeplug, which may be inspected and edited but cannot be used for a Radio Write.
+The Radio workspace downloads the immutable Baseline Backup as an exact
+102,400-byte `.bin` file. It does not export the edited Working Codeplug. A Raw
+Backup Export contains no Source Radio identity or interpretation metadata.
+Import remains planned; when implemented, importing a Raw Backup Export creates
+an Unbound Codeplug that may be inspected and edited but cannot be used for a
+Radio Write.
 
 Metadata such as model, firmware, date/time and SHA-256 belongs in a CPS Export or a separate sidecar, never inside the Raw Backup Export.
 
@@ -302,15 +310,17 @@ per-channel Zone and Scan List membership, and every ordered Zone and Scan List
 reference move together. The immutable Baseline Backup remains unchanged and
 the user can reset pending row moves and field edits.
 
-Memory rows can also be added and deleted. Add activates the first unused slot
-with a clean 145.500 MHz simplex FM default; unsupported/on-off features,
-signalling, tones and memberships start disabled or empty. Delete removes the
+Memory rows can also be added, duplicated and deleted. Add activates the first
+unused slot with a clean 145.500 MHz simplex FM default; unsupported/on-off
+features, signalling, tones and memberships start disabled or empty. Duplicate
+inserts a copy directly below the source, retains its Channel fields and
+memberships, and adds a byte-safe `Copy` suffix to its name. Delete removes the
 selected slot, shifts every following Memory row up by one channel number,
 clears the final slot, and removes or remaps ordered Zone and Scan List
-references. Both operations affect only the Working Codeplug until a future
-verified Radio Write. Deleting a newly added row restores the exact pre-add
-Working Codeplug, including when that temporary row was edited, so the canceled
-operation leaves no pending Change Set entry.
+references. These operations affect only the Working Codeplug until a future
+verified Radio Write. Deleting a newly added or duplicated row restores the
+exact pre-operation Working Codeplug, including when that temporary row was
+edited, so the canceled operation leaves no pending Change Set entry.
 
 ### Memory Channel inline editing — P1 / IMPLEMENTED
 
@@ -422,9 +432,12 @@ Two special Call Channel storage slots.
 
 The storage reference's normal save flow mirrors `VFO A → Temp A` and `VFO B → Temp B` as raw 48-byte copies. `Temp A/B` are storage labels for the internal Temporary Channels, not user-facing names.
 
-### Weather Channels — P2 / DOCUMENTED
+### Weather Channels — INTERNAL / DOCUMENTED FIXED DATA
 
-10 documented fixed weather-channel records and templates.
+The codeplug contains 10 documented fixed weather-channel records and templates.
+The current TYT CPS does not expose these records as a separate page or editor,
+so this product keeps them internal. The user-facing Weather Channel controls
+remain in Radio Settings → Function Settings.
 
 ---
 
@@ -531,7 +544,7 @@ Set reconciliation.
 
 ---
 
-## 7.8 General Radio Settings
+## 7.8 General Radio Settings — P1/P2 / IMPLEMENTED; DOCUMENTED STORAGE
 
 Documented settings include:
 
@@ -552,9 +565,14 @@ Documented settings include:
 
 A/B operating modes include Channel, VFO/frequency, Call Channel and Weather Channel modes.
 
+These controls are implemented in the localized Radio Settings → Function
+Settings workspace. Edits use typed read-modify-write operations, preserve
+unknown values and participate in field-level baseline-aware Change Set
+reconciliation.
+
 ---
 
-## 7.9 Tail & Tone Burst
+## 7.9 Tail & Tone Burst — P2 / IMPLEMENTED; DOCUMENTED STORAGE
 
 - no-signalling tail — P2
 - analog tone tail — P2
@@ -566,7 +584,7 @@ A/B operating modes include Channel, VFO/frequency, Call Channel and Weather Cha
 
 ---
 
-## 7.10 Scan Behavior
+## 7.10 Scan Behavior — P1 / IMPLEMENTED; DOCUMENTED STORAGE
 
 - scan mode — P1
 - MR scan type: Normal / Priority — P1
@@ -599,18 +617,21 @@ reconciliation; the Custom editor state does not.
 
 ---
 
-## 7.12 Power Saving & Weather Channel Behavior
+## 7.12 Power Saving & Weather Channel Behavior — P2/P3 / IMPLEMENTED; DOCUMENTED STORAGE
 
-- power save enable — P2
-- power-save delay — P2
-- Weather Channel squelch control — P3
-- Weather Channel receive mode — P3
-- Weather Channel scan-selection mask — P3
-- Weather Channel decode reset time — P3
+- power save enable — P2 / IMPLEMENTED PRODUCT
+- power-save delay — P2 / IMPLEMENTED PRODUCT
+- Weather Channel squelch control — P3 / IMPLEMENTED PRODUCT
+- Weather Channel receive mode — P3 / IMPLEMENTED PRODUCT
+- Weather Channel scan-selection mask — P3 / IMPLEMENTED PRODUCT
+- Weather Channel decode reset time — P3 / IMPLEMENTED PRODUCT
+
+Weather Channel controls are presented only in Radio Settings → Function
+Settings, matching the current TYT CPS. No standalone WX page is planned.
 
 ---
 
-## 7.13 Display Settings
+## 7.13 Display Settings — P1/P2/P3 / IMPLEMENTED; DOCUMENTED STORAGE
 
 - backlight level — P2
 - auto dim — P2
@@ -633,9 +654,13 @@ reconciliation; the Custom editor state does not.
 
 Documented languages: Simplified Chinese, Traditional Chinese, English, Turkish.
 
+The localized Display Settings workspace implements every field above with
+unknown-value preservation, storage validation and per-field Change Set
+reconciliation.
+
 ---
 
-## 7.14 Audio Settings
+## 7.14 Audio Settings — P2 / IMPLEMENTED; DOCUMENTED STORAGE
 
 - key beep — P2
 - low-battery beep — P2
@@ -654,9 +679,12 @@ Documented languages: Simplified Chinese, Traditional Chinese, English, Turkish.
 
 The CPS only configures these persisted options; DSP behavior is firmware-internal.
 
+The localized Sound Settings workspace implements every persisted option above
+with reserved-bit preservation and per-field Change Set reconciliation.
+
 ---
 
-## 7.15 Programmable Keys
+## 7.15 Programmable Keys — P1 / IMPLEMENTED; DOCUMENTED STORAGE
 
 Configurable controls include Side Key 1/2, top key, 0–9 long press, Menu long press and Back long press.
 
@@ -692,9 +720,13 @@ Documented actions include:
 
 Long-press list also includes Tone Burst TX. Short-press and long-press index maps are not identical and must be implemented separately.
 
+The Keyboard Settings workspace uses the separate documented short-press and
+long-press maps and exposes every listed key assignment. Unknown raw indexes are
+preserved until the user intentionally selects a documented action.
+
 ---
 
-## 7.16 Keyboard Lock
+## 7.16 Keyboard Lock — P2 / IMPLEMENTED; DOCUMENTED STORAGE
 
 - auto lock — P2
 - lock type — P2
@@ -704,7 +736,7 @@ Lock combinations include keys, encoder, PTT and combinations thereof.
 
 ---
 
-## 7.17 Menu Visibility
+## 7.17 Menu Visibility — P2 / IMPLEMENTED; CURRENT-CPS-VERIFIED STORAGE
 
 Current Menu display mask: `0x0001EA00`, 256 bytes. Controlled exports from
 the 2026-07-23 TYT CPS leave the older `0x0001BA00` block unused.
@@ -716,6 +748,9 @@ AM Mode, and Scan Edge INIT. GPS bit 20 is Time Zone.
 Present the settings as the radio's hierarchy, with cascading and indeterminate
 parent controls, search, and Show All/Hide All actions. Preserve every bit after
 173 and all unrelated bytes.
+
+The localized Menu Visibility workspace implements this hierarchy and tracks
+each changed item against the Baseline Backup.
 
 ---
 
@@ -798,7 +833,7 @@ TNC output modes are documented for USB virtual serial, classic Bluetooth SPP an
 
 ---
 
-## 7.20 GPS
+## 7.20 GPS — P2 / IMPLEMENTED; DOCUMENTED STORAGE
 
 - GPS enable — P2
 - timezone — P2
@@ -813,6 +848,11 @@ Supported GNSS combinations:
 - GPS + GLONASS
 - BeiDou + GLONASS
 - GPS + BeiDou + GLONASS
+
+The localized `/gps` workspace implements the receiver switch, every supported
+constellation combination and every documented time-zone offset. It preserves
+unknown stored values and reconciles changes per field against the Baseline
+Backup.
 
 ---
 
@@ -969,7 +1009,10 @@ Changed-block or other partial-write strategies are FUTURE / RESEARCH. The suppl
 
 On reconnect, perform a Radio Read and compare the result with the recovery Codeplug Backup and intended Working Codeplug. Do not blindly resume from the last ACK. Until exact verification succeeds, retain the `Write Outcome Unknown` state and present recovery guidance.
 
-## 8.5 Bulk editing — HIGH VALUE
+## 8.5 Bulk editing — HIGH VALUE / PLANNED
+
+Single-Channel add, duplicate, delete and drag-to-reorder operations are
+implemented. Selection-wide bulk field editing remains planned.
 
 - set tone for selection
 - set power/mode
@@ -979,11 +1022,18 @@ On reconnect, perform a Radio Read and compare the result with the recovery Code
 - duplicate channels
 - patterned rename
 
-## 8.6 Search/filtering — HIGH VALUE
+## 8.6 Search/filtering — HIGH VALUE / PARTIALLY IMPLEMENTED
 
-Search by name, frequency, tone, zone, scan list and mode.
+The Channel table supports Used/All filtering and search by name, number or
+frequency. VFO Scan Edges and FM Broadcast presets also have focused search.
+Search by tone, Zone, Scan List and mode remains planned.
 
 ## 8.7 Validation/warnings — HIGH VALUE
+
+Storage bounds, encoded options, UTF-8 byte limits, frequencies, collection
+capacity and representation consistency are validated by the implemented
+editors and Codeplug operations. Additional user-facing warnings remain
+planned, including:
 
 Examples:
 
@@ -997,7 +1047,9 @@ Allow Working Codeplugs to be named and retained locally without changing their 
 
 ## 8.9 Undo/redo — P1
 
-Support revert field/channel/all changes.
+Dedicated step-by-step undo/redo remains planned. Returning an edited field to
+its Baseline Backup value removes its Change Set entry, and Channels currently
+provides a reset-all action for the Working Codeplug.
 
 ## 8.10 Source Radio preflight comparison — P1
 
@@ -1020,30 +1072,27 @@ Core radio operations should remain local-first and backend-independent.
 
 ---
 
-# 9. Recommended Product Navigation
+# 9. Current Product Navigation
 
 ```text
 Radio
 Channels
-Zones & Scanning
+Zones
+Scan Lists
+VFO Scan Edges
+Radio Settings
+  Function Settings
+  Display Settings
+  Sound Settings
+  Keyboard Settings
+  Menu Visibility
 APRS
 GPS
 Spectrum
-Settings
-Backups
-```
-
-Settings subsections:
-
-```text
-General
-Display
-Audio
-Keys
 Bluetooth
-Signalling
 FM Radio
-Advanced
+Signal System
+Backups (planned)
 ```
 
 ---
@@ -1074,7 +1123,7 @@ Advanced
 
 - [x] Codeplug module with private exact-byte preservation
 - [x] private memory-map constants and binary helpers
-- [x] private read-side Channel codec
+- [x] typed Channel codec and read-modify-write editors
 - [x] validity bitmap
 - [x] scan bitmap
 - [x] preserve unknown and reserved bytes
@@ -1089,7 +1138,7 @@ Advanced
 - [x] Zone/Scan List membership parsing and display
 - [x] compact VFO A/B and Call 1/2 views
 - [x] tracked drag-to-reorder with record and membership-reference remapping
-- [x] add default Memory Channel and delete-with-compaction row actions
+- [x] add, duplicate and delete-with-compaction Memory Channel row actions
 
 ## Epic 5 — Offline editing model
 
@@ -1099,7 +1148,7 @@ Advanced
 - [x] CTCSS/DCS indexed-value editing in the Memory table and details Drawer
 - [x] Zone and Scan List membership editing
 - [x] VFO/Call Channel editing
-- [ ] semantic Change Set tracking against the Baseline Backup
+- [x] semantic Change Set tracking against the Baseline Backup
 - [ ] Change Set review
 - [ ] undo/redo
 
@@ -1137,13 +1186,29 @@ Partial or changed-block writes are excluded until hardware-verified.
 
 ## Epic 8 — General radio settings
 
+- [x] Function Settings page and typed codec
+- [x] Display Settings page and typed codec
+- [x] Sound Settings page and typed codec
+- [x] power saving, Weather Channel, Tail, Tone Burst and Scan Behavior settings
 - [x] Spectrum page, codec, validation, and semantic Change Set tracking
 
 ## Epic 9 — Programmable keys / menu visibility
 
+- [x] programmable-key and Keyboard Lock editor
+- [x] separate short-press and long-press action maps
+- [x] hierarchical Menu Visibility editor with cascade and search
+- [x] semantic Working Codeplug Change Set tracking
+
 ## Epic 10 — APRS
 
+- [x] APRS page and typed codec
+- [x] APRS symbol, beacon, path, fixed-position, receive and TNC settings
+- [x] semantic Working Codeplug Change Set tracking
+
 ## Epic 11 — GPS & Bluetooth settings
+
+- [x] GPS page, typed codec and semantic Change Set tracking
+- [x] Bluetooth page, typed codec and semantic Change Set tracking
 
 ## Epic 12 — DTMF / 2-Tone / 5-Tone
 
@@ -1153,13 +1218,19 @@ Partial or changed-block writes are excluded until hardware-verified.
 - [ ] Controlled TYT CPS export-diff verification
 - [ ] Physical Radio write/reboot/readback verification
 
-## Epic 13 — FM radio / Weather Channels / advanced settings
+## Epic 13 — FM radio / advanced settings
 
 - [x] FM Broadcast page, 32 presets, documented settings and Change Set tracking
-- [ ] Read-only fixed Weather Channel presentation
+- [x] Weather Channel settings remain in Function Settings; fixed WX records are intentionally internal
 - [ ] FM noise-suppression/auto-scan encoding research
 
 ## Epic 14 — PWA / saved Working Codeplugs / import-export
+
+- [x] exact immutable Baseline Backup Raw Backup Export
+- [ ] Raw Backup import as an Unbound Codeplug
+- [ ] identity-bound CPS Export and import
+- [ ] durable Backup History and saved Working Codeplugs
+- [ ] PWA/offline packaging
 
 ---
 
@@ -1221,17 +1292,18 @@ firmware update commands
 - [x] production Radio Read workflow
 - [x] radio-information UI
 - [x] Codeplug core
-- [ ] Raw Backup Export and CPS Export handling
+- [x] Raw Backup Export
+- [ ] CPS Export and import handling
 - [ ] Backup History
 - [x] Channel parser
 - [x] virtualized 1000-channel table
 - [x] CTCSS/DCS display
-- [x] read-side Zone names and membership parser
-- [x] read-side Scan List names and membership parser
+- [x] typed Zone names and membership codec
+- [x] typed Scan List names and membership codec
 
 ## P1 — Main Product
 
-- [ ] channel editing
+- [x] channel editing
 - [ ] bulk edit
 - [ ] Change Set review
 - [ ] undo/redo
@@ -1239,9 +1311,10 @@ firmware update commands
 - [x] zone editor
 - [x] scan-list editor
 - [x] VFO/Call Channel editor
+- [x] VFO Scan Edge editor
 - [x] Spectrum settings
-- [ ] radio settings
-- [ ] programmable keys
+- [x] radio settings
+- [x] programmable keys
 - [x] APRS
 - [ ] safe verified write
 - [ ] interrupted-write recovery
@@ -1253,11 +1326,11 @@ firmware update commands
 - [x] audio settings
 - [x] AI voice control
 - [x] AI noise reduction
-- [ ] GPS
+- [x] GPS
 - [x] Bluetooth settings
-- [ ] menu visibility
-- [ ] power saving
-- [ ] Tone Burst
+- [x] menu visibility
+- [x] power saving
+- [x] Tone Burst
 - [x] APRS TNC settings
 
 ## P3 — Advanced / Specialist
@@ -1266,8 +1339,8 @@ firmware update commands
 - [x] remote signalling codes
 - [x] 2-Tone
 - [x] 5-Tone
-- [x] FM broadcast presets
-- [ ] Weather Channel settings
+- [x] FM Broadcast presets and receiver settings
+- [x] Weather Channel settings in Function Settings
 - [ ] FM noise-suppression/auto-scan encoding research
 
 ## Future / Research

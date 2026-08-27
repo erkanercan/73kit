@@ -235,8 +235,9 @@ Use a page-level segmented switch or tabs:
 Temporary A/B are internal VFO snapshots. The storage reference requires every
 save/write to mirror VFO A to Temp A and VFO B to Temp B, so Temporary records
 must not be presented as independently editable user channels. Weather channels
-are fixed templates and should later appear in a separate read-only Weather
-section, not in the normal channel editor.
+are fixed templates and remain internal rather than appearing in the channel
+editor or a separate page. Their user-facing controls stay in Radio Settings →
+Function Settings, matching the current TYT CPS.
 
 The radio's A- and B-band operating modes determine whether each side is using
 Memory, VFO, Call, or Weather mode. That setting is separate from editing the
