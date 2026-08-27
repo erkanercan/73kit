@@ -13,6 +13,10 @@ import type {
   DtmfSettingsPatch,
   FiveToneSettings,
   FiveToneSettingsPatch,
+  FmBroadcastChannel,
+  FmBroadcastChannelPatch,
+  FmBroadcastSettings,
+  FmBroadcastSettingsPatch,
   FunctionSettings,
   FunctionSettingsPatch,
   GpsSettings,
@@ -139,6 +143,15 @@ type WorkspaceChange =
   | {
       readonly kind: "edit-five-tone-setting"
       readonly field: keyof FiveToneSettingsPatch
+    }
+  | {
+      readonly kind: "edit-fm-broadcast-channel"
+      readonly number: number
+      readonly field: keyof FmBroadcastChannelPatch
+    }
+  | {
+      readonly kind: "edit-fm-broadcast-setting"
+      readonly field: keyof FmBroadcastSettingsPatch
     }
 
 type MemoryChannelStructureChange = {
@@ -838,6 +851,68 @@ function reconcileBluetoothSettingChanges(
   ])
 }
 
+function reconcileFmBroadcastChannelChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  number: number,
+  fields: readonly (keyof FmBroadcastChannelPatch)[]
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) return Object.freeze([])
+
+  const affectedFields = new Set(fields)
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-fm-broadcast-channel" ||
+      change.number !== number ||
+      !affectedFields.has(change.field)
+  )
+  const baseline = baselineCodeplug.getFmBroadcastChannels()[number]
+  const working = workingCodeplug.getFmBroadcastChannels()[number]
+  const changedFields = fields.filter(
+    (field) => !fmBroadcastChannelFieldEquals(baseline, working, field)
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) =>
+      Object.freeze({
+        kind: "edit-fm-broadcast-channel" as const,
+        number,
+        field,
+      })
+    ),
+  ])
+}
+
+function reconcileFmBroadcastSettingChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  fields: readonly (keyof FmBroadcastSettingsPatch)[]
+): readonly WorkspaceChange[] {
+  if (workingCodeplug.equals(baselineCodeplug)) return Object.freeze([])
+
+  const affectedFields = new Set(fields)
+  const retained = current.filter(
+    (change) =>
+      change.kind !== "edit-fm-broadcast-setting" ||
+      !affectedFields.has(change.field)
+  )
+  const baseline = baselineCodeplug.getFmBroadcastSettings()
+  const working = workingCodeplug.getFmBroadcastSettings()
+  const changedFields = fields.filter(
+    (field) => !fmBroadcastSettingFieldEquals(baseline, working, field)
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) =>
+      Object.freeze({ kind: "edit-fm-broadcast-setting" as const, field })
+    ),
+  ])
+}
+
 function reconcileSpectrumSettingChanges(
   current: readonly WorkspaceChange[],
   baselineCodeplug: Codeplug,
@@ -1068,6 +1143,22 @@ function bluetoothSettingFieldEquals(
   return JSON.stringify(baseline[field]) === JSON.stringify(working[field])
 }
 
+function fmBroadcastChannelFieldEquals(
+  baseline: FmBroadcastChannel,
+  working: FmBroadcastChannel,
+  field: keyof FmBroadcastChannelPatch
+) {
+  return baseline[field] === working[field]
+}
+
+function fmBroadcastSettingFieldEquals(
+  baseline: FmBroadcastSettings,
+  working: FmBroadcastSettings,
+  field: keyof FmBroadcastSettingsPatch
+) {
+  return JSON.stringify(baseline[field]) === JSON.stringify(working[field])
+}
+
 function spectrumSettingFieldEquals(
   baseline: SpectrumSettings,
   working: SpectrumSettings,
@@ -1150,6 +1241,8 @@ export {
   reconcileDisplaySettingChanges,
   reconcileDtmfSettingChanges,
   reconcileFiveToneSettingChanges,
+  reconcileFmBroadcastChannelChanges,
+  reconcileFmBroadcastSettingChanges,
   reconcileFunctionSettingChanges,
   reconcileGpsSettingChanges,
   reconcileKeyboardSettingChanges,

@@ -8,6 +8,7 @@ import {
   ListChecksIcon,
   ListIcon,
   MapIcon,
+  RadioTowerIcon,
   RadioIcon,
   SatelliteIcon,
   ScanLineIcon,
@@ -107,6 +108,12 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           href: "/bluetooth",
           icon: BluetoothIcon,
           active: pathname === "/bluetooth",
+        },
+        {
+          title: t("navFmRadio"),
+          href: "/fm-radio",
+          icon: RadioTowerIcon,
+          active: pathname === "/fm-radio",
         },
         {
           title: t("navSignalSystem"),

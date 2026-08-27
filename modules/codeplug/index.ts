@@ -128,6 +128,17 @@ import type {
   TwoToneSettings,
   TwoToneSettingsPatch,
 } from "./signal-system.ts"
+import {
+  decodeFmBroadcast,
+  editFmBroadcastChannelBytes,
+  editFmBroadcastSettingsBytes,
+} from "./fm-broadcast.ts"
+import type {
+  FmBroadcastChannel,
+  FmBroadcastChannelPatch,
+  FmBroadcastSettings,
+  FmBroadcastSettingsPatch,
+} from "./fm-broadcast.ts"
 
 const CODEPLUG_SIZE = 0x19000
 
@@ -154,6 +165,8 @@ class Codeplug {
   readonly #dtmfSettings: DtmfSettings
   readonly #twoToneSettings: TwoToneSettings
   readonly #fiveToneSettings: FiveToneSettings
+  readonly #fmBroadcastChannels: readonly FmBroadcastChannel[]
+  readonly #fmBroadcastSettings: FmBroadcastSettings
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -184,6 +197,9 @@ class Codeplug {
     this.#dtmfSettings = decodeDtmfSettings(this.#bytes)
     this.#twoToneSettings = decodeTwoToneSettings(this.#bytes)
     this.#fiveToneSettings = decodeFiveToneSettings(this.#bytes)
+    const fmBroadcast = decodeFmBroadcast(this.#bytes)
+    this.#fmBroadcastChannels = fmBroadcast.channels
+    this.#fmBroadcastSettings = fmBroadcast.settings
   }
 
   get byteLength() {
@@ -276,6 +292,14 @@ class Codeplug {
 
   getFiveToneSettings() {
     return this.#fiveToneSettings
+  }
+
+  getFmBroadcastChannels() {
+    return this.#fmBroadcastChannels
+  }
+
+  getFmBroadcastSettings() {
+    return this.#fmBroadcastSettings
   }
 
   moveMemoryChannel(fromNumber: number, toNumber: number) {
@@ -375,6 +399,14 @@ class Codeplug {
 
   editFiveToneSettings(patch: FiveToneSettingsPatch) {
     return new Codeplug(editFiveToneSettingsBytes(this.#bytes, patch))
+  }
+
+  editFmBroadcastChannel(number: number, patch: FmBroadcastChannelPatch) {
+    return new Codeplug(editFmBroadcastChannelBytes(this.#bytes, number, patch))
+  }
+
+  editFmBroadcastSettings(patch: FmBroadcastSettingsPatch) {
+    return new Codeplug(editFmBroadcastSettingsBytes(this.#bytes, patch))
   }
 
   editChannelMemberships(number: number, patch: ChannelMembershipPatch) {
@@ -557,6 +589,34 @@ export type {
   TwoToneSettings,
   TwoToneSettingsPatch,
 } from "./signal-system.ts"
+export {
+  FM_BROADCAST_CHANNEL_COUNT,
+  FM_BROADCAST_CHANNEL_NAME_SIZE,
+  FM_BROADCAST_CHANNEL_RECORD_SIZE,
+  FM_BROADCAST_CHANNELS_ADDRESS,
+  FM_BROADCAST_CHANNELS_OFFSET,
+  FM_BROADCAST_DEFAULT_FREQUENCY_HZ,
+  FM_BROADCAST_ENABLED_ADDRESS,
+  FM_BROADCAST_ENABLED_OFFSET,
+  FM_BROADCAST_FREQUENCY_STEP_HZ,
+  FM_BROADCAST_MAX_FREQUENCY_HZ,
+  FM_BROADCAST_MIN_FREQUENCY_HZ,
+  FM_BROADCAST_MODE_ADDRESS,
+  FM_BROADCAST_MODE_OFFSET,
+  FM_BROADCAST_SETTING_OPTIONS,
+  FM_BROADCAST_VALIDITY_ADDRESS,
+  FM_BROADCAST_VALIDITY_OFFSET,
+  FM_BROADCAST_VFO_FREQUENCY_ADDRESS,
+  FM_BROADCAST_VFO_FREQUENCY_OFFSET,
+} from "./fm-broadcast.ts"
+export type {
+  FmBroadcast,
+  FmBroadcastChannel,
+  FmBroadcastChannelPatch,
+  FmBroadcastMode,
+  FmBroadcastSettings,
+  FmBroadcastSettingsPatch,
+} from "./fm-broadcast.ts"
 export {
   APRS_SYMBOL_CODES,
   aprsSymbolCode,

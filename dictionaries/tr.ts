@@ -22,6 +22,7 @@ const tr = {
   navAprs: "APRS",
   navGps: "GPS",
   navBluetooth: "Bluetooth",
+  navFmRadio: "FM Radyo",
   navSettings: "Telsiz Ayarları",
   navSignalSystem: "Sinyal Sistemi",
   signalSystemTitle: "Sinyal Sistemi",
@@ -182,6 +183,32 @@ const tr = {
   bluetoothMicrophoneGain: "Mikrofon kazancı",
   bluetoothMicrophoneGainHint:
     "Bluetooth mikrofon giriş seviyesini ayarlar. Yüksek seviyeler daha yüksek ses verir.",
+  fmBroadcastTitle: "FM Radyo",
+  fmBroadcastReadRequiredTitle:
+    "FM yayın ayarlarını düzenlemek için bir telsiz okuyun",
+  fmBroadcastUsedCount:
+    "{total, number} hafızadan {used, number} tanesi kullanımda",
+  fmBroadcastSettingsTitle: "FM Radyo Ayarları",
+  fmBroadcastEnabled: "FM radyo",
+  fmBroadcastEnabledHint: "Telsizin FM yayın alıcısını açar veya kapatır.",
+  fmBroadcastMode: "Çalışma modu",
+  fmBroadcastModeHint:
+    "Doğrudan VFO ayarı ile 32 kayıtlı FM hafızası arasında seçim yapar.",
+  fmBroadcastModeVfo: "VFO",
+  fmBroadcastModeMemory: "Hafıza",
+  fmBroadcastVfoFrequency: "VFO frekansı",
+  fmBroadcastVfoFrequencyHint:
+    "FM Radyo VFO modundayken kullanılacak alıcı frekansını ayarlar.",
+  fmBroadcastUnknownValue: "Bilinmeyen kayıtlı değer: {value}",
+  fmBroadcastUnknownFrequency: "Bilinmeyen kayıtlı frekans: {value, number} Hz",
+  fmBroadcastFrequencyInvalid:
+    "64,0 ile 108,0 MHz arasında, 0,1 MHz adımlarla bir frekans girin.",
+  fmBroadcastSearch: "FM hafızalarında ara",
+  fmBroadcastSearchPlaceholder: "Hafıza, ad veya frekansa göre ara…",
+  fmBroadcastNoMatchingChannels: "Eşleşen FM hafızası yok",
+  fmBroadcastChannel: "Hafıza",
+  fmBroadcastFrequency: "Frekans",
+  fmBroadcastUnnamedChannel: "Adsız hafıza",
   bluetoothGainLevel: "Seviye {level, number}",
   radioSettingsTitle: "Telsiz Temel Ayarları",
   functionSettingsReadRequiredTitle:

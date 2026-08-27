@@ -21,6 +21,7 @@ const en = {
   navAprs: "APRS",
   navGps: "GPS",
   navBluetooth: "Bluetooth",
+  navFmRadio: "FM Radio",
   navSettings: "Radio Settings",
   navSignalSystem: "Signal System",
   signalSystemTitle: "Signal System",
@@ -178,6 +179,31 @@ const en = {
   bluetoothMicrophoneGain: "Microphone gain",
   bluetoothMicrophoneGainHint:
     "Sets the Bluetooth microphone input level. Higher levels are louder.",
+  fmBroadcastTitle: "FM Radio",
+  fmBroadcastReadRequiredTitle:
+    "Read a Radio to edit its FM broadcast settings",
+  fmBroadcastUsedCount: "{used, number} of {total, number} presets used",
+  fmBroadcastSettingsTitle: "FM Radio Settings",
+  fmBroadcastEnabled: "FM radio",
+  fmBroadcastEnabledHint: "Turns the Radio's FM broadcast receiver on or off.",
+  fmBroadcastMode: "Operating mode",
+  fmBroadcastModeHint:
+    "Chooses direct VFO tuning or one of the 32 saved FM presets.",
+  fmBroadcastModeVfo: "VFO",
+  fmBroadcastModeMemory: "Memory",
+  fmBroadcastVfoFrequency: "VFO frequency",
+  fmBroadcastVfoFrequencyHint:
+    "Sets the receiver frequency used while FM Radio is in VFO mode.",
+  fmBroadcastUnknownValue: "Unknown stored value: {value}",
+  fmBroadcastUnknownFrequency: "Unknown stored frequency: {value, number} Hz",
+  fmBroadcastFrequencyInvalid:
+    "Enter a frequency from 64.0 to 108.0 MHz in 0.1 MHz steps.",
+  fmBroadcastSearch: "Search FM presets",
+  fmBroadcastSearchPlaceholder: "Search by preset, name, or frequency…",
+  fmBroadcastNoMatchingChannels: "No matching FM presets",
+  fmBroadcastChannel: "Preset",
+  fmBroadcastFrequency: "Frequency",
+  fmBroadcastUnnamedChannel: "Unnamed preset",
   bluetoothGainLevel: "Level {level, number}",
   radioSettingsTitle: "Radio Basic Settings",
   functionSettingsReadRequiredTitle:

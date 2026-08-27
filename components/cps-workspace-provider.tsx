@@ -23,6 +23,8 @@ import {
   reconcileDisplaySettingChanges,
   reconcileDtmfSettingChanges,
   reconcileFiveToneSettingChanges,
+  reconcileFmBroadcastChannelChanges,
+  reconcileFmBroadcastSettingChanges,
   reconcileFunctionSettingChanges,
   reconcileGpsSettingChanges,
   reconcileKeyboardSettingChanges,
@@ -48,6 +50,8 @@ import type {
   DisplaySettingsPatch,
   DtmfSettingsPatch,
   FiveToneSettingsPatch,
+  FmBroadcastChannelPatch,
+  FmBroadcastSettingsPatch,
   FunctionSettingsPatch,
   GpsSettingsPatch,
   KeyboardSettingsPatch,
@@ -106,6 +110,8 @@ interface CpsWorkspaceContextValue {
   editDtmfSettings(patch: DtmfSettingsPatch): void
   editTwoToneSettings(patch: TwoToneSettingsPatch): void
   editFiveToneSettings(patch: FiveToneSettingsPatch): void
+  editFmBroadcastChannel(number: number, patch: FmBroadcastChannelPatch): void
+  editFmBroadcastSettings(patch: FmBroadcastSettingsPatch): void
   setMenuVisibility(id: MenuVisibilityItemId, visible: boolean): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
@@ -956,6 +962,72 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const editFmBroadcastChannel = React.useCallback(
+    (number: number, patch: FmBroadcastChannelPatch) => {
+      const fields = Object.keys(patch) as (keyof FmBroadcastChannelPatch)[]
+      if (fields.length === 0) return
+
+      setDocumentState((current) => {
+        if (!current.completedRead) return current
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editFmBroadcastChannel(
+            number,
+            patch
+          )
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileFmBroadcastChannelChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            number,
+            fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
+  const editFmBroadcastSettings = React.useCallback(
+    (patch: FmBroadcastSettingsPatch) => {
+      const fields = Object.keys(patch) as (keyof FmBroadcastSettingsPatch)[]
+      if (fields.length === 0) return
+
+      setDocumentState((current) => {
+        if (!current.completedRead) return current
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editFmBroadcastSettings(patch)
+
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileFmBroadcastSettingChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
   const setMenuVisibility = React.useCallback(
     (id: MenuVisibilityItemId, visible: boolean) => {
       setDocumentState((current) => {
@@ -1156,6 +1228,8 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editDtmfSettings,
       editTwoToneSettings,
       editFiveToneSettings,
+      editFmBroadcastChannel,
+      editFmBroadcastSettings,
       setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,
@@ -1195,6 +1269,8 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editDtmfSettings,
       editTwoToneSettings,
       editFiveToneSettings,
+      editFmBroadcastChannel,
+      editFmBroadcastSettings,
       setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,

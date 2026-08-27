@@ -151,6 +151,9 @@ const settingHintKey = {
   "spectrum-custom": "spectrumCustomHint",
   "spectrum-lower-frequency": "spectrumLowerFrequencyHint",
   "spectrum-upper-frequency": "spectrumUpperFrequencyHint",
+  "fm-broadcast-switch": "fmBroadcastEnabledHint",
+  "fm-broadcast-mode": "fmBroadcastModeHint",
+  "fm-broadcast-vfo-frequency": "fmBroadcastVfoFrequencyHint",
 } as const
 
 type RadioSettingId = keyof typeof settingHintKey

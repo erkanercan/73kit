@@ -719,13 +719,25 @@ parent controls, search, and Show All/Hide All actions. Preserve every bit after
 
 ---
 
-## 7.18 FM Broadcast Radio
+## 7.18 FM Broadcast Radio — P3 / IMPLEMENTED; DOCUMENTED STORAGE
 
-- 32 FM presets — P3
-- preset-valid bitmap — P3
-- FM radio enable — P3
-- frequency/channel mode — P3
-- FM VFO frequency — P3
+The localized `/fm-radio` workspace exposes all 32 fixed FM preset slots in a
+compact searchable table aligned with the Memory Channel editor. Each row shows
+its `FM-00` through `FM-31` slot, Used state, 24-byte UTF-8 name and broadcast
+frequency. Search and immediate inline editing follow the same Working Codeplug
+behavior as Channels, while all 32 hardware slots remain visible.
+
+The settings card exposes the FM receiver switch, VFO/Memory operating mode and
+VFO frequency. Preset and VFO frequencies are validated from 64.0 through
+108.0 MHz in 0.1 MHz steps. Edits preserve each preset's four reserved bytes,
+update only the documented validity bit or field bytes, and reconcile against
+the immutable Baseline Backup.
+
+- 32 FM presets — P3 / IMPLEMENTED
+- preset-valid bitmap — P3 / IMPLEMENTED
+- FM radio enable — P3 / IMPLEMENTED
+- VFO/Memory mode — P3 / IMPLEMENTED
+- FM VFO frequency — P3 / IMPLEMENTED
 
 Documented FM VFO range: `64.0 → 108.0 MHz`.
 
@@ -1143,6 +1155,10 @@ Partial or changed-block writes are excluded until hardware-verified.
 
 ## Epic 13 — FM radio / Weather Channels / advanced settings
 
+- [x] FM Broadcast page, 32 presets, documented settings and Change Set tracking
+- [ ] Read-only fixed Weather Channel presentation
+- [ ] FM noise-suppression/auto-scan encoding research
+
 ## Epic 14 — PWA / saved Working Codeplugs / import-export
 
 ---
@@ -1250,7 +1266,7 @@ firmware update commands
 - [x] remote signalling codes
 - [x] 2-Tone
 - [x] 5-Tone
-- [ ] FM broadcast presets
+- [x] FM broadcast presets
 - [ ] Weather Channel settings
 - [ ] FM noise-suppression/auto-scan encoding research
 
