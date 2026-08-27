@@ -64,7 +64,18 @@ Total size:
 
 This includes Channels, VFOs, Call Channels, Zones, Scan Lists, radio settings, APRS, GPS, Bluetooth, DTMF, 2-Tone, 5-Tone and related Codeplug data.
 
-MCU firmware updates use a separate update/bootloader path and `.Fir` packages. Firmware flashing is **not** part of the initial CPS implementation.
+MCU firmware updates use a separate update/bootloader path and `.Fir` packages.
+Resource Flash uses `.DAT` packages for Language and Image Resources at
+addresses outside the Codeplug range. Neither operation is a Radio Write.
+
+The official CPS updater protocol is now documented in
+[`docs/technical/TYT_UVL-15W_UPDATE_PROTOCOL_V1.0.md`](technical/TYT_UVL-15W_UPDATE_PROTOCOL_V1.0.md).
+Firmware `3.7.23` is captured and reproduced offline. Language `1.01.05`, Image
+`1.01.00`, and their combined DAT were captured bidirectionally. Resource Flash
+`E3` variation is explained by static analysis, and the updater specification
+pins known-successful compatibility payloads per validated package kind.
+Destructive browser update actions remain release-gated on implementation and
+physical browser validation.
 
 ---
 
@@ -1363,7 +1374,14 @@ firmware update commands
 - [ ] BLE/Web Bluetooth transport for CPS
 - [ ] Node serial transport
 - [ ] desktop/Tauri transport
-- [ ] firmware updater
+- [x] official Firmware `3.7.23` protocol captured and reproduced offline
+- [x] Language `1.01.05` Resource Flash captured bidirectionally
+- [x] Image `1.01.00` Resource Flash captured bidirectionally
+- [x] combined Language/Image Resource Flash captured bidirectionally
+- [x] Language/Image/combined DAT structure and inclusion verified offline
+- [x] explain variable Resource Flash `E3` source and pin compatibility payloads
+- [ ] browser Firmware Update implementation and physical verification
+- [ ] browser Resource Flash implementation and recovery validation
 - [ ] custom firmware tooling
 
 ---
@@ -1389,6 +1407,19 @@ docs/technical/TYT_UVL-15W_Data_Storage_Reference_V1.0_EN_REVIEWED.md
 ```
 
 Authoritative for memory map, channel layout, settings, zones, scan lists, APRS, GPS, Bluetooth and signalling data structures.
+
+## 14.3 TYT UVL-15W Update Protocol V1.0
+
+Repository path:
+
+```text
+docs/technical/TYT_UVL-15W_UPDATE_PROTOCOL_V1.0.md
+```
+
+Authoritative in this repository for captured Firmware Update and Resource Flash
+behavior, package validation, evidence limits, and updater safety states. The
+offline evidence manifest and reproduction procedure are in
+`docs/research/firmware-flash-language-update-research.md`.
 
 ---
 

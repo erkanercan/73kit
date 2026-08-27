@@ -52,6 +52,34 @@ _Avoid_: Upload, sync, cross-radio write
 The result of a Radio Write that was interrupted or could not be verified, leaving the Radio's resulting Codeplug uncertain. It requires recovery guidance rather than being reported as either success or failure.
 _Avoid_: Write failed, partial success, probably written
 
+**Firmware Package**:
+An official TYT `.Fir` file containing a complete MCU firmware update for a compatible Radio. It is not a Codeplug and must pass package integrity and Radio compatibility checks before use.
+_Avoid_: Firmware image, Codeplug, binary
+
+**Flash Data Package**:
+An official TYT `.DAT` address-record file containing Radio resources such as Language Resources, Image Resources, or a combined resource image. It is not a Codeplug and its absolute addresses are authorized only by the Resource Flash workflow.
+_Avoid_: Codeplug, config file, firmware
+
+**Firmware Update**:
+The validated application of a Firmware Package through the Radio's update-mode MCU protocol, followed by reboot and installed-version verification.
+_Avoid_: Radio Write, upload, firmware sync
+
+**Resource Flash**:
+The validated application of a Flash Data Package through the Radio's update-mode resource protocol. It is separate from both a Radio Write and a Firmware Update.
+_Avoid_: Radio Write, data upload, firmware flash
+
+**Language Resource Write**:
+A Resource Flash that installs the Radio UI strings contained in a Language Flash Data Package. It does not select which installed System Language the Radio uses.
+_Avoid_: System Language selection, language setting
+
+**System Language**:
+A Codeplug setting that selects one of the Language Resources already installed on the Radio. Changing it does not install or upgrade Language Resources.
+_Avoid_: Language Resource Write, language update
+
+**Update Outcome Unknown**:
+The result of a Firmware Update or Resource Flash interrupted after writing may have begun, or whose post-reboot result cannot be verified. It requires updater-specific recovery guidance and must not be reported as success or ordinary failure.
+_Avoid_: Update failed, partial success, probably flashed
+
 **Raw Backup Export**:
 A portable copy containing only the exact Codeplug, without Source Radio identity. Importing it creates an Unbound Codeplug.
 _Avoid_: CPS Export, project file

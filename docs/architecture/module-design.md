@@ -1,15 +1,20 @@
 # Module design
 
-The CPS is organized around three deep modules and one adapter seam. Application source lives directly at the repository root; there is no `src/` directory.
+The CPS is organized around the Codeplug workflow and a separate updater
+workflow, both behind one adapter seam. Application source lives directly at
+the repository root; there is no `src/` directory.
 
 ```text
 UI
-└── CPS Workspace
-    ├── UVL-15W Radio
-    │   └── Transport seam
-    │       ├── Web Serial adapter
-    │       └── Scripted test adapter
-    └── Codeplug
+├── CPS Workspace
+│   ├── UVL-15W Radio
+│   └── Codeplug
+└── Update Coordinator
+    ├── Update Package
+    └── UVL-15W Updater
+        └── Transport seam
+            ├── Web Serial adapter
+            └── Scripted test adapter
 ```
 
 ## Repository layout
@@ -21,6 +26,9 @@ modules/
   cps-workspace/             CPS workflow and safety invariants
   uvl15w-radio/              Radio protocol and session behaviour
   codeplug/                  Codeplug interpretation and editing
+  update-coordinator/        Update lifecycle, prerequisites, and recovery
+  update-package/            Fir and DAT parsing and validation
+  uvl15w-updater/            Update-mode firmware/resource protocols
 adapters/
   web-serial/                Production Transport adapter
 test-support/
@@ -80,6 +88,45 @@ independent band selections. The Codeplug module owns header-version migration,
 frequency and step/mode validation, little-endian encoding, and preservation of
 the reserved record bytes; UI callers submit only complete domain patches.
 
+## Update Coordinator
+
+The Update Coordinator is the only updater interface used by the UI. It owns
+package selection, operation type, prerequisite and compatibility gates,
+explicit confirmation, progress, exclusive Radio-operation ownership,
+post-reboot verification, and Update Outcome Unknown recovery records.
+
+It keeps Firmware Update and Resource Flash out of the CPS Workspace because
+they operate in update mode on packages and address ranges that are not
+Codeplugs. The UI renders coordinator state and invokes high-level operations;
+it never constructs protocol commands or treats progress as proof of success.
+
+## Update Package
+
+The Update Package module parses and validates official Firmware Packages and
+Flash Data Packages without opening a serial port. It owns file grammar,
+integrity checks, package classification, embedded metadata, hashes, address
+continuity, operation-specific address allowlists, and prerequisite facts.
+
+It exposes immutable validated package values. Raw filenames, visible version
+strings, and caller-supplied addresses are never sufficient authorization for a
+write.
+
+## UVL-15W Updater
+
+The UVL-15W Updater owns the shared update-mode handshake and two private,
+distinct state machines: MCU Firmware Update and Resource Flash. It owns
+session-key derivation, block transforms, acknowledgement sequencing,
+finalization, and protocol-result verification. Opaque identity/activation
+fields and session keys remain transient and are never exposed to UI callers.
+
+The updater implements only operations whose evidence status satisfies the
+technical update protocol. As of V1.0, Firmware `3.7.23` is fully reproduced,
+and Language, Image, and combined Resource Flash transfers are captured. The
+official CPS's variable `E3` source is explained; this module selects the
+specification's exact compatibility payload only after package-kind and
+evidence-set validation. No destructive production action may be exposed until
+that browser path has passed physical validation and recovery gates.
+
 ## Transport seam
 
 The Transport seam isolates UVL-15W protocol behaviour from byte transport behaviour. It is a real seam because it has two adapters:
@@ -89,7 +136,11 @@ The Transport seam isolates UVL-15W protocol behaviour from byte transport behav
 
 The Web Serial adapter uses the fixed value 115200 baud because that value was verified by the browser PoC. The protocol specification identifies USB CDC as the transport but does not prescribe a baud rate, and the Radio's USB CDC implementation may ignore the requested line-coding value.
 
-The Transport interface belongs to the UVL-15W Radio module. Adapters satisfy it; the UI and CPS Workspace do not call adapters directly.
+The Transport interface is shared by the UVL-15W Radio and UVL-15W Updater
+modules. Adapters satisfy it; the UI, CPS Workspace, and Update Coordinator do
+not call adapters directly. The production adapter must additionally expose the
+captured RTS behavior and connection lifecycle needed in update mode before a
+physical updater is enabled.
 
 ## Testing
 
@@ -98,5 +149,11 @@ Tests use the same module interfaces as production callers:
 - UVL-15W Radio tests exercise complete protocol scenarios through its interface using the scripted Transport adapter.
 - Codeplug tests exercise decoding, editing, preservation, validation, and encoding through the Codeplug interface using known binary fixtures.
 - CPS Workspace tests exercise lifecycle, Source Radio binding, Change Sets, imports, exports, Backup History, and write recovery through the workspace interface.
+- Update Package tests run without a Radio and verify official package hashes,
+  malformed-file rejection, integrity tags, DAT continuity, and address policy.
+- UVL-15W Updater tests replay complete sanitized protocol fixtures through the
+  scripted Transport, including strict acknowledgements and interruption states.
+- Update Coordinator tests exercise prerequisites, confirmation, exclusivity,
+  post-reboot verification, and Update Outcome Unknown recovery.
 
 Internal frame, checksum, and escaping helpers may have focused regression tests where useful, but they are not additional public seams.
