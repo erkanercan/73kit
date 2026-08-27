@@ -14,6 +14,7 @@ import {
   BetweenHorizontalStartIcon,
   BluetoothIcon,
   Settings2Icon,
+  AudioLinesIcon,
   WaypointsIcon,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -106,6 +107,12 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           href: "/bluetooth",
           icon: BluetoothIcon,
           active: pathname === "/bluetooth",
+        },
+        {
+          title: t("navSignalSystem"),
+          href: "/signal-system",
+          icon: AudioLinesIcon,
+          active: pathname === "/signal-system",
         },
       ],
     },

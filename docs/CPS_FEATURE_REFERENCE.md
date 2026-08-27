@@ -830,6 +830,10 @@ Settings, and APRS Bluetooth TNC output remains in APRS.
 
 DTMF block: `0x00016000`, 1024 bytes.
 
+Implementation status (2026-08-27): complete in the browser CPS. The typed
+codec and editor cover every setting below, all 16 memories and all eight PTT
+ID records. Edits use read-modify-write and preserve reserved bytes.
+
 Features:
 
 - local ID — P2
@@ -853,6 +857,11 @@ Features:
 
 Block: `0x00016800`, 512 bytes.
 
+Implementation status (2026-08-27): complete in the browser CPS. Both 16-row
+tables and all global settings are editable. Frequencies are encoded as
+little-endian unsigned tenths of a hertz; blank tone cells retain the Radio's
+empty-record representation.
+
 - encoder/decoder timing — P3
 - 16 encode records — P3
 - 16 decode records — P3
@@ -864,6 +873,10 @@ Block: `0x00016800`, 512 bytes.
 ## 7.24 5-Tone
 
 Block: `0x00017000`, 2048 bytes.
+
+Implementation status (2026-08-27): complete in the browser CPS. The editor
+covers all global encode/decode settings, 16 encode records, eight PTT ID
+records and 16 information-code records.
 
 - local ID — P3
 - encoder timing/settings — P3
@@ -877,6 +890,18 @@ Block: `0x00017000`, 2048 bytes.
 - 16 information-code records — P3
 
 Documented standards include ZVEI1/2/3, PZVEI, DZVEI, PDZVEI, CCIR1/2, PCCIR, EEA, EURO SIGNAL, NATEL, MODAT, CCITT and EIA.
+
+The standard byte is the zero-based index in this exact order: ZVEI1=`0x00`,
+ZVEI2=`0x01`, ZVEI3=`0x02`, PZVEI=`0x03`, DZVEI=`0x04`, PDZVEI=`0x05`,
+CCIR1=`0x06`, CCIR2=`0x07`, PCCIR=`0x08`, EEA=`0x09`, EURO SIGNAL=`0x0A`,
+NATEL=`0x0B`, MODAT=`0x0C`, CCITT=`0x0D`, EIA=`0x0E`. The same mapping is used
+for the decoder, encode-list records and PTT ID records.
+
+Automated verification currently covers exact offsets, standard indexes,
+2-Tone frequency encoding, validation, round trips and reserved-byte
+preservation. Controlled TYT CPS export diffs and physical Radio
+read-write-readback verification are deliberately deferred; this status is
+kept here rather than displayed in the editor.
 
 ---
 
@@ -1110,6 +1135,12 @@ Partial or changed-block writes are excluded until hardware-verified.
 
 ## Epic 12 — DTMF / 2-Tone / 5-Tone
 
+- [x] Typed codecs and persisted editors for DTMF, 2-Tone and 5-Tone
+- [x] Semantic Working Codeplug change tracking
+- [x] Channel signaling-record selection
+- [ ] Controlled TYT CPS export-diff verification
+- [ ] Physical Radio write/reboot/readback verification
+
 ## Epic 13 — FM radio / Weather Channels / advanced settings
 
 ## Epic 14 — PWA / saved Working Codeplugs / import-export
@@ -1215,10 +1246,10 @@ firmware update commands
 
 ## P3 — Advanced / Specialist
 
-- [ ] DTMF
-- [ ] remote signalling codes
-- [ ] 2-Tone
-- [ ] 5-Tone
+- [x] DTMF
+- [x] remote signalling codes
+- [x] 2-Tone
+- [x] 5-Tone
 - [ ] FM broadcast presets
 - [ ] Weather Channel settings
 - [ ] FM noise-suppression/auto-scan encoding research

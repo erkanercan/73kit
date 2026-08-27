@@ -256,6 +256,30 @@ function ChannelEditorFields({
           })
         }
       />
+      {channel.optionalSignaling.kind !== "off" &&
+        channel.optionalSignaling.kind !== "unknown" && (
+          <DrawerSelectField
+            id={fieldId("optional-signaling-entry")}
+            label={t("optionalSignalingEntry")}
+            value={String(channel.optionalSignaling.index)}
+            options={Array.from({ length: 16 }, (_, index) => ({
+              value: String(index),
+              label: formatSignalingEntry(
+                channel.optionalSignaling.kind,
+                index
+              ),
+              original: index,
+            }))}
+            onCommit={(index) =>
+              onEdit({
+                optionalSignaling: {
+                  kind: channel.optionalSignaling.kind,
+                  index,
+                },
+              })
+            }
+          />
+        )}
       <DrawerSelectField
         id={fieldId("scrambler")}
         label={t("scrambler")}
@@ -320,6 +344,48 @@ interface DrawerSelectOption<Value> {
   readonly value: string
   readonly label: string
   readonly original: Value
+}
+
+function formatSignalingEntry(kind: string, index: number) {
+  const labels =
+    kind === "two-tone"
+      ? [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+        ]
+      : [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "A",
+          "B",
+          "C",
+          "D",
+          "*",
+          "#",
+        ]
+  return `${index} · ${labels[index]}`
 }
 
 function drawerValueOptions<const Values extends readonly (string | number)[]>(

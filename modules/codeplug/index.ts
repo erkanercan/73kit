@@ -112,6 +112,22 @@ import type {
   SpectrumSettings,
   SpectrumSettingsPatch,
 } from "./spectrum-settings.ts"
+import {
+  decodeDtmfSettings,
+  decodeFiveToneSettings,
+  decodeTwoToneSettings,
+  editDtmfSettingsBytes,
+  editFiveToneSettingsBytes,
+  editTwoToneSettingsBytes,
+} from "./signal-system.ts"
+import type {
+  DtmfSettings,
+  DtmfSettingsPatch,
+  FiveToneSettings,
+  FiveToneSettingsPatch,
+  TwoToneSettings,
+  TwoToneSettingsPatch,
+} from "./signal-system.ts"
 
 const CODEPLUG_SIZE = 0x19000
 
@@ -135,6 +151,9 @@ class Codeplug {
   readonly #gpsSettings: GpsSettings
   readonly #bluetoothSettings: BluetoothSettings
   readonly #spectrumSettings: SpectrumSettings
+  readonly #dtmfSettings: DtmfSettings
+  readonly #twoToneSettings: TwoToneSettings
+  readonly #fiveToneSettings: FiveToneSettings
 
   constructor(bytes: Uint8Array) {
     if (bytes.byteLength !== CODEPLUG_SIZE) {
@@ -162,6 +181,9 @@ class Codeplug {
     this.#gpsSettings = decodeGpsSettings(this.#bytes)
     this.#bluetoothSettings = decodeBluetoothSettings(this.#bytes)
     this.#spectrumSettings = decodeSpectrumSettings(this.#bytes)
+    this.#dtmfSettings = decodeDtmfSettings(this.#bytes)
+    this.#twoToneSettings = decodeTwoToneSettings(this.#bytes)
+    this.#fiveToneSettings = decodeFiveToneSettings(this.#bytes)
   }
 
   get byteLength() {
@@ -242,6 +264,18 @@ class Codeplug {
 
   getSpectrumSettings() {
     return this.#spectrumSettings
+  }
+
+  getDtmfSettings() {
+    return this.#dtmfSettings
+  }
+
+  getTwoToneSettings() {
+    return this.#twoToneSettings
+  }
+
+  getFiveToneSettings() {
+    return this.#fiveToneSettings
   }
 
   moveMemoryChannel(fromNumber: number, toNumber: number) {
@@ -329,6 +363,18 @@ class Codeplug {
 
   editSpectrumSettings(patch: SpectrumSettingsPatch) {
     return new Codeplug(editSpectrumSettingsBytes(this.#bytes, patch))
+  }
+
+  editDtmfSettings(patch: DtmfSettingsPatch) {
+    return new Codeplug(editDtmfSettingsBytes(this.#bytes, patch))
+  }
+
+  editTwoToneSettings(patch: TwoToneSettingsPatch) {
+    return new Codeplug(editTwoToneSettingsBytes(this.#bytes, patch))
+  }
+
+  editFiveToneSettings(patch: FiveToneSettingsPatch) {
+    return new Codeplug(editFiveToneSettingsBytes(this.#bytes, patch))
   }
 
   editChannelMemberships(number: number, patch: ChannelMembershipPatch) {
@@ -480,6 +526,37 @@ export type {
   SpectrumSettingsPatch,
   SpectrumStepKHz,
 } from "./spectrum-settings.ts"
+export {
+  DTMF_SETTINGS_ADDRESS,
+  DTMF_SETTINGS_OFFSET,
+  FIVE_TONE_SETTINGS_ADDRESS,
+  FIVE_TONE_SETTINGS_OFFSET,
+  SIGNAL_SYSTEM_OPTIONS,
+  TWO_TONE_SETTINGS_ADDRESS,
+  TWO_TONE_SETTINGS_OFFSET,
+} from "./signal-system.ts"
+export type {
+  AniDisplayType,
+  DialerType,
+  DtmfPttId,
+  DtmfSettings,
+  DtmfSettingsPatch,
+  DtmfSymbol,
+  FiveToneEncodeRecord,
+  FiveToneInformationCode,
+  FiveToneInformationFunction,
+  FiveTonePauseCode,
+  FiveTonePttId,
+  FiveToneSettings,
+  FiveToneSettingsPatch,
+  FiveToneStandard,
+  PttIdType,
+  ResponseType,
+  TwoToneDecodeRecord,
+  TwoToneEncodeRecord,
+  TwoToneSettings,
+  TwoToneSettingsPatch,
+} from "./signal-system.ts"
 export {
   APRS_SYMBOL_CODES,
   aprsSymbolCode,

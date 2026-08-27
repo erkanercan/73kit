@@ -9,6 +9,10 @@ import type {
   Codeplug,
   DisplaySettings,
   DisplaySettingsPatch,
+  DtmfSettings,
+  DtmfSettingsPatch,
+  FiveToneSettings,
+  FiveToneSettingsPatch,
   FunctionSettings,
   FunctionSettingsPatch,
   GpsSettings,
@@ -23,6 +27,8 @@ import type {
   SoundSettingsPatch,
   SpectrumSettings,
   SpectrumSettingsPatch,
+  TwoToneSettings,
+  TwoToneSettingsPatch,
   SpecialChannel,
   VfoChannelPatch,
   VfoScanEdge,
@@ -121,6 +127,18 @@ type WorkspaceChange =
   | {
       readonly kind: "edit-spectrum-setting"
       readonly field: keyof SpectrumSettingsPatch
+    }
+  | {
+      readonly kind: "edit-dtmf-setting"
+      readonly field: keyof DtmfSettingsPatch
+    }
+  | {
+      readonly kind: "edit-two-tone-setting"
+      readonly field: keyof TwoToneSettingsPatch
+    }
+  | {
+      readonly kind: "edit-five-tone-setting"
+      readonly field: keyof FiveToneSettingsPatch
     }
 
 type MemoryChannelStructureChange = {
@@ -848,6 +866,78 @@ function reconcileSpectrumSettingChanges(
   ])
 }
 
+function reconcileDtmfSettingChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  fields: readonly (keyof DtmfSettingsPatch)[]
+): readonly WorkspaceChange[] {
+  return reconcileSignalSettingChanges(
+    current,
+    baselineCodeplug.getDtmfSettings(),
+    workingCodeplug.getDtmfSettings(),
+    fields,
+    "edit-dtmf-setting"
+  )
+}
+
+function reconcileTwoToneSettingChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  fields: readonly (keyof TwoToneSettingsPatch)[]
+): readonly WorkspaceChange[] {
+  return reconcileSignalSettingChanges(
+    current,
+    baselineCodeplug.getTwoToneSettings(),
+    workingCodeplug.getTwoToneSettings(),
+    fields,
+    "edit-two-tone-setting"
+  )
+}
+
+function reconcileFiveToneSettingChanges(
+  current: readonly WorkspaceChange[],
+  baselineCodeplug: Codeplug,
+  workingCodeplug: Codeplug,
+  fields: readonly (keyof FiveToneSettingsPatch)[]
+): readonly WorkspaceChange[] {
+  return reconcileSignalSettingChanges(
+    current,
+    baselineCodeplug.getFiveToneSettings(),
+    workingCodeplug.getFiveToneSettings(),
+    fields,
+    "edit-five-tone-setting"
+  )
+}
+
+function reconcileSignalSettingChanges<
+  TSettings extends DtmfSettings | TwoToneSettings | FiveToneSettings,
+  TField extends keyof TSettings,
+  TKind extends
+    "edit-dtmf-setting" | "edit-two-tone-setting" | "edit-five-tone-setting",
+>(
+  current: readonly WorkspaceChange[],
+  baseline: TSettings,
+  working: TSettings,
+  fields: readonly TField[],
+  kind: TKind
+): readonly WorkspaceChange[] {
+  const affectedFields = new Set<PropertyKey>(fields)
+  const retained = current.filter(
+    (change) => change.kind !== kind || !affectedFields.has(change.field)
+  )
+  const changedFields = fields.filter(
+    (field) =>
+      JSON.stringify(baseline[field]) !== JSON.stringify(working[field])
+  )
+
+  return Object.freeze([
+    ...retained,
+    ...changedFields.map((field) => Object.freeze({ kind, field })),
+  ]) as readonly WorkspaceChange[]
+}
+
 function numberArraysEqual(left: readonly number[], right: readonly number[]) {
   return (
     left.length === right.length &&
@@ -1058,12 +1148,15 @@ export {
   reconcileBluetoothSettingChanges,
   reconcileChannelMembershipChanges,
   reconcileDisplaySettingChanges,
+  reconcileDtmfSettingChanges,
+  reconcileFiveToneSettingChanges,
   reconcileFunctionSettingChanges,
   reconcileGpsSettingChanges,
   reconcileKeyboardSettingChanges,
   reconcileMenuVisibilityChanges,
   reconcileSoundSettingChanges,
   reconcileSpectrumSettingChanges,
+  reconcileTwoToneSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
   reconcileScanListEditChanges,

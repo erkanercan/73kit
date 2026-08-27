@@ -21,12 +21,15 @@ import {
   reconcileBluetoothSettingChanges,
   reconcileChannelMembershipChanges,
   reconcileDisplaySettingChanges,
+  reconcileDtmfSettingChanges,
+  reconcileFiveToneSettingChanges,
   reconcileFunctionSettingChanges,
   reconcileGpsSettingChanges,
   reconcileKeyboardSettingChanges,
   reconcileMenuVisibilityChanges,
   reconcileSoundSettingChanges,
   reconcileSpectrumSettingChanges,
+  reconcileTwoToneSettingChanges,
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
   reconcileScanListEditChanges,
@@ -43,6 +46,8 @@ import type {
   ChannelMembershipPatch,
   ChannelCollectionPatch,
   DisplaySettingsPatch,
+  DtmfSettingsPatch,
+  FiveToneSettingsPatch,
   FunctionSettingsPatch,
   GpsSettingsPatch,
   KeyboardSettingsPatch,
@@ -51,6 +56,7 @@ import type {
   RadioBand,
   SoundSettingsPatch,
   SpectrumSettingsPatch,
+  TwoToneSettingsPatch,
   VfoChannelPatch,
   VfoScanEdgePatch,
 } from "@/modules/codeplug/index"
@@ -97,6 +103,9 @@ interface CpsWorkspaceContextValue {
   editGpsSettings(patch: GpsSettingsPatch): void
   editBluetoothSettings(patch: BluetoothSettingsPatch): void
   editSpectrumSettings(patch: SpectrumSettingsPatch): void
+  editDtmfSettings(patch: DtmfSettingsPatch): void
+  editTwoToneSettings(patch: TwoToneSettingsPatch): void
+  editFiveToneSettings(patch: FiveToneSettingsPatch): void
   setMenuVisibility(id: MenuVisibilityItemId, visible: boolean): void
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
@@ -863,6 +872,90 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const editDtmfSettings = React.useCallback((patch: DtmfSettingsPatch) => {
+    const fields = Object.keys(patch) as (keyof DtmfSettingsPatch)[]
+    if (fields.length === 0) return
+    setDocumentState((current) => {
+      if (!current.completedRead) return current
+      const completedRead = current.completedRead
+      const nextCodeplug =
+        completedRead.workingCodeplug.codeplug.editDtmfSettings(patch)
+      return Object.freeze({
+        completedRead: Object.freeze({
+          ...completedRead,
+          workingCodeplug: Object.freeze({
+            ...completedRead.workingCodeplug,
+            codeplug: nextCodeplug,
+          }),
+        }),
+        changes: reconcileDtmfSettingChanges(
+          current.changes,
+          completedRead.baselineBackup.codeplug,
+          nextCodeplug,
+          fields
+        ),
+      })
+    })
+  }, [])
+
+  const editTwoToneSettings = React.useCallback(
+    (patch: TwoToneSettingsPatch) => {
+      const fields = Object.keys(patch) as (keyof TwoToneSettingsPatch)[]
+      if (fields.length === 0) return
+      setDocumentState((current) => {
+        if (!current.completedRead) return current
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editTwoToneSettings(patch)
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileTwoToneSettingChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
+  const editFiveToneSettings = React.useCallback(
+    (patch: FiveToneSettingsPatch) => {
+      const fields = Object.keys(patch) as (keyof FiveToneSettingsPatch)[]
+      if (fields.length === 0) return
+      setDocumentState((current) => {
+        if (!current.completedRead) return current
+        const completedRead = current.completedRead
+        const nextCodeplug =
+          completedRead.workingCodeplug.codeplug.editFiveToneSettings(patch)
+        return Object.freeze({
+          completedRead: Object.freeze({
+            ...completedRead,
+            workingCodeplug: Object.freeze({
+              ...completedRead.workingCodeplug,
+              codeplug: nextCodeplug,
+            }),
+          }),
+          changes: reconcileFiveToneSettingChanges(
+            current.changes,
+            completedRead.baselineBackup.codeplug,
+            nextCodeplug,
+            fields
+          ),
+        })
+      })
+    },
+    []
+  )
+
   const setMenuVisibility = React.useCallback(
     (id: MenuVisibilityItemId, visible: boolean) => {
       setDocumentState((current) => {
@@ -1060,6 +1153,9 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editGpsSettings,
       editBluetoothSettings,
       editSpectrumSettings,
+      editDtmfSettings,
+      editTwoToneSettings,
+      editFiveToneSettings,
       setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,
@@ -1096,6 +1192,9 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       editGpsSettings,
       editBluetoothSettings,
       editSpectrumSettings,
+      editDtmfSettings,
+      editTwoToneSettings,
+      editFiveToneSettings,
       setMenuVisibility,
       moveMemoryChannel,
       resetWorkingCodeplug,
