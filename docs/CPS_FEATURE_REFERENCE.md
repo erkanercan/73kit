@@ -105,6 +105,20 @@ The `E1` response exposes:
 - hardware version
 - serial number
 
+### Firmware compatibility gate
+
+The current Codeplug memory map is validated for UVL-15W firmware `3.07.23`.
+After the `E1` response, the UVL-15W Radio module validates the reported
+firmware before allowing a Radio Read. It normalizes `3.07.23` and `V3.07.23`
+representations of that version. Older, newer-unvalidated, blank or malformed
+versions are disconnected before any `E2` command is sent, so no Codeplug Backup
+or Working Codeplug is created.
+
+Firmware support is an exact validated-version allowlist rather than a minimum
+comparison: a future release may retain the same address range while changing
+field offsets or meanings. Add a newer version only after controlled Codeplug
+comparisons, protocol/address validation, fixtures and physical Radio testing.
+
 #### Source discrepancy
 
 The Communication Protocol describes one E1 payload as **71 bytes**, but the documented field offsets extend through byte 80, which describes an **81-byte structure**. The newer Data Storage Reference also describes E1 as 81 bytes. Parse defensively and preserve this discrepancy in documentation/tests.

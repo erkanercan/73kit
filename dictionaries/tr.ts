@@ -19,6 +19,8 @@ const tr = {
   navVfoScanEdges: "VFO Tarama Sınırı",
   navSpectrum: "Spektrum",
   navConfiguration: "Programlama",
+  navDevelopment: "Geliştirme",
+  navFirmwareSimulator: "Firmware Simülatörü",
   navAprs: "APRS",
   navGps: "GPS",
   navBluetooth: "Bluetooth",
@@ -705,6 +707,63 @@ const tr = {
   radioProtocolError:
     "Telsiz geçersiz veri gönderdi. Codeplug Yedeği oluşturulmadı; telsizi yeniden bağlayıp okumayı tekrar deneyin.",
   incompatibleRadio: "Bağlı telsiz TYT UVL-15W değil; bu CPS ile okunamaz.",
+  firmwareCompatibilityStopped: "Firmware desteklenmiyor",
+  firmwareTooOld:
+    "Firmware {detectedVersion} desteklenmiyor. Telsizi {validatedVersion} sürümüne güncelleyip yeniden bağlayın. Telsiz verileri okunmadı veya değiştirilmedi.",
+  firmwareUnvalidated:
+    "Firmware {detectedVersion} bu CPS ile doğrulanmadı. Doğrulanmış sürümlerden biri {validatedVersion}. Telsiz verileri okunmadı veya değiştirilmedi.",
+  firmwareNewerUnvalidated:
+    "Firmware {detectedVersion} henüz bu CPS ile doğrulanmadı. Doğrulanmış sürüm {validatedVersion}. Telsiz verileri okunmadı veya değiştirilmedi.",
+  firmwareUnrecognized:
+    "Bildirilen firmware sürümü ({detectedVersion}) doğrulanamadı. Bu CPS {validatedVersion} sürümü için doğrulanmıştır. Telsiz verileri okunmadı veya değiştirilmedi.",
+  firmwareDemoTitle: "Firmware uyumluluk simülatörü",
+  firmwareDemoDescription:
+    "E1 el sıkışmasının bildirdiği firmware değerini simüle edin ve gerçek telsiz bağlantısının kullandığı uyumluluk kararını inceleyin.",
+  firmwareDemoLocalOnly: "Yerel prototip",
+  firmwareDemoVariantA: "Karar laboratuvarı",
+  firmwareDemoVariantB: "El sıkışma akışı",
+  firmwareDemoVariantC: "Sürüm matrisi",
+  firmwareDemoInputTitle: "Simüle edilen firmware",
+  firmwareDemoInputDescription:
+    "Telsizin bildirebileceği sekiz baytlık firmware alanını girin.",
+  firmwareDemoDetectedVersion: "Algılanan firmware",
+  firmwareDemoNormalizedVersion: "Normalleştirilmiş sürüm",
+  firmwareDemoPresets: "Senaryolar",
+  firmwareDemoBlankVersion: "Boş",
+  firmwareDemoNoRadio:
+    "Yalnızca bellekte simülasyon. Web Serial hiçbir zaman açılmaz.",
+  firmwareDemoSupportedTitle: "Telsiz Okuma izinli",
+  firmwareDemoSupportedDescription:
+    "Firmware {detectedVersion}, doğrulanmış bir Codeplug yerleşimiyle eşleşiyor. Gerçek bağlantı E2 komutuna devam edebilir.",
+  firmwareDemoStateSnapshot: "Uyumluluk durumu",
+  firmwareDemoStateDescription:
+    "Üretim uyumluluk değerlendiricisinin döndürdüğü tam sonuç.",
+  firmwareDemoSupported: "Destekleniyor",
+  firmwareDemoReasonOlder: "Eski",
+  firmwareDemoReasonUnvalidated: "Doğrulanmamış",
+  firmwareDemoReasonNewer: "Yeni, doğrulanmamış",
+  firmwareDemoReasonUnrecognized: "Tanınmıyor",
+  firmwareDemoPipelineTitle: "Simüle edilen telsiz el sıkışması",
+  firmwareDemoPipelineDescription:
+    "Komut sırasını izleyin ve desteklenmeyen firmware'in tam olarak nerede durduğunu görün.",
+  firmwareDemoSimulatedRadio: "Firmware kontrollü bağlantı",
+  firmwareDemoStageHandshake: "Telsiz kimliğini iste",
+  firmwareDemoStageInformation: "Kaynak Telsiz bilgisini ayrıştır",
+  firmwareDemoStageDecision: "Uyumluluk",
+  firmwareDemoStageReadAllowed: "Telsiz Okuma başlayabilir",
+  firmwareDemoStageReadBlocked: "Telsiz Okuma komutu yok",
+  firmwareDemoStageComplete: "Tamamlandı",
+  firmwareDemoStageReady: "Hazır",
+  firmwareDemoStageBlocked: "Engellendi",
+  firmwareDemoMatrixTitle: "Firmware senaryo matrisi",
+  firmwareDemoMatrixDescription:
+    "Güncel, eski, gelecekteki, boş ve bozuk temsili değerleri karşılaştırın.",
+  firmwareDemoDecision: "Karar",
+  firmwareDemoAction: "İşlem",
+  firmwareDemoSimulate: "Simüle et",
+  firmwareDemoCustomVersion: "Özel senaryo",
+  firmwareDemoPreviousVariant: "Önceki prototip varyantı",
+  firmwareDemoNextVariant: "Sonraki prototip varyantı",
   readPasswordRequired:
     "Bu telsizde okuma koruması açık. Parola korumalı telsiz okuma henüz desteklenmiyor.",
   unexpectedRadioResponse:

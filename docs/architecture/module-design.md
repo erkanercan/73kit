@@ -54,6 +54,9 @@ interface Uvl15wRadio {
 Interface invariants:
 
 - `connect` must succeed before `read`.
+- `connect` succeeds only for a UVL-15W firmware version whose Codeplug layout
+  has been validated by this CPS; unsupported or unrecognized firmware is
+  disconnected before a Radio Read can begin.
 - Only one radio operation may run at a time.
 - `read` returns only a complete, validated Codeplug.
 - Interrupted or invalid read data is discarded.

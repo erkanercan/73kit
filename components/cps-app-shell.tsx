@@ -81,9 +81,11 @@ function AppHeader() {
                   ? t("navZones")
                   : pathname === "/scan-lists"
                     ? t("navScanLists")
-                    : pathname.startsWith("/radio-settings")
-                      ? t("navSettings")
-                      : t("navRadio")}
+                    : pathname === "/prototype/firmware-compatibility"
+                      ? t("navFirmwareSimulator")
+                      : pathname.startsWith("/radio-settings")
+                        ? t("navSettings")
+                        : t("navRadio")}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>

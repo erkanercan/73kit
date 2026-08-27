@@ -9,6 +9,10 @@ import {
   type FrameDecodeEvent,
   type ProtocolFrame,
 } from "./protocol.ts"
+import {
+  evaluateFirmwareCompatibility,
+  type UnsupportedFirmwareReason,
+} from "./firmware-compatibility.ts"
 import type { RadioConnection, RadioTransport } from "./transport.ts"
 
 const CODEPLUG_START_ADDRESS = 0x8000
@@ -40,6 +44,7 @@ type Uvl15wRadioErrorCode =
   | "response-timeout"
   | "protocol"
   | "incompatible-radio"
+  | "unsupported-firmware"
   | "read-password-required"
   | "unexpected-response"
 
@@ -54,6 +59,27 @@ class Uvl15wRadioError extends Error {
     super(message, options)
     this.name = "Uvl15wRadioError"
     this.code = code
+  }
+}
+
+class UnsupportedFirmwareError extends Uvl15wRadioError {
+  readonly detectedVersion: string
+  readonly validatedVersion: string
+  readonly reason: UnsupportedFirmwareReason
+
+  constructor(
+    detectedVersion: string,
+    validatedVersion: string,
+    reason: UnsupportedFirmwareReason
+  ) {
+    super(
+      "unsupported-firmware",
+      firmwareErrorMessage(detectedVersion, validatedVersion, reason)
+    )
+    this.name = "UnsupportedFirmwareError"
+    this.detectedVersion = detectedVersion
+    this.validatedVersion = validatedVersion
+    this.reason = reason
   }
 }
 
@@ -216,8 +242,10 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
         )
       }
 
-      this.#sourceRadio = parseSourceRadio(response.payload)
-      return this.#sourceRadio
+      const sourceRadio = parseSourceRadio(response.payload)
+      assertSupportedFirmware(sourceRadio.firmwareVersion)
+      this.#sourceRadio = sourceRadio
+      return sourceRadio
     } catch (error) {
       await this.disconnect()
       throw error
@@ -429,6 +457,38 @@ function parseSourceRadio(payload: Uint8Array): SourceRadio {
   })
 }
 
+function assertSupportedFirmware(detectedVersion: string) {
+  const compatibility = evaluateFirmwareCompatibility(detectedVersion)
+  if (compatibility.status === "supported") {
+    return
+  }
+
+  throw new UnsupportedFirmwareError(
+    detectedVersion,
+    compatibility.validatedVersions.at(-1) ?? "unknown",
+    compatibility.reason
+  )
+}
+
+function firmwareErrorMessage(
+  detectedVersion: string,
+  validatedVersion: string,
+  reason: UnsupportedFirmwareReason
+) {
+  const displayedVersion = detectedVersion || "an unreported version"
+
+  switch (reason) {
+    case "older":
+      return `Firmware ${displayedVersion} is not supported; update the Radio to ${validatedVersion}`
+    case "unvalidated":
+      return `Firmware ${displayedVersion} has not been validated with this CPS; a validated version is ${validatedVersion}`
+    case "newer-unvalidated":
+      return `Firmware ${displayedVersion} has not been validated with this CPS; the latest validated version is ${validatedVersion}`
+    case "unrecognized":
+      return `Firmware ${displayedVersion} could not be verified; a validated version is ${validatedVersion}`
+  }
+}
+
 function parseReadBlock(
   frame: ProtocolFrame,
   expectedAddress: number,
@@ -526,8 +586,10 @@ function toHex(bytes: Uint8Array) {
 export {
   CODEPLUG_END_ADDRESS,
   CODEPLUG_START_ADDRESS,
+  UnsupportedFirmwareError,
   Uvl15wRadioError,
   createUvl15wRadio,
+  evaluateFirmwareCompatibility,
 }
 export type {
   RadioReadOptions,
@@ -536,5 +598,7 @@ export type {
   Uvl15wRadio,
   Uvl15wRadioErrorCode,
   Uvl15wRadioOptions,
+  UnsupportedFirmwareReason,
 }
+export type { FirmwareCompatibility } from "./firmware-compatibility.ts"
 export type { RadioConnection, RadioTransport } from "./transport.ts"

@@ -13,7 +13,10 @@ import {
 import { useFormatter, useTranslations } from "next-intl"
 
 import { StatusBadge } from "@/components/cps-app-shell"
-import { useCpsWorkspace } from "@/components/cps-workspace-provider"
+import {
+  useCpsWorkspace,
+  type WorkspaceError,
+} from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -92,15 +95,7 @@ function RadioOverview() {
         </Alert>
       )}
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertTriangleIcon aria-hidden="true" />
-          <AlertTitle>{t("radioReadStopped")}</AlertTitle>
-          <AlertDescription>
-            {"key" in error ? t(error.key) : error.message}
-          </AlertDescription>
-        </Alert>
-      )}
+      {error && <WorkspaceErrorAlert error={error} />}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(18rem,0.75fr)]">
         <RadioInformationCard
@@ -120,6 +115,43 @@ function RadioOverview() {
         />
       </div>
     </div>
+  )
+}
+
+function WorkspaceErrorAlert({ error }: { error: WorkspaceError }) {
+  const t = useTranslations()
+
+  if ("kind" in error) {
+    const values = {
+      detectedVersion: error.detectedVersion || t("notReported"),
+      validatedVersion: error.validatedVersion,
+    }
+
+    return (
+      <Alert variant="destructive">
+        <AlertTriangleIcon aria-hidden="true" />
+        <AlertTitle>{t("firmwareCompatibilityStopped")}</AlertTitle>
+        <AlertDescription>
+          {error.reason === "older"
+            ? t("firmwareTooOld", values)
+            : error.reason === "unvalidated"
+              ? t("firmwareUnvalidated", values)
+              : error.reason === "newer-unvalidated"
+                ? t("firmwareNewerUnvalidated", values)
+                : t("firmwareUnrecognized", values)}
+        </AlertDescription>
+      </Alert>
+    )
+  }
+
+  return (
+    <Alert variant="destructive">
+      <AlertTriangleIcon aria-hidden="true" />
+      <AlertTitle>{t("radioReadStopped")}</AlertTitle>
+      <AlertDescription>
+        {"key" in error ? t(error.key) : error.message}
+      </AlertDescription>
+    </Alert>
   )
 }
 

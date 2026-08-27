@@ -65,8 +65,10 @@ import type {
   VfoScanEdgePatch,
 } from "@/modules/codeplug/index"
 import {
+  UnsupportedFirmwareError,
   Uvl15wRadioError,
   type SourceRadio,
+  type UnsupportedFirmwareReason,
   type Uvl15wRadioErrorCode,
 } from "@/modules/uvl15w-radio/index"
 
@@ -118,7 +120,14 @@ interface CpsWorkspaceContextValue {
 }
 
 type WorkspaceError =
-  { readonly key: WorkspaceErrorKey } | { readonly message: string }
+  | { readonly key: WorkspaceErrorKey }
+  | {
+      readonly kind: "unsupportedFirmware"
+      readonly reason: UnsupportedFirmwareReason
+      readonly detectedVersion: string
+      readonly validatedVersion: string
+    }
+  | { readonly message: string }
 
 type WorkspaceErrorKey =
   | "noRadioSelected"
@@ -1319,8 +1328,24 @@ function workspaceError(error: unknown): WorkspaceError {
     return { key: serialErrorKeys[error.code] }
   }
 
+  if (error instanceof UnsupportedFirmwareError) {
+    return {
+      kind: "unsupportedFirmware",
+      reason: error.reason,
+      detectedVersion: error.detectedVersion,
+      validatedVersion: error.validatedVersion,
+    }
+  }
+
   if (error instanceof Uvl15wRadioError) {
-    const radioErrorKeys: Record<Uvl15wRadioErrorCode, WorkspaceErrorKey> = {
+    if (error.code === "unsupported-firmware") {
+      return { message: error.message }
+    }
+
+    const radioErrorKeys: Record<
+      Exclude<Uvl15wRadioErrorCode, "unsupported-firmware">,
+      WorkspaceErrorKey
+    > = {
       "already-connected": "radioAlreadyConnected",
       "not-connected": "radioNotConnected",
       "operation-in-progress": "radioOperationInProgress",

@@ -18,6 +18,8 @@ const en = {
   navVfoScanEdges: "VFO Scan Edge",
   navSpectrum: "Spectrum",
   navConfiguration: "Programming",
+  navDevelopment: "Development",
+  navFirmwareSimulator: "Firmware Simulator",
   navAprs: "APRS",
   navGps: "GPS",
   navBluetooth: "Bluetooth",
@@ -697,6 +699,62 @@ const en = {
     "The Radio returned invalid data. No Codeplug Backup was created; reconnect it and try the Radio Read again.",
   incompatibleRadio:
     "The connected Radio is not a TYT UVL-15W and cannot be read by this CPS.",
+  firmwareCompatibilityStopped: "Firmware not supported",
+  firmwareTooOld:
+    "Firmware {detectedVersion} is not supported. Update the Radio to {validatedVersion}, then reconnect it. No Radio data was read or changed.",
+  firmwareUnvalidated:
+    "Firmware {detectedVersion} has not been validated with this CPS. A validated version is {validatedVersion}. No Radio data was read or changed.",
+  firmwareNewerUnvalidated:
+    "Firmware {detectedVersion} has not yet been validated with this CPS. The validated version is {validatedVersion}. No Radio data was read or changed.",
+  firmwareUnrecognized:
+    "The reported firmware version ({detectedVersion}) could not be verified. This CPS is validated for {validatedVersion}. No Radio data was read or changed.",
+  firmwareDemoTitle: "Firmware compatibility simulator",
+  firmwareDemoDescription:
+    "Simulate the firmware value reported by the E1 handshake and inspect the exact compatibility decision used by the real Radio connection.",
+  firmwareDemoLocalOnly: "Local prototype",
+  firmwareDemoVariantA: "Decision lab",
+  firmwareDemoVariantB: "Handshake pipeline",
+  firmwareDemoVariantC: "Version matrix",
+  firmwareDemoInputTitle: "Simulated firmware",
+  firmwareDemoInputDescription:
+    "Enter the eight-byte firmware field as the Radio might report it.",
+  firmwareDemoDetectedVersion: "Detected firmware",
+  firmwareDemoNormalizedVersion: "Normalized version",
+  firmwareDemoPresets: "Scenarios",
+  firmwareDemoBlankVersion: "Blank",
+  firmwareDemoNoRadio: "In-memory simulation only. Web Serial is never opened.",
+  firmwareDemoSupportedTitle: "Radio Read allowed",
+  firmwareDemoSupportedDescription:
+    "Firmware {detectedVersion} matches a validated Codeplug layout. The real connection may continue to E2.",
+  firmwareDemoStateSnapshot: "Compatibility state",
+  firmwareDemoStateDescription:
+    "Complete result returned by the production compatibility evaluator.",
+  firmwareDemoSupported: "Supported",
+  firmwareDemoReasonOlder: "Older",
+  firmwareDemoReasonUnvalidated: "Unvalidated",
+  firmwareDemoReasonNewer: "Newer, unvalidated",
+  firmwareDemoReasonUnrecognized: "Unrecognized",
+  firmwareDemoPipelineTitle: "Simulated Radio handshake",
+  firmwareDemoPipelineDescription:
+    "Follow the command sequence and see exactly where an unsupported firmware stops.",
+  firmwareDemoSimulatedRadio: "Firmware-gated connection",
+  firmwareDemoStageHandshake: "Request Radio identity",
+  firmwareDemoStageInformation: "Parse Source Radio information",
+  firmwareDemoStageDecision: "Compatibility",
+  firmwareDemoStageReadAllowed: "Radio Read may begin",
+  firmwareDemoStageReadBlocked: "No Radio Read command",
+  firmwareDemoStageComplete: "Complete",
+  firmwareDemoStageReady: "Ready",
+  firmwareDemoStageBlocked: "Blocked",
+  firmwareDemoMatrixTitle: "Firmware scenario matrix",
+  firmwareDemoMatrixDescription:
+    "Compare representative current, older, future, blank, and malformed values.",
+  firmwareDemoDecision: "Decision",
+  firmwareDemoAction: "Action",
+  firmwareDemoSimulate: "Simulate",
+  firmwareDemoCustomVersion: "Custom scenario",
+  firmwareDemoPreviousVariant: "Previous prototype variant",
+  firmwareDemoNextVariant: "Next prototype variant",
   readPasswordRequired:
     "This Radio has read protection enabled. Password-protected Radio Reads are not supported yet.",
   unexpectedRadioResponse:

@@ -3,8 +3,12 @@ import test from "node:test"
 
 import { CODEPLUG_SIZE, createCodeplug } from "../modules/codeplug/index.ts"
 import { createCpsWorkspace } from "../modules/cps-workspace/index.ts"
-import { CODEPLUG_START_ADDRESS } from "../modules/uvl15w-radio/index.ts"
-import { createUvl15wRadio } from "../modules/uvl15w-radio/index.ts"
+import {
+  CODEPLUG_START_ADDRESS,
+  UnsupportedFirmwareError,
+  createUvl15wRadio,
+  evaluateFirmwareCompatibility,
+} from "../modules/uvl15w-radio/index.ts"
 import {
   ResponseFrameDecoder,
   encodeRequestFrame,
@@ -151,6 +155,81 @@ test("starts a later Radio operation with clean receive state after a closed con
   transport.assertComplete()
 })
 
+test("accepts the validated firmware with or without its V prefix", async () => {
+  for (const firmwareVersion of ["V3.07.23", "3.07.23"]) {
+    const transport = handshakeTransport(firmwareVersion)
+    const radio = createUvl15wRadio(transport, { responseTimeoutMs: 100 })
+
+    const sourceRadio = await radio.connect()
+
+    assert.equal(sourceRadio.firmwareVersion, firmwareVersion)
+    await radio.disconnect()
+    transport.assertComplete()
+  }
+})
+
+test("evaluates arbitrary firmware values without opening a Radio connection", () => {
+  assert.deepEqual(evaluateFirmwareCompatibility("V3.07.23"), {
+    status: "supported",
+    detectedVersion: "V3.07.23",
+    normalizedVersion: "3.07.23",
+    validatedVersions: ["3.07.23"],
+  })
+  assert.equal(evaluateFirmwareCompatibility("3.07.9").status, "unsupported")
+  assert.deepEqual(evaluateFirmwareCompatibility("3.08.00"), {
+    status: "unsupported",
+    detectedVersion: "3.08.00",
+    normalizedVersion: "3.08.00",
+    validatedVersions: ["3.07.23"],
+    reason: "newer-unvalidated",
+  })
+  assert.deepEqual(evaluateFirmwareCompatibility("FW1.0"), {
+    status: "unsupported",
+    detectedVersion: "FW1.0",
+    normalizedVersion: null,
+    validatedVersions: ["3.07.23"],
+    reason: "unrecognized",
+  })
+})
+
+test("rejects firmware that is not validated before a Radio Read can start", async (context) => {
+  const cases = [
+    { version: "3.07.22", reason: "older" },
+    { version: "3.07.9", reason: "older" },
+    { version: "3.08.00", reason: "newer-unvalidated" },
+    { version: "", reason: "unrecognized" },
+    { version: "FW1.0", reason: "unrecognized" },
+  ] as const
+
+  for (const testCase of cases) {
+    await context.test(testCase.version || "blank version", async () => {
+      const transport = handshakeTransport(testCase.version)
+      const radio = createUvl15wRadio(transport, { responseTimeoutMs: 100 })
+
+      await assert.rejects(radio.connect(), (error) => {
+        assert.ok(error instanceof UnsupportedFirmwareError)
+        assert.equal(error.code, "unsupported-firmware")
+        assert.equal(error.detectedVersion, testCase.version)
+        assert.equal(error.validatedVersion, "3.07.23")
+        assert.equal(error.reason, testCase.reason)
+        return true
+      })
+      await assert.rejects(radio.read(), { code: "not-connected" })
+      transport.assertComplete()
+    })
+  }
+})
+
+test("keeps the CPS Workspace disconnected when firmware is unsupported", async () => {
+  const transport = handshakeTransport("3.07.22")
+  const workspace = createCpsWorkspace(transport, { responseTimeoutMs: 100 })
+
+  await assert.rejects(workspace.connect(), UnsupportedFirmwareError)
+
+  assert.deepEqual(workspace.getSnapshot(), { status: "disconnected" })
+  transport.assertComplete()
+})
+
 test("closes a timed-out operation before a later Radio operation starts", async () => {
   const handshake = encodeRequestFrame(0xe0, encoder.encode("UVL-15W"))
   const transport = new ScriptedTransport([
@@ -195,7 +274,18 @@ function readResponsePayload(address: number, data: Uint8Array) {
   return payload
 }
 
-function deviceInformationPayload() {
+function handshakeTransport(firmwareVersion: string) {
+  return new ScriptedTransport([
+    {
+      expectedWrite: encodeRequestFrame(0xe0, encoder.encode("UVL-15W")),
+      responseChunks: [
+        encodeResponseFrame(0xe1, deviceInformationPayload(firmwareVersion)),
+      ],
+    },
+  ])
+}
+
+function deviceInformationPayload(firmwareVersion = "V3.07.23") {
   const payload = new Uint8Array(81)
   writeAscii(payload, 0, "UVL-15W")
   payload[7] = 0x5f
@@ -203,7 +293,7 @@ function deviceInformationPayload() {
   payload[9] = 0x5f
   payload[10] = 0
   payload[11] = 0
-  writeAscii(payload, 12, "FW1.0")
+  writeAscii(payload, 12, firmwareVersion)
   payload[20] = 0x5f
   payload.set(Uint8Array.of(1, 2, 3), 21)
   payload.set(

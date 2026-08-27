@@ -5,6 +5,7 @@ import {
   ChartNoAxesColumnIncreasingIcon,
   BookOpenIcon,
   CircleGaugeIcon,
+  FlaskConicalIcon,
   ListChecksIcon,
   ListIcon,
   MapIcon,
@@ -123,6 +124,21 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         },
       ],
     },
+    ...(process.env.NODE_ENV === "development"
+      ? [
+          {
+            label: t("navDevelopment"),
+            items: [
+              {
+                title: t("navFirmwareSimulator"),
+                href: "/prototype/firmware-compatibility",
+                icon: FlaskConicalIcon,
+                active: pathname === "/prototype/firmware-compatibility",
+              },
+            ],
+          },
+        ]
+      : []),
     {
       label: t("navData"),
       items: [{ title: t("navBackups"), icon: ArchiveIcon, planned: true }],
