@@ -256,7 +256,7 @@ E5, then reboot
    Workspace action, using the existing GPS flow as the direct pattern
    ([Codeplug GPS methods, lines 211-217](../../modules/codeplug/index.ts#L211-L217),
    [lines 290-296](../../modules/codeplug/index.ts#L290-L296),
-   [workspace provider, lines 770-794](../../components/cps-workspace-provider.tsx#L770-L794)).
+   [workspace controller](../../components/cps-workspace-controller.tsx)).
 5. Add Turkish and English copy; those are the currently configured locales
    ([locale routing, lines 3-13](../../i18n/routing.ts#L3-L13)).
 6. Keep CI-T, APRS TNC, key assignments, and menu visibility in their existing

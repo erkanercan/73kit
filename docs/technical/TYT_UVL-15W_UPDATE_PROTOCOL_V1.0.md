@@ -428,9 +428,11 @@ The browser implementation follows these boundaries:
 - `modules/uvl15w-updater`: update-mode handshake, compatibility policy,
   Firmware and Resource state machines, transforms, acknowledgements,
   finalization, and sanitized recovery facts;
-- `components/update-coordinator-provider.tsx`: exclusive operation ownership,
-  persistent Update Outcome Unknown records, restart flow, installed-version
-  checks, and complete post-reboot Radio Read;
+- `components/update-coordinator-controller.tsx`: exclusive operation
+  ownership, persistent Update Outcome Unknown records, restart flow,
+  installed-version checks, and complete post-reboot Radio Read;
+- `components/update-coordinator-provider.tsx`: the small React context seam
+  consumed by update screens;
 - `components/updates`: the localized single-Radio flow, split into package,
   preparation, transfer, verification, and shared-feedback components.
 

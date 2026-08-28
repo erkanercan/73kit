@@ -14,6 +14,10 @@ import {
 import type { RadioTransport } from "../uvl15w-radio/transport.ts"
 import type { WorkspaceChange } from "./change-set.ts"
 import {
+  createRadioWriteReview,
+  type RadioWriteReviewItem,
+} from "./radio-write-review.ts"
+import {
   compareSourceRadios,
   evaluateRadioWriteSource,
   type PreparedRadioWrite,
@@ -57,6 +61,15 @@ interface RadioWriteRecoveryResolution extends CompletedRadioWrite {
 interface PrepareRadioWriteInput {
   readonly workingCodeplug: WorkingCodeplug
   readonly changeSet: readonly WorkspaceChange[]
+  readonly onProgress?: (
+    snapshot: RadioWriteOperationSnapshot
+  ) => void | Promise<void>
+}
+
+interface ExecuteRadioWriteOptions {
+  readonly onProgress?: (
+    snapshot: RadioWriteOperationSnapshot
+  ) => void | Promise<void>
 }
 
 interface CpsWorkspaceOptions extends Uvl15wRadioOptions {
@@ -109,10 +122,13 @@ interface CpsWorkspace {
   connect(): Promise<SourceRadio>
   read(options?: RadioReadOptions): Promise<CompletedRadioRead>
   prepareRadioWrite(input: PrepareRadioWriteInput): Promise<PreparedRadioWrite>
-  executePreparedRadioWrite(): Promise<CompletedRadioWrite>
+  executePreparedRadioWrite(
+    options?: ExecuteRadioWriteOptions
+  ): Promise<CompletedRadioWrite>
   restoreRadioWriteRecovery(): Promise<RadioWriteOperationSnapshot | null>
   resolveRadioWriteRecovery(): Promise<RadioWriteRecoveryResolution>
   getRadioWriteSnapshot(): RadioWriteOperationSnapshot | null
+  getRadioWriteReview(): readonly RadioWriteReviewItem[]
   disconnect(): Promise<void>
 }
 
@@ -134,6 +150,17 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
 
   getRadioWriteSnapshot() {
     return this.#radioWriteSnapshot
+  }
+
+  getRadioWriteReview() {
+    const persisted = this.#persistedRadioWrite
+    if (!persisted) return Object.freeze([])
+    return createRadioWriteReview(
+      createCodeplug(persisted.artifacts.baselineBackup.bytes),
+      createCodeplug(persisted.artifacts.intendedWriteImage.bytes),
+      persisted.changeSet as readonly WorkspaceChange[],
+      persisted.derivedChanges
+    )
   }
 
   async connect() {
@@ -230,6 +257,7 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
         sourceEvaluation.layout.id
       )
     this.#radioWriteSnapshot = { phase: "preflight-reading" }
+    await input.onProgress?.(this.#radioWriteSnapshot)
 
     try {
       const candidateRadio = await this.#radio.connect()
@@ -298,6 +326,7 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
         phase: "review-required",
         preparedWrite,
       }
+      await input.onProgress?.(this.#radioWriteSnapshot)
       return preparedWrite
     } catch (error) {
       this.#radioWriteSnapshot = null
@@ -306,7 +335,9 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
     }
   }
 
-  async executePreparedRadioWrite(): Promise<CompletedRadioWrite> {
+  async executePreparedRadioWrite(
+    options: ExecuteRadioWriteOptions = {}
+  ): Promise<CompletedRadioWrite> {
     const persisted = this.#persistedRadioWrite
     const store = this.#radioWriteStore
     if (
@@ -355,11 +386,13 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
       const writeRadio = await this.#radio.connect()
       assertSameEligibleRadio(persisted.sourceRadio, writeRadio)
       await this.#persistRadioWritePhase("writing-before-first-block", 0)
+      await notifyRadioWriteProgress(options, this.#radioWriteSnapshot)
 
       try {
         await this.#radio.write(writeImage, {
           onProgress: async ({ bytesWritten }) => {
             await this.#persistRadioWritePhase("writing", bytesWritten)
+            await notifyRadioWriteProgress(options, this.#radioWriteSnapshot)
           },
         })
       } catch (error) {
@@ -376,9 +409,11 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
 
       writeCompleted = true
       await this.#persistRadioWritePhase("awaiting-reconnect")
+      await notifyRadioWriteProgress(options, this.#radioWriteSnapshot)
       const verificationRadio = await this.#radio.connect()
       assertSameEligibleRadio(persisted.sourceRadio, verificationRadio)
       await this.#persistRadioWritePhase("verifying")
+      await notifyRadioWriteProgress(options, this.#radioWriteSnapshot)
       const verifiedCodeplug = await this.#radio.read()
 
       if (!verifiedCodeplug.equals(intendedCodeplug)) {
@@ -424,6 +459,7 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
         verifiedBackup: artifactReference(verifiedBackup),
         verifiedAt,
       }
+      await notifyRadioWriteProgress(options, this.#radioWriteSnapshot)
       this.#snapshot = { status: "ready", ...completedWrite }
       return completedWrite
     } catch (error) {
@@ -431,6 +467,7 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
       if (writeCompleted) {
         await this.#persistRadioWriteUnknown(errorMessage(error))
       }
+      await notifyRadioWriteProgress(options, this.#radioWriteSnapshot)
       throw error
     }
   }
@@ -638,6 +675,13 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
   }
 }
 
+async function notifyRadioWriteProgress(
+  options: ExecuteRadioWriteOptions,
+  snapshot: RadioWriteOperationSnapshot | null
+) {
+  if (snapshot) await options.onProgress?.(snapshot)
+}
+
 function createCpsWorkspace(
   transport: RadioTransport,
   options: CpsWorkspaceOptions = {}
@@ -827,6 +871,7 @@ function errorMessage(error: unknown) {
 }
 
 export { CpsWorkspaceRadioWriteError, createCpsWorkspace }
+export { createRadioWriteReview } from "./radio-write-review.ts"
 export type {
   CodeplugBackup,
   CompletedRadioWrite,
@@ -834,9 +879,11 @@ export type {
   CpsWorkspaceOptions,
   CpsWorkspaceRadioWriteErrorCode,
   CpsWorkspace,
+  ExecuteRadioWriteOptions,
   CpsWorkspaceSnapshot,
   PrepareRadioWriteInput,
   RadioWriteRecoveryResolution,
+  RadioWriteReviewItem,
   WorkingCodeplug,
 }
 export type {

@@ -97,19 +97,21 @@ requires a separate E7 password feature.
   ([workspace module](../../modules/cps-workspace/index.ts),
   [IndexedDB adapter](../../adapters/indexed-db-radio-write-store/index.ts),
   [scripted tests](../../test-support/cps-workspace-radio-write.test.ts)).
-- Semantic Change Set tracking exists for the current editors, but there is no
-  user-facing review projection with before/after values and no confirmation
-  gate. The UI provider exposes `readRadio` and edit actions, not `writeRadio`
-  ([workspace provider](../../components/cps-workspace-provider.tsx#L75-L121)).
+- Semantic Change Set tracking now has a user-facing before/after review and a
+  confirmation gate after the preflight backup. The production action remains
+  disabled until the physical validation gate passes
+  ([workspace controller](../../components/cps-workspace-controller.tsx),
+  [Radio Write workflow](../../components/radio-write/radio-write-workflow.tsx)).
 - Ordinary Baseline Backup, Working Codeplug, Change Set, and Source Radio
   sessions still live only in React/module memory. An active prepared or
   outcome-unknown Radio Write now durably stores all safety artifacts in
   IndexedDB. General durable Backup History, saved Working Codeplugs, and CPS
   import/export remain unfinished
   ([feature roadmap](../CPS_FEATURE_REFERENCE.md#epic-14--pwa--saved-working-codeplugs--import-export)).
-- The Web Serial adapter always calls `requestPort()` and has no `getPorts()`,
-  retained-port, or reconnect API
-  ([Web Serial adapter](../../adapters/web-serial/index.ts#L130-L204)). Chrome
+- The Web Serial adapter retains the selected port for the complete operation,
+  uses `getPorts()` for reload recovery when one permitted port exists, and
+  provides an explicit user-gesture selection fallback
+  ([Web Serial adapter](../../adapters/web-serial/index.ts)). Chrome
   requires `requestPort()` to run from a user gesture, while `getPorts()`
   returns previously permitted ports and `connect`/`disconnect` events expose
   device reattachment. This matters because the required workflow reboots the

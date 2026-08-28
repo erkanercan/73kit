@@ -6,7 +6,10 @@ import type {
 const POC_VERIFIED_BAUD_RATE = 115_200
 
 type WebSerialTransportErrorCode =
-  "connection-closed" | "unavailable" | "streams-unavailable"
+  | "connection-closed"
+  | "port-selection-required"
+  | "unavailable"
+  | "streams-unavailable"
 
 class WebSerialTransportError extends Error {
   readonly code: WebSerialTransportErrorCode
@@ -42,6 +45,7 @@ interface BrowserSerialPort {
 }
 
 interface BrowserSerial {
+  getPorts?(): Promise<readonly BrowserSerialPort[]>
   requestPort(options?: {
     readonly filters?: readonly SerialPortFilter[]
   }): Promise<BrowserSerialPort>
@@ -53,6 +57,7 @@ interface NavigatorWithSerial extends Navigator {
 
 interface WebSerialTransportOptions extends SerialOpenOptions {
   readonly filters?: readonly SerialPortFilter[]
+  readonly preferPreviouslyGrantedPort?: boolean
   readonly requestToSend?: boolean
 }
 
@@ -129,6 +134,7 @@ class WebSerialConnection implements RadioConnection {
 
 class WebSerialTransport implements RadioTransport {
   readonly #options: WebSerialTransportOptions
+  #port: BrowserSerialPort | null = null
 
   constructor(options: WebSerialTransportOptions) {
     if (!Number.isInteger(options.baudRate) || options.baudRate <= 0) {
@@ -148,7 +154,7 @@ class WebSerialTransport implements RadioTransport {
       )
     }
 
-    const port = await serial.requestPort({ filters: this.#options.filters })
+    const port = await this.#resolvePort(serial)
     const openOptions: SerialOpenOptions = {
       baudRate: this.#options.baudRate,
       dataBits: this.#options.dataBits,
@@ -202,6 +208,37 @@ class WebSerialTransport implements RadioTransport {
 
     return new WebSerialConnection(port, reader, writer)
   }
+
+  async requestPort() {
+    const serial = (navigator as NavigatorWithSerial).serial
+    if (!serial) {
+      throw new WebSerialTransportError(
+        "unavailable",
+        "Web Serial is not available in this browser"
+      )
+    }
+    this.#port = await serial.requestPort({ filters: this.#options.filters })
+  }
+
+  async #resolvePort(serial: BrowserSerial) {
+    if (this.#port) return this.#port
+
+    if (!this.#options.preferPreviouslyGrantedPort) {
+      await this.requestPort()
+      if (this.#port) return this.#port
+    }
+
+    const permittedPorts = (await serial.getPorts?.()) ?? []
+    if (permittedPorts.length === 1) {
+      this.#port = permittedPorts[0]
+      return this.#port
+    }
+
+    throw new WebSerialTransportError(
+      "port-selection-required",
+      "Select the Source Radio port to continue"
+    )
+  }
 }
 
 type RadioCapability = "available" | "insecure-context" | "unsupported"
@@ -237,4 +274,5 @@ export type {
   RadioCapability,
   WebSerialTransportErrorCode,
   WebSerialTransportOptions,
+  WebSerialTransport,
 }

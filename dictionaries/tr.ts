@@ -2,6 +2,49 @@ import type { Messages } from "@/dictionaries/en"
 import { menuVisibilityMessagesTr } from "./menu-visibility.ts"
 
 const tr = {
+  serialPortSelectionRequired: "Devam etmek için Kaynak Telsiz portunu seçin.",
+  radioWriteTitle: "Telsize Yazma",
+  radioWriteDescription:
+    "Değişiklik Kümesini inceleyin, yeni bir kurtarma yedeği oluşturun, Codeplug'un tamamını yazın ve her baytı doğrulayın.",
+  radioWriteControlled: "Kullanılabilir",
+  radioWriteUnavailable: "Kullanılamıyor",
+  radioWriteUnavailableTitle: "Telsize Yazma kullanılamıyor",
+  radioWriteUnavailableDescription:
+    "Çalışma Codeplug'unu inceleyip düzenleyebilirsiniz ancak Telsize Yazma bu sürümde kullanılamıyor.",
+  radioWriteUnknownTitle: "Yazma Sonucu Bilinmiyor",
+  radioWriteUnknownDescription:
+    "Yazma başlamış olabilir ancak Telsizin son içeriği kanıtlanamadı. Körlemesine yeniden yazmayın; aynı Kaynak Telsizi bağlayıp kurtarma kontrolünü çalıştırın.",
+  radioWriteVerifiedTitle: "Telsize Yazma doğrulandı",
+  radioWriteVerifiedDescription:
+    "Telsiz yeniden başladı, tam Telsiz Okuma tamamlandı ve her bayt hedef yazma görüntüsüyle eşleşti.",
+  radioWriteDoNotInterrupt: "Sekmeyi kapatmayın, bağlantıyı veya gücü kesmeyin",
+  radioWriteDoNotInterruptDescription:
+    "Yazmanın geri dönüşü olmayan aşaması başladı. Kesin doğrulama bitene kadar bu sekmeyi açık, USB'yi bağlı ve gücü kararlı tutun.",
+  radioWriteChangeSet: "Değişiklik Kümesi incelemesi",
+  radioWriteChangeSetDescription:
+    "Aşağıdaki değerler Kaynak Telsizde tam olarak nelerin değişeceğini gösterir.",
+  radioWriteChangeCount: "{count} değişiklik",
+  radioWriteSelectPort: "Kaynak Telsiz portunu seç",
+  radioWriteCheckRadio: "Yeniden bağlan ve Telsizi kontrol et",
+  radioWriteReviewAndConfirm: "İncele ve onayla",
+  radioWriteInProgress: "Telsize Yazma sürüyor",
+  radioWritePrepare: "Telsize Yazmayı hazırla",
+  radioWriteConfirmTitle: "Tam Telsize Yazmayı onayla",
+  radioWriteConfirmDescription:
+    "Yeni ön kontrol yedeği başarıyla alındı. Yazma başlamadan önce incelenen {count} değişikliği onaylayın.",
+  radioWriteConfirmationWarning:
+    "İlk veri bloğu gönderildikten sonra iptal güvenli değildir. Yeniden başlatma, tekrar bağlanma, tam Telsiz Okuma ve bayt karşılaştırması bitene kadar güç ve USB bağlantısını koruyun.",
+  radioWriteConfirmAction: "Yaz ve doğrula",
+  radioWriteStagePreflight: "Ön kontrol yedeği",
+  radioWriteStageWrite: "Yazma",
+  radioWriteStageReboot: "Yeniden başlatma",
+  radioWriteStageReconnect: "Tekrar bağlanma",
+  radioWriteStageVerification: "Doğrulama okuması",
+  radioWriteStageComparison: "Bayt karşılaştırması",
+  radioWriteBlockProgress: "{total} bloğun {completed} adedi onaylandı",
+  before: "Önce",
+  after: "Sonra",
+  cancel: "İptal",
   metadataDescription:
     "TYT UVL-15W Codeplug'ını yerel olarak okuyun, inceleyin ve yönetin.",
   languageSwitcherLabel: "Dil",

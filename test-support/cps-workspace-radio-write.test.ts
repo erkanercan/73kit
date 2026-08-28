@@ -34,6 +34,7 @@ test("prepares and durably stores a reviewed full-range Radio Write before E3", 
     responseTimeoutMs: 100,
     radioWriteStore: store,
   })
+  const visiblePhases: string[] = []
 
   await workspace.connect()
   const completedRead = await workspace.read()
@@ -47,6 +48,9 @@ test("prepares and durably stores a reviewed full-range Radio Write before E3", 
       codeplug: editedCodeplug,
     },
     changeSet: [{ kind: "edit-display-setting", field: "systemTheme" }],
+    onProgress: (snapshot) => {
+      visiblePhases.push(snapshot.phase)
+    },
   })
 
   assert.equal(prepared.schemaVersion, 1)
@@ -73,6 +77,7 @@ test("prepares and durably stores a reviewed full-range Radio Write before E3", 
     { kind: "edit-display-setting", field: "systemTheme" },
   ])
   assert.equal(workspace.getRadioWriteSnapshot()?.phase, "review-required")
+  assert.deepEqual(visiblePhases, ["preflight-reading", "review-required"])
   transport.assertComplete()
 })
 
@@ -96,6 +101,7 @@ test("writes, reconnects, verifies every byte, and creates a new Baseline Backup
     responseTimeoutMs: 100,
     radioWriteStore: store,
   })
+  const visiblePhases: string[] = []
 
   await workspace.connect()
   const completedRead = await workspace.read()
@@ -106,7 +112,11 @@ test("writes, reconnects, verifies every byte, and creates a new Baseline Backup
     },
     changeSet: [{ kind: "edit-display-setting", field: "systemTheme" }],
   })
-  const result = await workspace.executePreparedRadioWrite()
+  const result = await workspace.executePreparedRadioWrite({
+    onProgress: (snapshot) => {
+      visiblePhases.push(snapshot.phase)
+    },
+  })
 
   assert.deepEqual(result.baselineBackup.codeplug.toBytes(), intendedBytes)
   assert.deepEqual(result.workingCodeplug.codeplug.toBytes(), intendedBytes)
@@ -122,6 +132,16 @@ test("writes, reconnects, verifies every byte, and creates a new Baseline Backup
   assert.ok(store.savedPhases.includes("writing"))
   assert.ok(store.savedPhases.includes("awaiting-reconnect"))
   assert.ok(store.savedPhases.includes("verifying"))
+  assert.deepEqual(
+    [...new Set(visiblePhases)],
+    [
+      "writing-before-first-block",
+      "writing",
+      "awaiting-reconnect",
+      "verifying",
+      "verified",
+    ]
+  )
   transport.assertComplete()
 })
 

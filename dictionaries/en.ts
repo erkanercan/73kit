@@ -1,6 +1,50 @@
 import { menuVisibilityMessagesEn } from "./menu-visibility.ts"
 
 const en = {
+  serialPortSelectionRequired: "Select the Source Radio port to continue.",
+  radioWriteTitle: "Radio Write",
+  radioWriteDescription:
+    "Review the Change Set, create a fresh recovery backup, write the complete Codeplug, and verify every byte.",
+  radioWriteControlled: "Available",
+  radioWriteUnavailable: "Unavailable",
+  radioWriteUnavailableTitle: "Radio Write unavailable",
+  radioWriteUnavailableDescription:
+    "You can inspect and edit the Working Codeplug, but writing those changes to the Radio is not available in this version.",
+  radioWriteUnknownTitle: "Write Outcome Unknown",
+  radioWriteUnknownDescription:
+    "Writing may have started, but the final Radio contents were not proven. Do not write again blindly; reconnect the same Source Radio and run the recovery check.",
+  radioWriteVerifiedTitle: "Radio Write verified",
+  radioWriteVerifiedDescription:
+    "The Radio restarted, a complete Radio Read finished, and every byte matched the intended write image.",
+  radioWriteDoNotInterrupt: "Do not close, disconnect, or remove power",
+  radioWriteDoNotInterruptDescription:
+    "Writing has started and can no longer be safely cancelled. Keep this tab open, USB connected, and power stable until verification finishes.",
+  radioWriteChangeSet: "Change Set review",
+  radioWriteChangeSetDescription:
+    "The values below show exactly what will change on the Source Radio.",
+  radioWriteChangeCount: "{count, plural, one {# change} other {# changes}}",
+  radioWriteSelectPort: "Select Source Radio port",
+  radioWriteCheckRadio: "Reconnect and check Radio",
+  radioWriteReviewAndConfirm: "Review and confirm",
+  radioWriteInProgress: "Radio Write in progress",
+  radioWritePrepare: "Prepare Radio Write",
+  radioWriteConfirmTitle: "Confirm complete Radio Write",
+  radioWriteConfirmDescription:
+    "The fresh preflight backup succeeded. Confirm the reviewed {count, plural, one {change} other {changes}} before writing starts.",
+  radioWriteConfirmationWarning:
+    "After the first data block is sent, cancellation is not safe. Keep stable power and USB until reboot, reconnect, full Radio Read, and byte comparison complete.",
+  radioWriteConfirmAction: "Write and verify",
+  radioWriteStagePreflight: "Preflight backup",
+  radioWriteStageWrite: "Write",
+  radioWriteStageReboot: "Reboot",
+  radioWriteStageReconnect: "Reconnect",
+  radioWriteStageVerification: "Verification read",
+  radioWriteStageComparison: "Byte comparison",
+  radioWriteBlockProgress:
+    "{completed, number} of {total, number} blocks acknowledged",
+  before: "Before",
+  after: "After",
+  cancel: "Cancel",
   metadataDescription:
     "Read, inspect, and manage a TYT UVL-15W Codeplug locally.",
   languageSwitcherLabel: "Language",

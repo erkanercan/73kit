@@ -19,7 +19,7 @@ test("detects secure-context Web Serial capability without user-agent checks", (
   assert.equal(detectRadioCapability(true, {}), "unsupported")
 })
 
-test("requests and closes a freshly selected Web Serial port for every operation", async () => {
+test("reuses the selected Web Serial port for later operations", async () => {
   const originalNavigator = Object.getOwnPropertyDescriptor(
     globalThis,
     "navigator"
@@ -45,11 +45,94 @@ test("requests and closes a freshly selected Web Serial port for every operation
     const second = await transport.open()
     await second.close()
 
-    assert.equal(requestCount, 2)
-    assert.equal(ports[0].openCount, 1)
-    assert.equal(ports[0].closeCount, 1)
-    assert.equal(ports[1].openCount, 1)
-    assert.equal(ports[1].closeCount, 1)
+    assert.equal(requestCount, 1)
+    assert.equal(ports[0].openCount, 2)
+    assert.equal(ports[0].closeCount, 2)
+    assert.equal(ports[1].openCount, 0)
+    assert.equal(ports[1].closeCount, 0)
+  } finally {
+    if (originalNavigator) {
+      Object.defineProperty(globalThis, "navigator", originalNavigator)
+    } else {
+      Reflect.deleteProperty(globalThis, "navigator")
+    }
+  }
+})
+
+test("opens a previously permitted Web Serial port without prompting", async () => {
+  const originalNavigator = Object.getOwnPropertyDescriptor(
+    globalThis,
+    "navigator"
+  )
+  const port = createPort()
+  let requestCount = 0
+
+  Object.defineProperty(globalThis, "navigator", {
+    configurable: true,
+    value: {
+      serial: {
+        getPorts: async () => [port],
+        requestPort: async () => {
+          requestCount += 1
+          return port
+        },
+      },
+    },
+  })
+
+  try {
+    const transport = createWebSerialTransport({
+      baudRate: 115_200,
+      preferPreviouslyGrantedPort: true,
+    })
+    const connection = await transport.open()
+    await connection.close()
+
+    assert.equal(requestCount, 0)
+    assert.equal(port.openCount, 1)
+  } finally {
+    if (originalNavigator) {
+      Object.defineProperty(globalThis, "navigator", originalNavigator)
+    } else {
+      Reflect.deleteProperty(globalThis, "navigator")
+    }
+  }
+})
+
+test("requires an explicit port request when no permitted port can be reused", async () => {
+  const originalNavigator = Object.getOwnPropertyDescriptor(
+    globalThis,
+    "navigator"
+  )
+  const port = createPort()
+  let requestCount = 0
+
+  Object.defineProperty(globalThis, "navigator", {
+    configurable: true,
+    value: {
+      serial: {
+        getPorts: async () => [],
+        requestPort: async () => {
+          requestCount += 1
+          return port
+        },
+      },
+    },
+  })
+
+  try {
+    const transport = createWebSerialTransport({
+      baudRate: 115_200,
+      preferPreviouslyGrantedPort: true,
+    })
+
+    await assert.rejects(transport.open(), { code: "port-selection-required" })
+    assert.equal(requestCount, 0)
+
+    await transport.requestPort()
+    const connection = await transport.open()
+    await connection.close()
+    assert.equal(requestCount, 1)
   } finally {
     if (originalNavigator) {
       Object.defineProperty(globalThis, "navigator", originalNavigator)

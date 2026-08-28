@@ -1,6 +1,7 @@
 # Radio Write development order
 
-Status: steps 1-4 implemented; Radio Write remains unavailable in the product.
+Status: steps 1-5 implemented in source; required Chrome visual validation is
+still pending. Radio Write remains unavailable in the product.
 
 ## Firmware-scoped rule
 
@@ -124,18 +125,29 @@ corrupt durable data, reloads in every persisted phase, wrong-Radio selection
 at preflight/write/verification/recovery, readback mismatch, and both safe
 recovery resolutions. Production UI still exposes no Radio Write action.
 
-## 5. Add desktop review, confirmation, progress, and recovery UX — next
+## 5. Add desktop review, confirmation, progress, and recovery UX — implemented
 
-- Render semantic before/after Change Set values.
-- Require explicit confirmation after the preflight backup succeeds.
-- Show preflight, write, reboot, reconnect, verification, and comparison stages.
-- Reuse a previously permitted Web Serial port with `getPorts()` where possible,
-  with an explicit user-gesture reconnect fallback.
-- Lock competing Radio operations and warn against closing the tab or removing
-  power after the destructive boundary.
+- The Radio page renders semantic before/after Change Set values, including
+  write-image normalization disclosures.
+- Confirmation is available only after the fresh preflight backup succeeds.
+- The desktop workflow presents preflight, write, reboot, reconnect,
+  verification, and byte-comparison stages with acknowledged-block progress.
+- One selected Web Serial port is retained across the complete workflow.
+  Reload recovery first tries the single previously permitted port through
+  `getPorts()` and otherwise requires an explicit user-gesture port selection.
+- CPS Workspace stage callbacks lock competing Radio operations. A
+  `beforeunload` warning and visible power/USB guidance remain active after the
+  destructive boundary and while an outcome is unknown.
+- A development-only Radio Write prototype exposes locked, review, writing,
+  reconnect, verification, verified, and outcome-unknown states without
+  opening a serial port.
+- The production control is hard-disabled until step 6 passes, while recovery
+  remains available for an existing durable outcome-unknown record.
 
-Exit gate: browser tests and Chrome validation cover every success, failure,
-and outcome-unknown state.
+Automated workspace, presentation, review, and Web Serial tests pass. The
+production build passes. Required Chrome visual validation is pending because
+the ChatGPT browser extension is not installed/enabled in the available Chrome
+profile; do not treat step 6 as started until that validation is completed.
 
 ## 6. Run a controlled physical canary
 

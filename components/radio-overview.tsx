@@ -18,6 +18,7 @@ import {
   type WorkspaceError,
 } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
+import { RadioWriteWorkflow } from "@/components/radio-write/radio-write-workflow"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -50,6 +51,7 @@ import {
 } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import type { SourceRadio } from "@/modules/uvl15w-radio/index"
+import { createRadioWriteReview } from "@/modules/cps-workspace/index"
 
 function RadioOverview() {
   const t = useTranslations()
@@ -63,9 +65,26 @@ function RadioOverview() {
     phase,
     progress,
     readRadio,
+    prepareRadioWrite,
+    confirmRadioWrite,
+    recoverRadioWrite,
+    requestRadioWritePort,
+    radioWriteReleased,
+    radioWriteReview,
+    radioWriteSnapshot,
     sourceRadio,
   } = useCpsWorkspace()
   const displayedRadio = sourceRadio ?? completedRead?.sourceRadio ?? null
+  const visibleRadioWriteReview =
+    radioWriteReview.length > 0
+      ? radioWriteReview
+      : completedRead
+        ? createRadioWriteReview(
+            completedRead.baselineBackup.codeplug,
+            completedRead.workingCodeplug.codeplug,
+            changes
+          )
+        : []
 
   return (
     <div className="flex w-full flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
@@ -114,6 +133,19 @@ function RadioOverview() {
           onDownload={downloadRawBackup}
         />
       </div>
+
+      <RadioWriteWorkflow
+        released={radioWriteReleased}
+        hasWorkingCodeplug={completedRead !== null}
+        changeCount={changes.length}
+        snapshot={radioWriteSnapshot}
+        review={visibleRadioWriteReview}
+        busy={busy}
+        onPrepare={() => void prepareRadioWrite()}
+        onConfirm={() => void confirmRadioWrite()}
+        onRecover={() => void recoverRadioWrite()}
+        onRequestPort={() => void requestRadioWritePort()}
+      />
     </div>
   )
 }

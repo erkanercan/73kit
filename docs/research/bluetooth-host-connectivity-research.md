@@ -44,7 +44,7 @@ Bluetooth CPS session.
   Codeplug locally. Its Radio interface exposes `connect`, `read`, and
   `disconnect`, but no write operation
   ([Radio interface](../../modules/uvl15w-radio/index.ts),
-  [current UI read flow](../../components/cps-workspace-provider.tsx)). USB CDC
+  [current UI read flow](../../components/cps-workspace-controller.tsx)). USB CDC
   in Chrome on macOS is the only repository-documented, hardware-proven Radio
   transport
   ([feature reference](../CPS_FEATURE_REFERENCE.md#31-browser--radio-connection--proven-transport)).

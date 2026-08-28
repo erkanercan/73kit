@@ -53,3 +53,19 @@ test("keeps approved radio terminology in Turkish", () => {
   )
   assert.deepEqual(Object.keys(tr), Object.keys(en))
 })
+
+test("keeps Radio Write development notes out of operator copy", () => {
+  const operatorCopy = [
+    en.radioWriteUnavailable,
+    en.radioWriteUnavailableTitle,
+    en.radioWriteUnavailableDescription,
+    tr.radioWriteUnavailable,
+    tr.radioWriteUnavailableTitle,
+    tr.radioWriteUnavailableDescription,
+  ].join(" ")
+
+  assert.doesNotMatch(
+    operatorCopy,
+    /canary|kanarya|physical validation|fiziksel doğrulama|release gate|step 6|3\.07\.23/i
+  )
+})
