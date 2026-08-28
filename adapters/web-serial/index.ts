@@ -163,6 +163,25 @@ class WebSerialTransport implements RadioTransport {
       bufferSize: this.#options.bufferSize,
       flowControl: this.#options.flowControl,
     }
+
+    try {
+      return await this.#openPort(port, openOptions)
+    } catch (error) {
+      if (!isDisconnectedPortError(error)) {
+        throw error
+      }
+
+      const replacementPort = await this.#replacementPort(serial, port)
+      if (!replacementPort) {
+        throw error
+      }
+
+      this.#port = replacementPort
+      return this.#openPort(replacementPort, openOptions)
+    }
+  }
+
+  async #openPort(port: BrowserSerialPort, openOptions: SerialOpenOptions) {
     try {
       await port.open(openOptions)
       if (this.#options.requestToSend !== undefined) {
@@ -209,6 +228,12 @@ class WebSerialTransport implements RadioTransport {
     return new WebSerialConnection(port, reader, writer)
   }
 
+  async #replacementPort(serial: BrowserSerial, stalePort: BrowserSerialPort) {
+    const permittedPorts = (await serial.getPorts?.()) ?? []
+    const replacements = permittedPorts.filter((port) => port !== stalePort)
+    return replacements.length === 1 ? replacements[0] : null
+  }
+
   async requestPort() {
     const serial = (navigator as NavigatorWithSerial).serial
     if (!serial) {
@@ -239,6 +264,13 @@ class WebSerialTransport implements RadioTransport {
       "Select the Source Radio port to continue"
     )
   }
+}
+
+function isDisconnectedPortError(error: unknown) {
+  return (
+    error instanceof DOMException &&
+    (error.name === "NetworkError" || error.name === "InvalidStateError")
+  )
 }
 
 type RadioCapability = "available" | "insecure-context" | "unsupported"

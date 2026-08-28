@@ -54,10 +54,6 @@ interface CompletedRadioWrite extends CompletedRadioRead {
   readonly preparedWrite: PreparedRadioWrite
 }
 
-interface RadioWriteRecoveryResolution extends CompletedRadioWrite {
-  readonly status: "intended-write-verified" | "recovery-backup-confirmed"
-}
-
 interface PrepareRadioWriteInput {
   readonly workingCodeplug: WorkingCodeplug
   readonly changeSet: readonly WorkspaceChange[]
@@ -83,12 +79,8 @@ type CpsWorkspaceRadioWriteErrorCode =
   | "baseline-binding-mismatch"
   | "source-radio-ineligible"
   | "source-radio-mismatch"
-  | "baseline-drift"
   | "no-prepared-write"
   | "invalid-persisted-operation"
-  | "verification-mismatch"
-  | "no-recovery"
-  | "recovery-unresolved"
   | "persistence-state-missing"
 
 class CpsWorkspaceRadioWriteError extends Error {
@@ -126,7 +118,7 @@ interface CpsWorkspace {
     options?: ExecuteRadioWriteOptions
   ): Promise<CompletedRadioWrite>
   restoreRadioWriteRecovery(): Promise<RadioWriteOperationSnapshot | null>
-  resolveRadioWriteRecovery(): Promise<RadioWriteRecoveryResolution>
+  discardRadioWriteOperation(): Promise<void>
   getRadioWriteSnapshot(): RadioWriteOperationSnapshot | null
   getRadioWriteReview(): readonly RadioWriteReviewItem[]
   disconnect(): Promise<void>
@@ -256,83 +248,55 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
       await input.workingCodeplug.codeplug.materializeWriteImage(
         sourceEvaluation.layout.id
       )
-    this.#radioWriteSnapshot = { phase: "preflight-reading" }
-    await input.onProgress?.(this.#radioWriteSnapshot)
+    const changeSet = snapshotChangeSet(input.changeSet)
+    const preparedAt = new Date().toISOString()
+    const baselineBackup = artifactReference(this.#snapshot.baselineBackup)
+    const intendedWriteImage = Object.freeze({
+      id: createArtifactId("write-image"),
+      sha256: writeImage.sha256,
+      byteLength: writeImage.byteLength,
+    })
+    const preparedWrite = Object.freeze({
+      schemaVersion: 1 as const,
+      sourceRadioIdentity: sourceEvaluation.identity,
+      layout: CODEPLUG_LAYOUT_3_07_23,
+      baselineBackup,
+      recoveryBackup: baselineBackup,
+      intendedWriteImage,
+      changeSetSha256: await digestJson(changeSet),
+      preparedAt,
+    })
+    const recovery = Object.freeze({
+      schemaVersion: 1 as const,
+      preparedWrite,
+      phase: "review-required" as const,
+      updatedAt: preparedAt,
+    })
+    const baselineBytes = this.#snapshot.baselineBackup.codeplug.toBytes()
+    const persisted = Object.freeze({
+      schemaVersion: 1 as const,
+      recovery,
+      sourceRadio: this.#snapshot.sourceRadio,
+      changeSet,
+      derivedChanges: writeImage.derivedChanges,
+      artifacts: Object.freeze({
+        baselineBackup: storedArtifact(baselineBackup, baselineBytes),
+        recoveryBackup: storedArtifact(baselineBackup, baselineBytes),
+        intendedWriteImage: storedArtifact(
+          intendedWriteImage,
+          writeImage.toBytes()
+        ),
+      }),
+    })
 
-    try {
-      const candidateRadio = await this.#radio.connect()
-      assertSameEligibleRadio(this.#snapshot.sourceRadio, candidateRadio)
-      const recoveryCodeplug = await this.#radio.read()
-
-      if (!recoveryCodeplug.equals(this.#snapshot.baselineBackup.codeplug)) {
-        throw new CpsWorkspaceRadioWriteError(
-          "baseline-drift",
-          "The preflight Radio Read does not match the Baseline Backup"
-        )
-      }
-
-      const recoveryBackup = await createCodeplugBackup(
-        candidateRadio,
-        recoveryCodeplug
-      )
-      const changeSet = snapshotChangeSet(input.changeSet)
-      const preparedAt = new Date().toISOString()
-      const intendedWriteImage = Object.freeze({
-        id: createArtifactId("write-image"),
-        sha256: writeImage.sha256,
-        byteLength: writeImage.byteLength,
-      })
-      const preparedWrite = Object.freeze({
-        schemaVersion: 1 as const,
-        sourceRadioIdentity: sourceEvaluation.identity,
-        layout: CODEPLUG_LAYOUT_3_07_23,
-        baselineBackup: artifactReference(this.#snapshot.baselineBackup),
-        recoveryBackup: artifactReference(recoveryBackup),
-        intendedWriteImage,
-        changeSetSha256: await digestJson(changeSet),
-        preparedAt,
-      })
-      const recovery = Object.freeze({
-        schemaVersion: 1 as const,
-        preparedWrite,
-        phase: "review-required" as const,
-        updatedAt: preparedAt,
-      })
-      const persisted = Object.freeze({
-        schemaVersion: 1 as const,
-        recovery,
-        sourceRadio: candidateRadio,
-        changeSet,
-        derivedChanges: writeImage.derivedChanges,
-        artifacts: Object.freeze({
-          baselineBackup: storedArtifact(
-            preparedWrite.baselineBackup,
-            this.#snapshot.baselineBackup.codeplug.toBytes()
-          ),
-          recoveryBackup: storedArtifact(
-            preparedWrite.recoveryBackup,
-            recoveryCodeplug.toBytes()
-          ),
-          intendedWriteImage: storedArtifact(
-            intendedWriteImage,
-            writeImage.toBytes()
-          ),
-        }),
-      })
-
-      await this.#radioWriteStore.save(persisted)
-      this.#persistedRadioWrite = persisted
-      this.#radioWriteSnapshot = {
-        phase: "review-required",
-        preparedWrite,
-      }
-      await input.onProgress?.(this.#radioWriteSnapshot)
-      return preparedWrite
-    } catch (error) {
-      this.#radioWriteSnapshot = null
-      await this.#radio.disconnect().catch(() => undefined)
-      throw error
+    await this.#radioWriteStore.save(persisted)
+    this.#persistedRadioWrite = persisted
+    this.#radioWriteSnapshot = {
+      phase: "review-required",
+      preparedWrite,
     }
+    await input.onProgress?.(this.#radioWriteSnapshot)
+    return preparedWrite
   }
 
   async executePreparedRadioWrite(
@@ -380,9 +344,9 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
             ),
           ])
 
-    let writeCompleted = false
-
     try {
+      await this.#persistRadioWritePhase("checking-radio")
+      await notifyRadioWriteProgress(options, this.#radioWriteSnapshot)
       const writeRadio = await this.#radio.connect()
       assertSameEligibleRadio(persisted.sourceRadio, writeRadio)
       await this.#persistRadioWritePhase("writing-before-first-block", 0)
@@ -407,65 +371,51 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
         throw error
       }
 
-      writeCompleted = true
-      await this.#persistRadioWritePhase("awaiting-reconnect")
-      await notifyRadioWriteProgress(options, this.#radioWriteSnapshot)
-      const verificationRadio = await this.#radio.connect()
-      assertSameEligibleRadio(persisted.sourceRadio, verificationRadio)
-      await this.#persistRadioWritePhase("verifying")
-      await notifyRadioWriteProgress(options, this.#radioWriteSnapshot)
-      const verifiedCodeplug = await this.#radio.read()
-
-      if (!verifiedCodeplug.equals(intendedCodeplug)) {
-        throw new CpsWorkspaceRadioWriteError(
-          "verification-mismatch",
-          "The verification Radio Read does not match the intended write image"
-        )
-      }
-
-      const verifiedBackup = await createCodeplugBackup(
-        verificationRadio,
-        verifiedCodeplug
-      )
-      const recoveryBackup = rehydrateBackup(
-        persisted.sourceRadio,
-        persisted.artifacts.recoveryBackup,
-        preparedAt
-      )
+      await this.#radio.disconnect().catch(() => undefined)
+      const completedBackup = Object.freeze({
+        id: createArtifactId("backup"),
+        sha256: persisted.recovery.preparedWrite.intendedWriteImage.sha256,
+        sourceRadio: persisted.sourceRadio,
+        codeplug: intendedCodeplug,
+        createdAt: new Date(),
+      })
       const workingCodeplug = Object.freeze({
-        sourceRadio: verificationRadio,
-        baselineBackup: verifiedBackup,
-        codeplug: createCodeplug(verifiedCodeplug.toBytes()),
+        sourceRadio: persisted.sourceRadio,
+        baselineBackup: completedBackup,
+        codeplug: createCodeplug(intendedCodeplug.toBytes()),
       })
       const backupHistory = Object.freeze([
         ...existingBackupHistory,
-        recoveryBackup,
-        verifiedBackup,
+        completedBackup,
       ])
       const completedWrite = Object.freeze({
-        sourceRadio: verificationRadio,
-        baselineBackup: verifiedBackup,
+        sourceRadio: persisted.sourceRadio,
+        baselineBackup: completedBackup,
         workingCodeplug,
         backupHistory,
         preparedWrite: persisted.recovery.preparedWrite,
       })
-      const verifiedAt = new Date().toISOString()
+      const completedAt = new Date().toISOString()
 
-      await store.clear()
+      await store.clear().catch(() => undefined)
       this.#persistedRadioWrite = null
       this.#radioWriteSnapshot = {
-        phase: "verified",
+        phase: "completed",
         preparedWrite: persisted.recovery.preparedWrite,
-        verifiedBackup: artifactReference(verifiedBackup),
-        verifiedAt,
+        completedBackup: artifactReference(completedBackup),
+        completedAt,
       }
-      await notifyRadioWriteProgress(options, this.#radioWriteSnapshot)
+      await notifyRadioWriteProgress(options, this.#radioWriteSnapshot).catch(
+        () => undefined
+      )
       this.#snapshot = { status: "ready", ...completedWrite }
       return completedWrite
     } catch (error) {
       await this.#radio.disconnect().catch(() => undefined)
-      if (writeCompleted) {
-        await this.#persistRadioWriteUnknown(errorMessage(error))
+      if (
+        this.#persistedRadioWrite?.recovery.phase !== "write-outcome-unknown"
+      ) {
+        await this.#persistRadioWritePhase("review-required")
       }
       await notifyRadioWriteProgress(options, this.#radioWriteSnapshot)
       throw error
@@ -491,7 +441,14 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
     await validatePersistedOperation(persisted)
     this.#persistedRadioWrite = persisted
 
-    if (persisted.recovery.phase === "review-required") {
+    if (
+      persisted.recovery.phase === "review-required" ||
+      persisted.recovery.phase === "checking-radio" ||
+      persisted.recovery.phase === "writing-before-first-block"
+    ) {
+      if (persisted.recovery.phase !== "review-required") {
+        await this.#persistRadioWritePhase("review-required")
+      }
       this.#radioWriteSnapshot = {
         phase: "review-required",
         preparedWrite: persisted.recovery.preparedWrite,
@@ -513,111 +470,18 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
     return this.#radioWriteSnapshot
   }
 
-  async resolveRadioWriteRecovery(): Promise<RadioWriteRecoveryResolution> {
-    const persisted = this.#persistedRadioWrite
-    const store = this.#radioWriteStore
-    if (
-      !persisted ||
-      !store ||
-      this.#radioWriteSnapshot?.phase !== "write-outcome-unknown"
-    ) {
-      throw new CpsWorkspaceRadioWriteError(
-        "no-recovery",
-        "No Write Outcome Unknown recovery is available"
-      )
-    }
-
-    await validatePersistedOperation(persisted)
-
-    try {
-      const candidateRadio = await this.#radio.connect()
-      assertSameEligibleRadio(persisted.sourceRadio, candidateRadio)
-      await this.#persistRadioWritePhase("verifying")
-      const codeplug = await this.#radio.read()
-      const intendedCodeplug = createCodeplug(
-        persisted.artifacts.intendedWriteImage.bytes
-      )
-      const recoveryCodeplug = createCodeplug(
-        persisted.artifacts.recoveryBackup.bytes
-      )
-      const matchesIntended = codeplug.equals(intendedCodeplug)
-      const matchesRecovery = codeplug.equals(recoveryCodeplug)
-
-      if (!matchesIntended && !matchesRecovery) {
-        throw new CpsWorkspaceRadioWriteError(
-          "recovery-unresolved",
-          "The recovery Radio Read matches neither the intended image nor the recovery backup"
-        )
-      }
-
-      const verifiedBackup = await createCodeplugBackup(
-        candidateRadio,
-        codeplug
-      )
-      const preparedAt = new Date(persisted.recovery.preparedWrite.preparedAt)
-      const baselineBackup = rehydrateBackup(
-        candidateRadio,
-        persisted.artifacts.baselineBackup,
-        preparedAt
-      )
-      const recoveryBackup = rehydrateBackup(
-        candidateRadio,
-        persisted.artifacts.recoveryBackup,
-        preparedAt
-      )
-      const workingCodeplug = Object.freeze({
-        sourceRadio: candidateRadio,
-        baselineBackup: verifiedBackup,
-        codeplug: createCodeplug(codeplug.toBytes()),
-      })
-      const resolution = Object.freeze({
-        status: matchesIntended
-          ? ("intended-write-verified" as const)
-          : ("recovery-backup-confirmed" as const),
-        sourceRadio: candidateRadio,
-        baselineBackup: verifiedBackup,
-        workingCodeplug,
-        backupHistory: Object.freeze([
-          baselineBackup,
-          recoveryBackup,
-          verifiedBackup,
-        ]),
-        preparedWrite: persisted.recovery.preparedWrite,
-      })
-      const verifiedAt = new Date().toISOString()
-
-      await store.clear()
-      this.#persistedRadioWrite = null
-      this.#radioWriteSnapshot = matchesIntended
-        ? {
-            phase: "verified",
-            preparedWrite: persisted.recovery.preparedWrite,
-            verifiedBackup: artifactReference(verifiedBackup),
-            verifiedAt,
-          }
-        : null
-      this.#snapshot = {
-        status: "ready",
-        sourceRadio: resolution.sourceRadio,
-        baselineBackup: resolution.baselineBackup,
-        workingCodeplug: resolution.workingCodeplug,
-        backupHistory: resolution.backupHistory,
-      }
-      return resolution
-    } catch (error) {
-      await this.#radio.disconnect().catch(() => undefined)
-      await this.#persistRadioWriteUnknown(errorMessage(error))
-      throw error
-    }
+  async discardRadioWriteOperation() {
+    await this.#radioWriteStore?.clear()
+    this.#persistedRadioWrite = null
+    this.#radioWriteSnapshot = null
   }
 
   async #persistRadioWritePhase(
     phase:
       | "review-required"
+      | "checking-radio"
       | "writing-before-first-block"
-      | "writing"
-      | "awaiting-reconnect"
-      | "verifying",
+      | "writing",
     bytesAcknowledged = 0
   ) {
     const persisted = this.#persistedRadioWrite
@@ -864,12 +728,6 @@ function rehydrateBackup(
   })
 }
 
-function errorMessage(error: unknown) {
-  return error instanceof Error
-    ? error.message
-    : "Radio Write could not be verified"
-}
-
 export { CpsWorkspaceRadioWriteError, createCpsWorkspace }
 export { createRadioWriteReview } from "./radio-write-review.ts"
 export type {
@@ -882,7 +740,6 @@ export type {
   ExecuteRadioWriteOptions,
   CpsWorkspaceSnapshot,
   PrepareRadioWriteInput,
-  RadioWriteRecoveryResolution,
   RadioWriteReviewItem,
   WorkingCodeplug,
 }

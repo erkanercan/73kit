@@ -17,7 +17,7 @@ A complete snapshot of a radio's persistent programmable configuration, includin
 _Avoid_: Config, configuration file, binary image
 
 **Codeplug Backup**:
-An immutable, unchanged Codeplug retained as a recovery point after a successful Radio Read, verified Radio Write, or import. Editing and later writes never alter an existing backup.
+An immutable, unchanged Codeplug retained after a successful Radio Read, completed Radio Write, or import. Editing and later writes never alter an existing backup.
 _Avoid_: Export, copy
 
 **Working Codeplug**:
@@ -25,11 +25,11 @@ An editable Codeplug derived from a Baseline Backup or future import. It holds t
 _Avoid_: Draft, working copy, edited backup
 
 **Baseline Backup**:
-The Codeplug Backup from which a Working Codeplug's Change Set is measured. A verified Radio Write creates a new Baseline Backup from the verified result without replacing earlier backups.
+The Codeplug Backup from which a Working Codeplug's Change Set is measured. A completed Radio Write creates a new Baseline Backup from the intended image accepted by the Radio without replacing earlier backups.
 _Avoid_: Current version, latest backup, source file
 
 **Backup History**:
-The ordered collection of immutable Codeplug Backups retained for a Source Radio across reads and verified writes.
+The ordered collection of immutable Codeplug Backups retained for a Source Radio across reads and completed writes.
 _Avoid_: Versions, autosaves, undo history
 
 **Change Set**:
@@ -45,11 +45,11 @@ The specific Radio from which a Codeplug was read, identified independently of t
 _Avoid_: Connected device, original unit
 
 **Radio Write**:
-The verified application of a Working Codeplug to its Source Radio. It succeeds only when the intended data is read back and matches exactly; a different Radio is never an ordinary write target, even when it is the same model.
+The complete application of a Working Codeplug to its Source Radio, ending when the Radio confirms completion and restarts. It does not include an automatic Radio Read after restart; a different Radio is never an ordinary write target, even when it is the same model.
 _Avoid_: Upload, sync, cross-radio write
 
 **Write Outcome Unknown**:
-The result of a Radio Write that was interrupted or could not be verified, leaving the Radio's resulting Codeplug uncertain. It requires recovery guidance rather than being reported as either success or failure.
+The result of a Radio Write interrupted after changes may have begun but before the Radio confirms completion. The resulting Codeplug may be incomplete, so the operation is not reported as either success or ordinary failure.
 _Avoid_: Write failed, partial success, probably written
 
 **Firmware Package**:

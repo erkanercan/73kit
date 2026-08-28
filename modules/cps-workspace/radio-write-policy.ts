@@ -41,13 +41,11 @@ type SourceRadioComparison =
     }
 
 type RadioWritePhase =
-  | "preflight-reading"
   | "review-required"
+  | "checking-radio"
   | "writing-before-first-block"
   | "writing"
-  | "awaiting-reconnect"
-  | "verifying"
-  | "verified"
+  | "completed"
   | "write-outcome-unknown"
 
 type RadioWriteFailureDisposition = "ordinary-failure" | "write-outcome-unknown"
@@ -72,15 +70,18 @@ interface PreparedRadioWrite {
 interface RadioWriteRecoveryRecord {
   readonly schemaVersion: 1
   readonly preparedWrite: PreparedRadioWrite
-  readonly phase: Exclude<RadioWritePhase, "verified">
+  readonly phase: Exclude<RadioWritePhase, "completed">
   readonly updatedAt: string
   readonly reason?: string
 }
 
 type RadioWriteOperationSnapshot =
-  | { readonly phase: "preflight-reading" }
   | {
       readonly phase: "review-required"
+      readonly preparedWrite: PreparedRadioWrite
+    }
+  | {
+      readonly phase: "checking-radio"
       readonly preparedWrite: PreparedRadioWrite
     }
   | {
@@ -89,14 +90,10 @@ type RadioWriteOperationSnapshot =
       readonly bytesAcknowledged: number
     }
   | {
-      readonly phase: "awaiting-reconnect" | "verifying"
+      readonly phase: "completed"
       readonly preparedWrite: PreparedRadioWrite
-    }
-  | {
-      readonly phase: "verified"
-      readonly preparedWrite: PreparedRadioWrite
-      readonly verifiedBackup: RadioWriteArtifactReference
-      readonly verifiedAt: string
+      readonly completedBackup: RadioWriteArtifactReference
+      readonly completedAt: string
     }
   | {
       readonly phase: "write-outcome-unknown"
@@ -179,21 +176,19 @@ function classifyRadioWriteFailure(
   phase: RadioWritePhase
 ): RadioWriteFailureDisposition {
   switch (phase) {
-    case "preflight-reading":
     case "review-required":
+    case "checking-radio":
     case "writing-before-first-block":
-    case "verified":
+    case "completed":
       return "ordinary-failure"
     case "writing":
-    case "awaiting-reconnect":
-    case "verifying":
     case "write-outcome-unknown":
       return "write-outcome-unknown"
   }
 }
 
 function canCancelRadioWrite(phase: RadioWritePhase) {
-  return phase === "preflight-reading" || phase === "review-required"
+  return phase === "review-required" || phase === "checking-radio"
 }
 
 function sourceRadioIdentity(sourceRadio: SourceRadio): SourceRadioIdentity {

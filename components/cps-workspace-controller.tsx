@@ -18,6 +18,7 @@ import {
   type RadioWriteOperationSnapshot,
   type RadioWriteReviewItem,
 } from "@/modules/cps-workspace/index"
+import { canEnableRadioWriteCanary } from "@/modules/cps-workspace/radio-write-canary"
 import {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
@@ -71,6 +72,7 @@ import type {
 import {
   UnsupportedFirmwareError,
   Uvl15wRadioError,
+  type RadioDebugEvent,
   type SourceRadio,
   type UnsupportedFirmwareReason,
   type Uvl15wRadioErrorCode,
@@ -78,7 +80,10 @@ import {
 
 type WorkspacePhase = "idle" | "connecting" | "reading" | "ready"
 
-const RADIO_WRITE_RELEASED = false
+const RADIO_WRITE_RELEASED = canEnableRadioWriteCanary({
+  development: process.env.NODE_ENV === "development",
+  requested: process.env.NEXT_PUBLIC_ENABLE_RADIO_WRITE_CANARY === "1",
+})
 
 interface CpsWorkspaceContextValue {
   readonly phase: WorkspacePhase
@@ -97,8 +102,8 @@ interface CpsWorkspaceContextValue {
   readRadio(): Promise<void>
   prepareRadioWrite(): Promise<void>
   confirmRadioWrite(): Promise<void>
-  recoverRadioWrite(): Promise<void>
-  requestRadioWritePort(): Promise<void>
+  discardRadioWriteStatus(): Promise<void>
+  downloadRadioOperationReport(): void
   downloadRawBackup(): void
   addMemoryChannel(): void
   duplicateMemoryChannel(number: number): void
@@ -169,6 +174,7 @@ function useCpsWorkspaceController() {
   const radioTransport = React.useRef<WebSerialTransport | null>(null)
   const mounted = React.useRef(true)
   const operationInProgress = React.useRef(false)
+  const radioDebugEvents = React.useRef<RadioDebugEvent[]>([])
   const [capability, setCapability] = React.useState<
     RadioCapability | "checking"
   >("checking")
@@ -191,7 +197,7 @@ function useCpsWorkspaceController() {
 
   const radioWriteBusy =
     radioWriteSnapshot !== null &&
-    !["review-required", "verified", "write-outcome-unknown"].includes(
+    !["review-required", "completed", "write-outcome-unknown"].includes(
       radioWriteSnapshot.phase
     )
   const busy =
@@ -210,6 +216,10 @@ function useCpsWorkspaceController() {
   const releaseExternalRadioOperation = React.useCallback(() => {
     operationInProgress.current = false
     setExternalOperationBusy(false)
+  }, [])
+
+  const recordRadioDebugEvent = React.useCallback((event: RadioDebugEvent) => {
+    radioDebugEvents.current = [...radioDebugEvents.current, event].slice(-5000)
   }, [])
 
   const readRadio = React.useCallback(async () => {
@@ -231,6 +241,7 @@ function useCpsWorkspaceController() {
       })
       const nextWorkspace = createCpsWorkspace(nextTransport, {
         radioWriteStore: createIndexedDbRadioWriteStore(),
+        onDebugEvent: RADIO_WRITE_RELEASED ? recordRadioDebugEvent : undefined,
       })
       radioTransport.current = nextTransport
       workspace.current = nextWorkspace
@@ -267,7 +278,7 @@ function useCpsWorkspaceController() {
     } finally {
       operationInProgress.current = false
     }
-  }, [busy, capability, completedRead])
+  }, [busy, capability, completedRead, recordRadioDebugEvent])
 
   const prepareRadioWrite = React.useCallback(async () => {
     if (
@@ -276,13 +287,15 @@ function useCpsWorkspaceController() {
       operationInProgress.current ||
       !completedRead ||
       changes.length === 0 ||
-      !workspace.current
+      !workspace.current ||
+      !radioTransport.current
     ) {
       return
     }
     operationInProgress.current = true
     setError(null)
     try {
+      await radioTransport.current.requestPort()
       await workspace.current.prepareRadioWrite({
         workingCodeplug: completedRead.workingCodeplug,
         changeSet: changes,
@@ -325,39 +338,16 @@ function useCpsWorkspaceController() {
     }
   }, [busy, radioWriteSnapshot])
 
-  const requestRadioWritePort = React.useCallback(async () => {
+  const discardRadioWriteStatus = React.useCallback(async () => {
     try {
-      await radioTransport.current?.requestPort()
+      await workspace.current?.discardRadioWriteOperation()
+      setRadioWriteSnapshot(null)
+      setRadioWriteReview([])
       setError(null)
     } catch (cause) {
       setError(workspaceError(cause))
     }
   }, [])
-
-  const recoverRadioWrite = React.useCallback(async () => {
-    if (
-      busy ||
-      operationInProgress.current ||
-      radioWriteSnapshot?.phase !== "write-outcome-unknown" ||
-      !workspace.current
-    ) {
-      return
-    }
-    operationInProgress.current = true
-    setError(null)
-    try {
-      const result = await workspace.current.resolveRadioWriteRecovery()
-      setDocumentState({ completedRead: result, changes: [] })
-      setSourceRadio(result.sourceRadio)
-      setRadioWriteSnapshot(workspace.current.getRadioWriteSnapshot())
-      setRadioWriteReview([])
-    } catch (cause) {
-      setError(workspaceError(cause))
-      setRadioWriteSnapshot(workspace.current.getRadioWriteSnapshot())
-    } finally {
-      operationInProgress.current = false
-    }
-  }, [busy, radioWriteSnapshot])
 
   const downloadRawBackup = React.useCallback(() => {
     if (!completedRead) {
@@ -375,6 +365,18 @@ function useCpsWorkspaceController() {
     anchor.click()
     setTimeout(() => URL.revokeObjectURL(url), 0)
   }, [completedRead])
+
+  const downloadRadioOperationReport = React.useCallback(() => {
+    if (!RADIO_WRITE_RELEASED || radioDebugEvents.current.length === 0) return
+    downloadJson(
+      "uvl15w-radio-operation-report.json",
+      Object.freeze({
+        schemaVersion: 1,
+        createdAt: new Date().toISOString(),
+        events: radioDebugEvents.current,
+      })
+    )
+  }, [])
 
   const moveMemoryChannel = React.useCallback(
     (fromNumber: number, toNumber: number) => {
@@ -1331,6 +1333,7 @@ function useCpsWorkspaceController() {
     })
     const recoveryWorkspace = createCpsWorkspace(recoveryTransport, {
       radioWriteStore: createIndexedDbRadioWriteStore(),
+      onDebugEvent: RADIO_WRITE_RELEASED ? recordRadioDebugEvent : undefined,
     })
     radioTransport.current = recoveryTransport
     workspace.current = recoveryWorkspace
@@ -1353,17 +1356,11 @@ function useCpsWorkspaceController() {
       mounted.current = false
       void workspace.current?.disconnect().catch(() => undefined)
     }
-  }, [])
+  }, [recordRadioDebugEvent])
 
   React.useEffect(() => {
     const destructive =
-      radioWriteSnapshot !== null &&
-      [
-        "writing",
-        "awaiting-reconnect",
-        "verifying",
-        "write-outcome-unknown",
-      ].includes(radioWriteSnapshot.phase)
+      radioWriteSnapshot !== null && radioWriteSnapshot.phase === "writing"
     if (!destructive) return
 
     const preventClose = (event: BeforeUnloadEvent) => event.preventDefault()
@@ -1389,8 +1386,8 @@ function useCpsWorkspaceController() {
       readRadio,
       prepareRadioWrite,
       confirmRadioWrite,
-      recoverRadioWrite,
-      requestRadioWritePort,
+      discardRadioWriteStatus,
+      downloadRadioOperationReport,
       downloadRawBackup,
       addMemoryChannel,
       duplicateMemoryChannel,
@@ -1438,8 +1435,8 @@ function useCpsWorkspaceController() {
       readRadio,
       prepareRadioWrite,
       confirmRadioWrite,
-      recoverRadioWrite,
-      requestRadioWritePort,
+      discardRadioWriteStatus,
+      downloadRadioOperationReport,
       downloadRawBackup,
       addMemoryChannel,
       duplicateMemoryChannel,
@@ -1543,6 +1540,18 @@ function workspaceError(error: unknown): WorkspaceError {
 function safeFilename(value: string) {
   const safeValue = value.trim().replace(/[^a-z0-9._-]+/gi, "-")
   return safeValue || "uvl15w"
+}
+
+function downloadJson(filename: string, value: unknown) {
+  const blob = new Blob([JSON.stringify(value, null, 2)], {
+    type: "application/json",
+  })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement("a")
+  anchor.href = url
+  anchor.download = filename
+  anchor.click()
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 function getRadioCapability(): RadioCapability {

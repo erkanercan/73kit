@@ -67,8 +67,8 @@ function RadioOverview() {
     readRadio,
     prepareRadioWrite,
     confirmRadioWrite,
-    recoverRadioWrite,
-    requestRadioWritePort,
+    discardRadioWriteStatus,
+    downloadRadioOperationReport,
     radioWriteReleased,
     radioWriteReview,
     radioWriteSnapshot,
@@ -143,8 +143,8 @@ function RadioOverview() {
         busy={busy}
         onPrepare={() => void prepareRadioWrite()}
         onConfirm={() => void confirmRadioWrite()}
-        onRecover={() => void recoverRadioWrite()}
-        onRequestPort={() => void requestRadioWritePort()}
+        onDiscardStatus={() => void discardRadioWriteStatus()}
+        onDownloadReport={downloadRadioOperationReport}
       />
     </div>
   )

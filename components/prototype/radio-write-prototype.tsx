@@ -13,22 +13,13 @@ import type {
 } from "@/modules/cps-workspace/index"
 import { CODEPLUG_LAYOUT_3_07_23 } from "@/modules/codeplug/index"
 
-type Variant =
-  | "locked"
-  | "review"
-  | "writing"
-  | "reconnect"
-  | "verifying"
-  | "verified"
-  | "unknown"
+type Variant = "locked" | "review" | "writing" | "completed" | "unknown"
 
 const variants: readonly Variant[] = [
   "locked",
   "review",
   "writing",
-  "reconnect",
-  "verifying",
-  "verified",
+  "completed",
   "unknown",
 ]
 
@@ -63,8 +54,8 @@ function RadioWritePrototype() {
         busy={false}
         onPrepare={() => setVariant("review")}
         onConfirm={() => setVariant("writing")}
-        onRecover={() => setVariant("verified")}
-        onRequestPort={() => undefined}
+        onDiscardStatus={() => setVariant("review")}
+        onDownloadReport={() => undefined}
       />
     </div>
   )
@@ -78,16 +69,12 @@ function snapshotFor(variant: Variant): RadioWriteOperationSnapshot | null {
       return { phase: "review-required", preparedWrite }
     case "writing":
       return { phase: "writing", preparedWrite, bytesAcknowledged: 51_200 }
-    case "reconnect":
-      return { phase: "awaiting-reconnect", preparedWrite }
-    case "verifying":
-      return { phase: "verifying", preparedWrite }
-    case "verified":
+    case "completed":
       return {
-        phase: "verified",
+        phase: "completed",
         preparedWrite,
-        verifiedBackup: preparedWrite.intendedWriteImage,
-        verifiedAt: "2026-08-28T10:00:00.000Z",
+        completedBackup: preparedWrite.intendedWriteImage,
+        completedAt: "2026-08-28T10:00:00.000Z",
       }
     case "unknown":
       return {

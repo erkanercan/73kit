@@ -4,6 +4,7 @@ import * as React from "react"
 import {
   AlertTriangleIcon,
   CheckCircle2Icon,
+  DownloadIcon,
   LoaderCircleIcon,
   PlugZapIcon,
   RadioTowerIcon,
@@ -58,8 +59,8 @@ interface RadioWriteWorkflowProps {
   readonly busy: boolean
   onPrepare(): void
   onConfirm(): void
-  onRecover(): void
-  onRequestPort(): void
+  onDiscardStatus(): void
+  onDownloadReport(): void
 }
 
 function RadioWriteWorkflow({
@@ -71,8 +72,8 @@ function RadioWriteWorkflow({
   busy,
   onPrepare,
   onConfirm,
-  onRecover,
-  onRequestPort,
+  onDiscardStatus,
+  onDownloadReport,
 }: RadioWriteWorkflowProps) {
   const t = useTranslations()
   const [confirmationOpen, setConfirmationOpen] = React.useState(false)
@@ -80,7 +81,7 @@ function RadioWriteWorkflow({
   const bytesAcknowledged =
     snapshot && "bytesAcknowledged" in snapshot
       ? snapshot.bytesAcknowledged
-      : snapshot?.phase === "verified"
+      : snapshot?.phase === "completed"
         ? snapshot.preparedWrite.intendedWriteImage.byteLength
         : 0
   const presentation = phase
@@ -88,9 +89,9 @@ function RadioWriteWorkflow({
     : null
   const reviewRequired = phase === "review-required"
   const outcomeUnknown = phase === "write-outcome-unknown"
-  const verified = phase === "verified"
+  const completed = phase === "completed"
   const active =
-    phase !== null && !reviewRequired && !outcomeUnknown && !verified
+    phase !== null && !reviewRequired && !outcomeUnknown && !completed
 
   return (
     <Card>
@@ -124,12 +125,12 @@ function RadioWriteWorkflow({
           </Alert>
         )}
 
-        {verified && (
+        {completed && (
           <Alert>
             <CheckCircle2Icon aria-hidden="true" />
-            <AlertTitle>{t("radioWriteVerifiedTitle")}</AlertTitle>
+            <AlertTitle>{t("radioWriteCompletedTitle")}</AlertTitle>
             <AlertDescription>
-              {t("radioWriteVerifiedDescription")}
+              {t("radioWriteCompletedDescription")}
             </AlertDescription>
           </Alert>
         )}
@@ -153,20 +154,21 @@ function RadioWriteWorkflow({
       <CardFooter className="justify-end gap-2">
         {outcomeUnknown ? (
           <>
-            <Button variant="outline" disabled={busy} onClick={onRequestPort}>
-              <PlugZapIcon data-icon="inline-start" />
-              {t("radioWriteSelectPort")}
-            </Button>
-            <Button disabled={busy} onClick={onRecover}>
-              {busy && (
-                <LoaderCircleIcon
-                  data-icon="inline-start"
-                  className="animate-spin"
-                />
-              )}
-              {t("radioWriteCheckRadio")}
+            {released && (
+              <Button variant="outline" onClick={onDownloadReport}>
+                <DownloadIcon data-icon="inline-start" />
+                {t("radioOperationReport")}
+              </Button>
+            )}
+            <Button onClick={onDiscardStatus}>
+              {t("radioWriteCloseStatus")}
             </Button>
           </>
+        ) : completed && released ? (
+          <Button variant="outline" onClick={onDownloadReport}>
+            <DownloadIcon data-icon="inline-start" />
+            {t("radioOperationReport")}
+          </Button>
         ) : reviewRequired ? (
           <Button
             disabled={!released || busy}
@@ -295,12 +297,9 @@ function WriteStages({ snapshot }: { snapshot: RadioWriteOperationSnapshot }) {
   const bytes = "bytesAcknowledged" in snapshot ? snapshot.bytesAcknowledged : 0
   const presentation = radioWritePresentation(snapshot.phase, bytes)
   const labels = [
-    t("radioWriteStagePreflight"),
+    t("radioWriteStageRadioCheck"),
     t("radioWriteStageWrite"),
     t("radioWriteStageReboot"),
-    t("radioWriteStageReconnect"),
-    t("radioWriteStageVerification"),
-    t("radioWriteStageComparison"),
   ]
 
   return (
@@ -318,7 +317,7 @@ function WriteStages({ snapshot }: { snapshot: RadioWriteOperationSnapshot }) {
           </ProgressValue>
         </Progress>
       )}
-      <div className="grid grid-cols-6 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {RADIO_WRITE_STAGES.map((stage, index) => (
           <div key={stage} className="flex min-w-0 flex-col gap-2">
             <Separator />

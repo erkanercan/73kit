@@ -11,6 +11,7 @@ import {
   type CompletedRadioRead,
 } from "../modules/cps-workspace/index.ts"
 import { CODEPLUG_START_ADDRESS } from "../modules/uvl15w-radio/index.ts"
+import type { RadioDebugEvent } from "../modules/uvl15w-radio/index.ts"
 import {
   encodeRequestFrame,
   encodeResponseFrame,
@@ -23,12 +24,9 @@ import { InMemoryRadioWriteStore } from "./in-memory-radio-write-store/index.ts"
 
 const encoder = new TextEncoder()
 
-test("prepares and durably stores a reviewed full-range Radio Write before E3", async () => {
+test("prepares and durably stores a reviewed full-range Radio Write without opening the Radio", async () => {
   const baselineBytes = radioBytes()
-  const transport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
-    ...readSessionSteps(baselineBytes),
-  ])
+  const transport = new ScriptedTransport([...readSessionSteps(baselineBytes)])
   const store = new InMemoryRadioWriteStore()
   const workspace = createCpsWorkspace(transport, {
     responseTimeoutMs: 100,
@@ -62,6 +60,7 @@ test("prepares and durably stores a reviewed full-range Radio Write before E3", 
   assert.match(prepared.recoveryBackup.sha256, /^[a-f0-9]{64}$/)
   assert.match(prepared.intendedWriteImage.sha256, /^[a-f0-9]{64}$/)
   assert.match(prepared.changeSetSha256, /^[a-f0-9]{64}$/)
+  assert.deepEqual(prepared.recoveryBackup, prepared.baselineBackup)
 
   const persisted = await store.load()
   assert.equal(persisted?.recovery.phase, "review-required")
@@ -77,11 +76,11 @@ test("prepares and durably stores a reviewed full-range Radio Write before E3", 
     { kind: "edit-display-setting", field: "systemTheme" },
   ])
   assert.equal(workspace.getRadioWriteSnapshot()?.phase, "review-required")
-  assert.deepEqual(visiblePhases, ["preflight-reading", "review-required"])
+  assert.deepEqual(visiblePhases, ["review-required"])
   transport.assertComplete()
 })
 
-test("writes, reconnects, verifies every byte, and creates a new Baseline Backup", async () => {
+test("completes after every block and E5 Reboot are acknowledged without reconnecting", async () => {
   const baselineBytes = radioBytes()
   const editedCodeplug = createCodeplug(baselineBytes).editDisplaySettings({
     systemTheme: "dark",
@@ -92,14 +91,16 @@ test("writes, reconnects, verifies every byte, and creates a new Baseline Backup
   const intendedBytes = intendedImage.toBytes()
   const transport = new ScriptedTransport([
     ...readSessionSteps(baselineBytes),
-    ...readSessionSteps(baselineBytes),
     ...writeSessionSteps(intendedBytes),
-    ...readSessionSteps(intendedBytes),
   ])
   const store = new InMemoryRadioWriteStore()
+  const debugEvents: RadioDebugEvent[] = []
   const workspace = createCpsWorkspace(transport, {
     responseTimeoutMs: 100,
     radioWriteStore: store,
+    onDebugEvent: (event) => {
+      debugEvents.push(event)
+    },
   })
   const visiblePhases: string[] = []
 
@@ -120,32 +121,38 @@ test("writes, reconnects, verifies every byte, and creates a new Baseline Backup
 
   assert.deepEqual(result.baselineBackup.codeplug.toBytes(), intendedBytes)
   assert.deepEqual(result.workingCodeplug.codeplug.toBytes(), intendedBytes)
-  assert.equal(result.backupHistory.length, 3)
+  assert.equal(result.backupHistory.length, 2)
   assert.deepEqual(
     result.backupHistory.map((backup) => backup.codeplug.toBytes()),
-    [baselineBytes, baselineBytes, intendedBytes]
+    [baselineBytes, intendedBytes]
   )
+  const writeBlocks = debugEvents.filter(
+    (event) => event.direction === "sent" && event.command === 0xe4
+  )
+  assert.equal(writeBlocks.length, 200)
+  assert.deepEqual(writeBlocks[0], {
+    sequence: writeBlocks[0]?.sequence,
+    direction: "sent",
+    command: 0xe4,
+    payloadLength: 518,
+    address: CODEPLUG_START_ADDRESS,
+    dataLength: 512,
+    attempt: 1,
+  })
+  assert.equal(JSON.stringify(debugEvents).includes("PROTOTYPE"), false)
   assert.equal(workspace.getSnapshot().status, "ready")
-  assert.equal(workspace.getRadioWriteSnapshot()?.phase, "verified")
+  assert.equal(workspace.getRadioWriteSnapshot()?.phase, "completed")
   assert.equal(await store.load(), null)
   assert.ok(store.savedPhases.includes("writing-before-first-block"))
   assert.ok(store.savedPhases.includes("writing"))
-  assert.ok(store.savedPhases.includes("awaiting-reconnect"))
-  assert.ok(store.savedPhases.includes("verifying"))
   assert.deepEqual(
     [...new Set(visiblePhases)],
-    [
-      "writing-before-first-block",
-      "writing",
-      "awaiting-reconnect",
-      "verifying",
-      "verified",
-    ]
+    ["checking-radio", "writing-before-first-block", "writing", "completed"]
   )
   transport.assertComplete()
 })
 
-test("stops before preflight when the Change Set is empty", async () => {
+test("stops before preparation when the Change Set is empty", async () => {
   const baselineBytes = radioBytes()
   const transport = new ScriptedTransport(readSessionSteps(baselineBytes))
   const store = new InMemoryRadioWriteStore()
@@ -169,56 +176,6 @@ test("stops before preflight when the Change Set is empty", async () => {
   transport.assertComplete()
 })
 
-test("stops when the preflight Radio is not the Source Radio", async () => {
-  const baselineBytes = radioBytes()
-  const transport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
-    handshakeStep({ serialNumber: "UVL15W-TEST-0002" }),
-  ])
-  const store = new InMemoryRadioWriteStore()
-  const workspace = createCpsWorkspace(transport, {
-    responseTimeoutMs: 100,
-    radioWriteStore: store,
-  })
-
-  await workspace.connect()
-  const completedRead = await workspace.read()
-  await assert.rejects(
-    workspace.prepareRadioWrite(changedWorkingCodeplug(completedRead)),
-    /not the Source Radio/
-  )
-
-  assert.equal(await store.load(), null)
-  assert.equal(workspace.getRadioWriteSnapshot(), null)
-  transport.assertComplete()
-})
-
-test("stops when the preflight Radio Read has drifted from the Baseline Backup", async () => {
-  const baselineBytes = radioBytes()
-  const driftedBytes = baselineBytes.slice()
-  driftedBytes[1234] ^= 0xff
-  const transport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
-    ...readSessionSteps(driftedBytes),
-  ])
-  const store = new InMemoryRadioWriteStore()
-  const workspace = createCpsWorkspace(transport, {
-    responseTimeoutMs: 100,
-    radioWriteStore: store,
-  })
-
-  await workspace.connect()
-  const completedRead = await workspace.read()
-  await assert.rejects(
-    workspace.prepareRadioWrite(changedWorkingCodeplug(completedRead)),
-    /does not match the Baseline Backup/
-  )
-
-  assert.equal(await store.load(), null)
-  assert.equal(workspace.getRadioWriteSnapshot(), null)
-  transport.assertComplete()
-})
-
 test("persists Write Outcome Unknown and restores it after a workspace reload", async () => {
   const baselineBytes = radioBytes()
   const editedCodeplug = createCodeplug(baselineBytes).editDisplaySettings({
@@ -230,7 +187,6 @@ test("persists Write Outcome Unknown and restores it after a workspace reload", 
   const interruptedWrite = writeSessionSteps(intendedBytes).slice(0, 3)
   interruptedWrite[2] = { ...interruptedWrite[2], responseChunks: [] }
   const transport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
     ...readSessionSteps(baselineBytes),
     ...interruptedWrite,
   ])
@@ -267,13 +223,15 @@ test("persists Write Outcome Unknown and restores it after a workspace reload", 
 
   assert.equal(restored?.phase, "write-outcome-unknown")
   assert.equal(reloaded.getRadioWriteSnapshot()?.phase, "write-outcome-unknown")
+  await reloaded.discardRadioWriteOperation()
+  assert.equal(reloaded.getRadioWriteSnapshot(), null)
+  assert.equal(await store.load(), null)
   transport.assertComplete()
 })
 
 test("rejects a different Radio before E3 and retains the reviewed operation", async () => {
   const baselineBytes = radioBytes()
   const transport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
     ...readSessionSteps(baselineBytes),
     handshakeStep({ serialNumber: "UVL15W-TEST-0002" }),
   ])
@@ -296,141 +254,9 @@ test("rejects a different Radio before E3 and retains the reviewed operation", a
   transport.assertComplete()
 })
 
-test("marks a different verification Radio as Write Outcome Unknown", async () => {
-  const baselineBytes = radioBytes()
-  const editedCodeplug = createCodeplug(baselineBytes).editDisplaySettings({
-    systemTheme: "dark",
-  })
-  const intendedBytes = (
-    await editedCodeplug.materializeWriteImage(CODEPLUG_LAYOUT_3_07_23.id)
-  ).toBytes()
-  const transport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
-    ...readSessionSteps(baselineBytes),
-    ...writeSessionSteps(intendedBytes),
-    handshakeStep({ serialNumber: "UVL15W-TEST-0002" }),
-  ])
-  const store = new InMemoryRadioWriteStore()
-  const workspace = createCpsWorkspace(transport, {
-    responseTimeoutMs: 100,
-    radioWriteStore: store,
-  })
-
-  await workspace.connect()
-  const completedRead = await workspace.read()
-  await workspace.prepareRadioWrite({
-    workingCodeplug: {
-      ...completedRead.workingCodeplug,
-      codeplug: editedCodeplug,
-    },
-    changeSet: [{ kind: "edit-display-setting", field: "systemTheme" }],
-  })
-  await assert.rejects(
-    workspace.executePreparedRadioWrite(),
-    /not the Source Radio/
-  )
-
-  assert.equal((await store.load())?.recovery.phase, "write-outcome-unknown")
-  assert.equal(
-    workspace.getRadioWriteSnapshot()?.phase,
-    "write-outcome-unknown"
-  )
-  transport.assertComplete()
-})
-
-test("resolves a reloaded unknown outcome only after a same-Radio full read matches the intended image", async () => {
+test("restores only an interrupted data transfer as Write Outcome Unknown", async () => {
   const baselineBytes = radioBytes()
   const setupTransport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
-    ...readSessionSteps(baselineBytes),
-  ])
-  const store = new InMemoryRadioWriteStore()
-  const setupWorkspace = createCpsWorkspace(setupTransport, {
-    responseTimeoutMs: 100,
-    radioWriteStore: store,
-  })
-  await setupWorkspace.connect()
-  const completedRead = await setupWorkspace.read()
-  await setupWorkspace.prepareRadioWrite(changedWorkingCodeplug(completedRead))
-  const prepared = await store.load()
-  assert.ok(prepared)
-  await store.save({
-    ...prepared,
-    recovery: {
-      ...prepared.recovery,
-      phase: "write-outcome-unknown",
-      reason: "simulated reload after E4",
-    },
-  })
-
-  const intendedBytes = prepared.artifacts.intendedWriteImage.bytes
-  const recoveryTransport = new ScriptedTransport(
-    readSessionSteps(intendedBytes)
-  )
-  const reloaded = createCpsWorkspace(recoveryTransport, {
-    responseTimeoutMs: 100,
-    radioWriteStore: store,
-  })
-  await reloaded.restoreRadioWriteRecovery()
-  const resolution = await reloaded.resolveRadioWriteRecovery()
-
-  assert.equal(resolution.status, "intended-write-verified")
-  assert.deepEqual(resolution.baselineBackup.codeplug.toBytes(), intendedBytes)
-  assert.equal(reloaded.getSnapshot().status, "ready")
-  assert.equal(reloaded.getRadioWriteSnapshot()?.phase, "verified")
-  assert.equal(await store.load(), null)
-  setupTransport.assertComplete()
-  recoveryTransport.assertComplete()
-})
-
-test("keeps reloaded recovery unresolved when a different Radio is selected", async () => {
-  const baselineBytes = radioBytes()
-  const setupTransport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
-    ...readSessionSteps(baselineBytes),
-  ])
-  const store = new InMemoryRadioWriteStore()
-  const setupWorkspace = createCpsWorkspace(setupTransport, {
-    responseTimeoutMs: 100,
-    radioWriteStore: store,
-  })
-  await setupWorkspace.connect()
-  const completedRead = await setupWorkspace.read()
-  await setupWorkspace.prepareRadioWrite(changedWorkingCodeplug(completedRead))
-  const prepared = await store.load()
-  assert.ok(prepared)
-  await store.save({
-    ...prepared,
-    recovery: {
-      ...prepared.recovery,
-      phase: "write-outcome-unknown",
-      reason: "simulated interruption",
-    },
-  })
-
-  const recoveryTransport = new ScriptedTransport([
-    handshakeStep({ serialNumber: "UVL15W-TEST-0002" }),
-  ])
-  const reloaded = createCpsWorkspace(recoveryTransport, {
-    responseTimeoutMs: 100,
-    radioWriteStore: store,
-  })
-  await reloaded.restoreRadioWriteRecovery()
-  await assert.rejects(
-    reloaded.resolveRadioWriteRecovery(),
-    /not the Source Radio/
-  )
-
-  assert.equal((await store.load())?.recovery.phase, "write-outcome-unknown")
-  assert.equal(reloaded.getRadioWriteSnapshot()?.phase, "write-outcome-unknown")
-  setupTransport.assertComplete()
-  recoveryTransport.assertComplete()
-})
-
-test("treats every reloaded destructive phase as Write Outcome Unknown", async () => {
-  const baselineBytes = radioBytes()
-  const setupTransport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
     ...readSessionSteps(baselineBytes),
   ])
   const setupStore = new InMemoryRadioWriteStore()
@@ -444,12 +270,7 @@ test("treats every reloaded destructive phase as Write Outcome Unknown", async (
   const prepared = await setupStore.load()
   assert.ok(prepared)
 
-  for (const phase of [
-    "writing-before-first-block",
-    "writing",
-    "awaiting-reconnect",
-    "verifying",
-  ] as const) {
+  for (const phase of ["writing"] as const) {
     const store = new InMemoryRadioWriteStore()
     store.value = {
       ...prepared,
@@ -474,13 +295,25 @@ test("treats every reloaded destructive phase as Write Outcome Unknown", async (
     (await reviewReload.restoreRadioWriteRecovery())?.phase,
     "review-required"
   )
+
+  const preBlockStore = new InMemoryRadioWriteStore()
+  preBlockStore.value = {
+    ...prepared,
+    recovery: { ...prepared.recovery, phase: "writing-before-first-block" },
+  }
+  const preBlockReload = createCpsWorkspace(new ScriptedTransport([]), {
+    radioWriteStore: preBlockStore,
+  })
+  assert.equal(
+    (await preBlockReload.restoreRadioWriteRecovery())?.phase,
+    "review-required"
+  )
   setupTransport.assertComplete()
 })
 
 test("resumes a durably reviewed operation after reload without reconstructing it from UI state", async () => {
   const baselineBytes = radioBytes()
   const setupTransport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
     ...readSessionSteps(baselineBytes),
   ])
   const store = new InMemoryRadioWriteStore()
@@ -497,7 +330,6 @@ test("resumes a durably reviewed operation after reload without reconstructing i
   const intendedBytes = prepared.artifacts.intendedWriteImage.bytes
   const resumedTransport = new ScriptedTransport([
     ...writeSessionSteps(intendedBytes),
-    ...readSessionSteps(intendedBytes),
   ])
   const reloaded = createCpsWorkspace(resumedTransport, {
     responseTimeoutMs: 100,
@@ -510,105 +342,15 @@ test("resumes a durably reviewed operation after reload without reconstructing i
   const result = await reloaded.executePreparedRadioWrite()
 
   assert.deepEqual(result.baselineBackup.codeplug.toBytes(), intendedBytes)
-  assert.equal(result.backupHistory.length, 3)
+  assert.equal(result.backupHistory.length, 2)
   assert.equal(await store.load(), null)
   setupTransport.assertComplete()
   resumedTransport.assertComplete()
 })
 
-test("keeps verification mismatch as Write Outcome Unknown", async () => {
-  const baselineBytes = radioBytes()
-  const editedCodeplug = createCodeplug(baselineBytes).editDisplaySettings({
-    systemTheme: "dark",
-  })
-  const intendedBytes = (
-    await editedCodeplug.materializeWriteImage(CODEPLUG_LAYOUT_3_07_23.id)
-  ).toBytes()
-  const mismatchedBytes = intendedBytes.slice()
-  mismatchedBytes[42] ^= 0xff
-  const transport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
-    ...readSessionSteps(baselineBytes),
-    ...writeSessionSteps(intendedBytes),
-    ...readSessionSteps(mismatchedBytes),
-  ])
-  const store = new InMemoryRadioWriteStore()
-  const workspace = createCpsWorkspace(transport, {
-    responseTimeoutMs: 100,
-    radioWriteStore: store,
-  })
-
-  await workspace.connect()
-  const completedRead = await workspace.read()
-  await workspace.prepareRadioWrite({
-    workingCodeplug: {
-      ...completedRead.workingCodeplug,
-      codeplug: editedCodeplug,
-    },
-    changeSet: [{ kind: "edit-display-setting", field: "systemTheme" }],
-  })
-  await assert.rejects(
-    workspace.executePreparedRadioWrite(),
-    /does not match the intended write image/
-  )
-
-  assert.equal((await store.load())?.recovery.phase, "write-outcome-unknown")
-  assert.equal(
-    workspace.getRadioWriteSnapshot()?.phase,
-    "write-outcome-unknown"
-  )
-  transport.assertComplete()
-})
-
-test("resolves Write Outcome Unknown when the same Radio still matches the recovery backup", async () => {
-  const baselineBytes = radioBytes()
-  const setupTransport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
-    ...readSessionSteps(baselineBytes),
-  ])
-  const store = new InMemoryRadioWriteStore()
-  const setupWorkspace = createCpsWorkspace(setupTransport, {
-    responseTimeoutMs: 100,
-    radioWriteStore: store,
-  })
-  await setupWorkspace.connect()
-  const completedRead = await setupWorkspace.read()
-  await setupWorkspace.prepareRadioWrite(changedWorkingCodeplug(completedRead))
-  const prepared = await store.load()
-  assert.ok(prepared)
-  await store.save({
-    ...prepared,
-    recovery: {
-      ...prepared.recovery,
-      phase: "write-outcome-unknown",
-      reason: "simulated interruption before data changed",
-    },
-  })
-
-  const recoveryTransport = new ScriptedTransport(
-    readSessionSteps(baselineBytes)
-  )
-  const reloaded = createCpsWorkspace(recoveryTransport, {
-    responseTimeoutMs: 100,
-    radioWriteStore: store,
-  })
-  await reloaded.restoreRadioWriteRecovery()
-  const resolution = await reloaded.resolveRadioWriteRecovery()
-
-  assert.equal(resolution.status, "recovery-backup-confirmed")
-  assert.deepEqual(resolution.baselineBackup.codeplug.toBytes(), baselineBytes)
-  assert.equal(reloaded.getRadioWriteSnapshot(), null)
-  assert.equal(await store.load(), null)
-  setupTransport.assertComplete()
-  recoveryTransport.assertComplete()
-})
-
 test("rejects corrupted durable artifacts before opening a write session", async () => {
   const baselineBytes = radioBytes()
-  const transport = new ScriptedTransport([
-    ...readSessionSteps(baselineBytes),
-    ...readSessionSteps(baselineBytes),
-  ])
+  const transport = new ScriptedTransport([...readSessionSteps(baselineBytes)])
   const store = new InMemoryRadioWriteStore()
   const workspace = createCpsWorkspace(transport, {
     responseTimeoutMs: 100,

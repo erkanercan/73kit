@@ -148,10 +148,21 @@ interface RadioWriteTransferResult {
   readonly totalBytes: number
 }
 
+interface RadioDebugEvent {
+  readonly sequence: number
+  readonly direction: "sent" | "received"
+  readonly command: number
+  readonly payloadLength: number
+  readonly address?: number
+  readonly dataLength?: number
+  readonly attempt: number
+}
+
 interface Uvl15wRadioOptions {
   readonly readBlockSize?: number
   readonly responseTimeoutMs?: number
   readonly checksumRetries?: number
+  readonly onDebugEvent?: (event: RadioDebugEvent) => void
 }
 
 interface Uvl15wRadio {
@@ -235,6 +246,8 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
   readonly #readBlockSize: number
   readonly #responseTimeoutMs: number
   readonly #checksumRetries: number
+  readonly #onDebugEvent: Uvl15wRadioOptions["onDebugEvent"]
+  #debugSequence = 0
   #decoder = new ResponseFrameDecoder()
   #inbox = new FrameInbox()
 
@@ -248,6 +261,7 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
     this.#responseTimeoutMs =
       options.responseTimeoutMs ?? DEFAULT_RESPONSE_TIMEOUT_MS
     this.#checksumRetries = options.checksumRetries ?? DEFAULT_CHECKSUM_RETRIES
+    this.#onDebugEvent = options.onDebugEvent
 
     if (
       !Number.isInteger(this.#readBlockSize) ||
@@ -509,6 +523,7 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
     const request = encodeRequestFrame(command, payload)
 
     for (let attempt = 0; attempt <= this.#checksumRetries; attempt += 1) {
+      this.#emitDebug("sent", command, payload, attempt + 1)
       await connection.write(request)
       const event = await this.#inbox.next(this.#responseTimeoutMs)
 
@@ -524,6 +539,13 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
           cause: event.error,
         })
       }
+
+      this.#emitDebug(
+        "received",
+        event.frame.command,
+        event.frame.payload,
+        attempt + 1
+      )
 
       if (event.frame.command === COMMAND.error) {
         const message = decodeAsciiResponse(event.frame.payload)
@@ -546,6 +568,7 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
     const request = encodeRequestFrame(command, payload)
 
     for (let attempt = 0; attempt <= this.#checksumRetries; attempt += 1) {
+      this.#emitDebug("sent", command, payload, attempt + 1)
       await connection.write(request)
       const event = await this.#inbox.next(this.#responseTimeoutMs)
 
@@ -554,6 +577,13 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
           cause: event.error,
         })
       }
+
+      this.#emitDebug(
+        "received",
+        event.frame.command,
+        event.frame.payload,
+        attempt + 1
+      )
 
       if (event.frame.command === COMMAND.error) {
         const message = decodeAsciiResponse(event.frame.payload)
@@ -569,6 +599,27 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
     }
 
     throw new Uvl15wRadioError("protocol", "Checksum retries were exhausted")
+  }
+
+  #emitDebug(
+    direction: RadioDebugEvent["direction"],
+    command: number,
+    payload: Uint8Array,
+    attempt: number
+  ) {
+    if (!this.#onDebugEvent) return
+    const metadata = debugPayloadMetadata(direction, command, payload)
+    this.#debugSequence += 1
+    this.#onDebugEvent(
+      Object.freeze({
+        sequence: this.#debugSequence,
+        direction,
+        command,
+        payloadLength: payload.byteLength,
+        ...metadata,
+        attempt,
+      })
+    )
   }
 
   async #receiveContinuously(
@@ -614,6 +665,41 @@ function createUvl15wRadio(
   options: Uvl15wRadioOptions = {}
 ) {
   return new Uvl15wRadioImplementation(transport, options)
+}
+
+function debugPayloadMetadata(
+  direction: RadioDebugEvent["direction"],
+  command: number,
+  payload: Uint8Array
+) {
+  const view = new DataView(
+    payload.buffer,
+    payload.byteOffset,
+    payload.byteLength
+  )
+  if (
+    ((direction === "sent" &&
+      (command === COMMAND.writeDataRequest ||
+        command === COMMAND.readDataRequest)) ||
+      (direction === "received" && command === COMMAND.readDataResponse)) &&
+    payload.byteLength >= 6
+  ) {
+    return Object.freeze({
+      address: view.getUint32(0, false),
+      dataLength: view.getUint16(4, false),
+    })
+  }
+  if (
+    direction === "received" &&
+    command === COMMAND.writeDataResponse &&
+    payload.byteLength >= 11
+  ) {
+    return Object.freeze({
+      address: view.getUint32(5, false),
+      dataLength: view.getUint16(9, false),
+    })
+  }
+  return Object.freeze({})
 }
 
 function parseSourceRadio(payload: Uint8Array): SourceRadio {
@@ -862,6 +948,7 @@ export {
 }
 export type {
   RadioReadOptions,
+  RadioDebugEvent,
   RadioReadProgress,
   RadioWriteFailureDisposition,
   RadioWriteOptions,

@@ -219,19 +219,15 @@ feature plan explicitly excludes partial or changed-block writes until they are
 hardware verified
 ([feature reference, lines 1050-1064](../CPS_FEATURE_REFERENCE.md#L1050-L1064)).
 
-The current `Uvl15wRadio` interface exposes only `connect`, `read`, and
-`disconnect`
-([Radio source, lines 89-93](../../modules/uvl15w-radio/index.ts#L89-L93)); its
-implemented command set contains read commands but no begin-write command
-([lines 20-28](../../modules/uvl15w-radio/index.ts#L20-L28)). Consequently, the
-new page may edit only the Working Codeplug today and must not claim the physical
-Radio has changed.
+The `Uvl15wRadio` interface now exposes the general full-range Radio Write path.
+Bluetooth settings remain ordinary Working Codeplug fields; they use that path
+and must not be sent as Bluetooth-specific or changed-byte writes.
 
-When general Radio Write is implemented, success requires the repository's full
-safety path: complete preflight read and immutable recovery backup, Source Radio
-comparison, full-range write with acknowledgements, `E5 "Write Complete"`,
-reboot/reconnect, complete Radio Read, and byte-for-byte verification
-([feature reference, lines 1050-1064](../CPS_FEATURE_REFERENCE.md#L1050-L1064)).
+Radio Write checks the Source Radio and supported firmware, writes the complete
+Codeplug with acknowledgement validation, and completes when E5 returns the
+validated `Reboot` response. It does not reconnect or perform an automatic
+Radio Read afterward
+([feature reference](../CPS_FEATURE_REFERENCE.md#83-complete-writes--implemented)).
 The protocol's underlying complete-write sequence is E0, E3, repeated E4/E6,
 E5, then reboot
 ([communication protocol, lines 278-290](../technical/TYT_UVL-15W_Communication_Protocol_V3.0_EN_REVIEWED.md#L278-L290)).
@@ -279,8 +275,8 @@ baseline, export variants that change exactly one control at a time:
 The expected result is exactly one changed byte per variant at the corresponding
 address in `0x00015440..0x00015445`, with the documented raw value. Preserve
 those fixtures or minimal provenance-noted excerpts for automated tests. Such a
-comparison would strengthen the original six mappings; it would not replace the
-full Radio Write verification requirements.
+comparison would strengthen the original six mappings; it is mapping evidence
+rather than an additional Radio Write completion stage.
 
 ### Controlled BT hold-time PF verification
 

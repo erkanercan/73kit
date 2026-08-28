@@ -265,7 +265,7 @@ Codeplug.
 - expose idle, connecting, reading and ready operation phases
 - release the port and reset receive state after success or failure
 
-The CPS does not maintain a persistent Radio connection between operations. A later Radio Read starts a fresh operation and requests a port again. Post-reboot reconnection is reserved for the verified Radio Write workflow, where a complete verification Radio Read is mandatory.
+The CPS does not maintain a persistent Radio connection between operations. A later Radio Read starts a fresh operation and requests a port again. Radio Write ends after the validated E5 reboot response and does not reconnect or read back automatically.
 
 Protocol diagnostics remain planned for a later milestone; no diagnostics log or diagnostics UI is implemented in this milestone.
 
@@ -302,7 +302,7 @@ Support Raw Backup Exports and CPS Exports using the binding rules above. CSV an
 
 ### Backup History — P0 / PLANNED
 
-Retain the ordered collection of immutable Codeplug Backups for each Source Radio across successful Radio Reads and verified Radio Writes. Durable browser storage may use IndexedDB; the Backup History lifecycle is not optional.
+Retain the ordered collection of immutable Codeplug Backups for each Source Radio across successful Radio Reads and completed Radio Writes. Durable browser storage may use IndexedDB; the Backup History lifecycle is not optional.
 
 ### Change Set review — P1 / REQUIRED FOR RADIO WRITE
 
@@ -342,8 +342,8 @@ inserts a copy directly below the source, retains its Channel fields and
 memberships, and adds a byte-safe `Copy` suffix to its name. Delete removes the
 selected slot, shifts every following Memory row up by one channel number,
 clears the final slot, and removes or remaps ordered Zone and Scan List
-references. These operations affect only the Working Codeplug until a future
-verified Radio Write. Deleting a newly added or duplicated row restores the
+references. These operations affect only the Working Codeplug until a completed
+Radio Write. Deleting a newly added or duplicated row restores the
 exact pre-operation Working Codeplug, including when that temporary row was
 edited, so the canceled operation leaves no pending Change Set entry.
 
@@ -976,8 +976,8 @@ for the decoder, encode-list records and PTT ID records.
 
 Automated verification currently covers exact offsets, standard indexes,
 2-Tone frequency encoding, validation, round trips and reserved-byte
-preservation. Controlled TYT CPS export diffs and physical Radio
-read-write-readback verification are deliberately deferred; this status is
+preservation. Controlled TYT CPS export diffs and physical on-Radio application
+verification are deliberately deferred; this status is
 kept here rather than displayed in the editor.
 
 ---
@@ -998,48 +998,51 @@ CH 043
   RPT1 → ANTALYA
 ```
 
-## 8.2 Automatic pre-write recovery backup — REQUIRED FOR RADIO WRITE
+## 8.2 Baseline recovery reference — REQUIRED FOR RADIO WRITE
 
-Before a Radio Write, perform a complete Radio Read and retain its immutable Codeplug Backup as the recovery point. The read also produces a separate Working Codeplug as required by the normal Radio Read lifecycle. If the result exactly matches the expected Baseline Backup, the existing Working Codeplug and Change Set remain valid. If it differs, stop: make the newly read Codeplug the basis of a new working session and require the intended changes to be reapplied and reviewed. Never silently rebase a Change Set.
+Radio Write uses the immutable Baseline Backup from the initial Radio Read as
+its recovery reference. Preparation does not perform another Radio Read. The
+operator explicitly selects the Source Radio port, and the actual write session
+must pass the E1 identity, firmware, and write-protection checks before E3.
 
-## 8.3 Safe verified writes — INTERNAL WORKFLOW IMPLEMENTED / UI DISABLED
+## 8.3 Complete writes — IMPLEMENTED
 
-Documented write flow followed by the required verification read:
+Documented write flow:
 
 ```text
 E0/E1 → E3 → E4 block → E6 ACK → repeat
    → E5 "Write Complete" → reboot
-   → reconnect → E0/E1 → E2 → E6/E4 read blocks
-   → E5 "Read Complete" → reboot → compare
 ```
 
 The docs do not establish atomic writes. Assume disconnect can leave partially changed SPI flash.
 
 Implemented internal safety model:
 
-- verify Source Radio identity and preflight backup first
+- verify Source Radio identity, firmware, and write protection through E1 immediately before E3
 - write every block in the declared range unless partial-write behavior is separately hardware-verified
 - ACK validation
 - address/length echo validation
 - send `E5 "Write Complete"` to finish the write session and reboot
-- reconnect and perform a complete Radio Read
-- byte-for-byte comparison against the materialized intended write image
-- report success only after verification and create a new Baseline Backup from the verified result
-- after writing may have begun, report `Write Outcome Unknown` if the session is interrupted or verification cannot be completed
+- report success after all blocks and the E5 `Reboot` response are validated
+- do not reconnect or perform an automatic Radio Read after reboot
+- create a new Baseline Backup from the accepted intended write image
+- after writing may have begun, report `Write Outcome Unknown` only if completion is interrupted before the E5 `Reboot` response is validated
 - persist the complete recovery artifacts, references, hashes, and phase
 
 Changed-block or other partial-write strategies are FUTURE / RESEARCH. The supplied protocol describes sending blocks until all data in the declared range has been sent; it does not establish that omitted blocks are safe.
 
-## 8.4 Interrupted-write recovery — INTERNAL WORKFLOW IMPLEMENTED / UI DISABLED
+## 8.4 Interrupted-write handling — IMPLEMENTED
 
-On reconnect, perform a Radio Read and compare the result with the recovery Codeplug Backup and intended Working Codeplug. Do not blindly resume from the last ACK. Until exact verification succeeds, retain the `Write Outcome Unknown` state and present recovery guidance.
+Do not blindly resume an interrupted transfer from the last ACK. Retain
+`Write Outcome Unknown` when a transfer stops after its first E4 attempt and
+before the E5 `Reboot` response is accepted. The operator may close that status;
+the Radio Write workflow does not start an automatic recovery read.
 
 The CPS Workspace now persists the complete safety record through a Radio Write
-store seam, restores destructive phases as `Write Outcome Unknown`, and clears
-the record only after a same-Radio complete read exactly matches the intended
-image or the recovery backup. The IndexedDB adapter is implemented; user-facing
-review, confirmation, progress, retained-port reconnection, and recovery UX are
-not yet exposed.
+store seam, restores an interrupted E4 transfer as `Write Outcome Unknown`, and
+clears the record after a completed write or when the operator closes the
+status. The IndexedDB adapter and user-facing review, confirmation, progress,
+completion, and operation-report UX are implemented.
 
 ## 8.5 Bulk editing — HIGH VALUE / PLANNED
 
@@ -1083,9 +1086,11 @@ Dedicated step-by-step undo/redo remains planned. Returning an edited field to
 its Baseline Backup value removes its Change Set entry, and Channels currently
 provides a reset-all action for the Working Codeplug.
 
-## 8.10 Source Radio preflight comparison — P1
+## 8.10 Source Radio write-session comparison — IMPLEMENTED
 
-Compare the Source Radio with the expected Baseline Backup before writing. A mismatch stops the Radio Write and requires a new Change Set review.
+The operator selects the serial port before preparation. The actual write
+session compares the E1 identity with the Source Radio and validates firmware
+and write protection before E3. A mismatch stops before the first write block.
 
 ## 8.11 Additional import/export formats — P1/P2
 
@@ -1202,16 +1207,16 @@ Backups (planned)
 
 ## Epic 7 — Safe writer
 
-- [x] complete preflight Radio Read and immutable recovery Codeplug Backup
-- [x] stop on Baseline Backup drift without silently rebasing
-- [x] Source Radio and Baseline Backup comparison at every reconnect
+- [x] retain the immutable Baseline Backup as the recovery reference
+- [x] explicit operator serial-port selection before preparation
+- [x] Source Radio identity and firmware comparison before E3
 - [x] E3/E4/E6 protocol writer behind the Radio interface
 - [x] strict ACK validation and destructive-boundary error details
 - [x] E5 Write Complete protocol completion
-- [x] post-reboot reconnect and complete Radio Read orchestration
-- [x] byte-for-byte verification before reporting success
+- [x] completion after all E6 ACKs and the validated E5 `Reboot` response
+- [x] no automatic reconnect or Radio Read after writing
 - [x] durable `Write Outcome Unknown` handling across reload
-- [x] interrupted-write recovery comparison against intended/recovery bytes
+- [x] operator-dismissible interrupted-write status without automatic Radio Read
 
 Partial or changed-block writes are excluded until hardware-verified.
 
@@ -1247,7 +1252,7 @@ Partial or changed-block writes are excluded until hardware-verified.
 - [x] Semantic Working Codeplug change tracking
 - [x] Channel signaling-record selection
 - [ ] Controlled TYT CPS export-diff verification
-- [ ] Physical Radio write/reboot/readback verification
+- [ ] Physical on-Radio application verification
 
 ## Epic 13 — FM radio / advanced settings
 
@@ -1347,7 +1352,7 @@ firmware update commands
 - [x] radio settings
 - [x] programmable keys
 - [x] APRS
-- [ ] safe verified write
+- [x] complete Radio Write through validated reboot response
 - [ ] interrupted-write recovery
 - [ ] import binding and Unbound Codeplug enforcement
 
@@ -1485,7 +1490,7 @@ Differentiators should include:
 - direct browser connection
 - reviewable Change Sets
 - automatic recovery Codeplug Backups
-- verified writes
+- completed writes
 - preservation of unknown bytes
 - bulk editing
 - better zone/scan-list UX

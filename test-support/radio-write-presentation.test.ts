@@ -7,17 +7,15 @@ import {
 } from "../modules/cps-workspace/radio-write-presentation.ts"
 
 test("maps every Radio Write lifecycle phase to a visible desktop stage", () => {
-  assert.equal(radioWritePresentation("preflight-reading", 0).activeStage, 0)
+  assert.equal(radioWritePresentation("checking-radio", 0).activeStage, 0)
   assert.equal(radioWritePresentation("review-required", 0).activeStage, 0)
   assert.equal(radioWritePresentation("writing", 51_200).activeStage, 1)
-  assert.equal(radioWritePresentation("awaiting-reconnect", 0).activeStage, 3)
-  assert.equal(radioWritePresentation("verifying", 0).activeStage, 4)
-  assert.equal(radioWritePresentation("verified", 102_400).activeStage, 5)
+  assert.equal(radioWritePresentation("completed", 102_400).activeStage, 2)
   assert.equal(
     radioWritePresentation("write-outcome-unknown", 0).activeStage,
-    3
+    2
   )
-  assert.equal(RADIO_WRITE_STAGES.length, 6)
+  assert.equal(RADIO_WRITE_STAGES.length, 3)
 })
 
 test("marks only post-boundary phases as destructive and reports block progress", () => {
@@ -27,7 +25,11 @@ test("marks only post-boundary phases as destructive and reports block progress"
     false
   )
   assert.equal(radioWritePresentation("writing", 51_200).destructive, true)
-  assert.equal(radioWritePresentation("verifying", 102_400).destructive, true)
+  assert.equal(radioWritePresentation("completed", 102_400).destructive, false)
+  assert.equal(
+    radioWritePresentation("write-outcome-unknown", 0).destructive,
+    false
+  )
   assert.deepEqual(radioWritePresentation("writing", 51_200).progress, {
     percent: 50,
     completedBlocks: 100,

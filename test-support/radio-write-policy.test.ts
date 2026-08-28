@@ -91,15 +91,12 @@ test("compares permanent Source Radio identity independently of firmware", () =>
 
 test("treats every failure after a data block may have reached the Radio as Write Outcome Unknown", () => {
   const safePhases: RadioWritePhase[] = [
-    "preflight-reading",
     "review-required",
+    "checking-radio",
     "writing-before-first-block",
+    "completed",
   ]
-  const uncertainPhases: RadioWritePhase[] = [
-    "writing",
-    "awaiting-reconnect",
-    "verifying",
-  ]
+  const uncertainPhases: RadioWritePhase[] = ["writing"]
 
   for (const phase of safePhases) {
     assert.equal(classifyRadioWriteFailure(phase), "ordinary-failure")
@@ -110,12 +107,11 @@ test("treats every failure after a data block may have reached the Radio as Writ
 })
 
 test("offers cancellation only before the write session starts", () => {
-  assert.equal(canCancelRadioWrite("preflight-reading"), true)
   assert.equal(canCancelRadioWrite("review-required"), true)
+  assert.equal(canCancelRadioWrite("checking-radio"), true)
   assert.equal(canCancelRadioWrite("writing-before-first-block"), false)
   assert.equal(canCancelRadioWrite("writing"), false)
-  assert.equal(canCancelRadioWrite("awaiting-reconnect"), false)
-  assert.equal(canCancelRadioWrite("verifying"), false)
+  assert.equal(canCancelRadioWrite("completed"), false)
 })
 
 function sourceRadio(overrides: Partial<SourceRadio> = {}): SourceRadio {

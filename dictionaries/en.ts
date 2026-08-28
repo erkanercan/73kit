@@ -4,7 +4,7 @@ const en = {
   serialPortSelectionRequired: "Select the Source Radio port to continue.",
   radioWriteTitle: "Radio Write",
   radioWriteDescription:
-    "Review the Change Set, create a fresh recovery backup, write the complete Codeplug, and verify every byte.",
+    "Select the Source Radio, review the Change Set, and write the complete Codeplug.",
   radioWriteControlled: "Available",
   radioWriteUnavailable: "Unavailable",
   radioWriteUnavailableTitle: "Radio Write unavailable",
@@ -12,34 +12,31 @@ const en = {
     "You can inspect and edit the Working Codeplug, but writing those changes to the Radio is not available in this version.",
   radioWriteUnknownTitle: "Write Outcome Unknown",
   radioWriteUnknownDescription:
-    "Writing may have started, but the final Radio contents were not proven. Do not write again blindly; reconnect the same Source Radio and run the recovery check.",
-  radioWriteVerifiedTitle: "Radio Write verified",
-  radioWriteVerifiedDescription:
-    "The Radio restarted, a complete Radio Read finished, and every byte matched the intended write image.",
+    "The Radio did not confirm that writing finished. Check the USB connection and Radio power before trying again.",
+  radioWriteCompletedTitle: "Radio Write complete",
+  radioWriteCompletedDescription:
+    "All Codeplug blocks were acknowledged and the Radio accepted the reboot command.",
   radioWriteDoNotInterrupt: "Do not close, disconnect, or remove power",
   radioWriteDoNotInterruptDescription:
-    "Writing has started and can no longer be safely cancelled. Keep this tab open, USB connected, and power stable until verification finishes.",
+    "Writing has started and can no longer be safely cancelled. Keep this tab open, USB connected, and power stable until the Radio reboots.",
   radioWriteChangeSet: "Change Set review",
   radioWriteChangeSetDescription:
     "The values below show exactly what will change on the Source Radio.",
   radioWriteChangeCount: "{count, plural, one {# change} other {# changes}}",
-  radioWriteSelectPort: "Select Source Radio port",
-  radioWriteCheckRadio: "Reconnect and check Radio",
+  radioOperationReport: "Download operation report",
+  radioWriteCloseStatus: "Close status",
   radioWriteReviewAndConfirm: "Review and confirm",
   radioWriteInProgress: "Radio Write in progress",
-  radioWritePrepare: "Prepare Radio Write",
+  radioWritePrepare: "Select Radio and prepare write",
   radioWriteConfirmTitle: "Confirm complete Radio Write",
   radioWriteConfirmDescription:
-    "The fresh preflight backup succeeded. Confirm the reviewed {count, plural, one {change} other {changes}} before writing starts.",
+    "The selected port is ready. Confirm the reviewed {count, plural, one {change} other {changes}}. The Radio identity and firmware will be checked before writing starts.",
   radioWriteConfirmationWarning:
-    "After the first data block is sent, cancellation is not safe. Keep stable power and USB until reboot, reconnect, full Radio Read, and byte comparison complete.",
-  radioWriteConfirmAction: "Write and verify",
-  radioWriteStagePreflight: "Preflight backup",
+    "After the first data block is sent, cancellation is not safe. Keep stable power and USB connected until the Radio accepts the complete write and reboots.",
+  radioWriteConfirmAction: "Write to Radio",
+  radioWriteStageRadioCheck: "Radio check",
   radioWriteStageWrite: "Write",
   radioWriteStageReboot: "Reboot",
-  radioWriteStageReconnect: "Reconnect",
-  radioWriteStageVerification: "Verification read",
-  radioWriteStageComparison: "Byte comparison",
   radioWriteBlockProgress:
     "{completed, number} of {total, number} blocks acknowledged",
   before: "Before",

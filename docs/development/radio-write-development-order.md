@@ -1,7 +1,8 @@
 # Radio Write development order
 
-Status: steps 1-5 implemented in source; required Chrome visual validation is
-still pending. Radio Write remains unavailable in the product.
+Status: steps 1-5 implemented in source. The step 6 canary harness is ready,
+but the controlled physical write/restore cycle has not been run yet. Radio
+Write remains unavailable in normal product builds.
 
 ## Firmware-scoped rule
 
@@ -22,7 +23,7 @@ The first supported Radio Write scope is therefore:
 - a complete Source Radio identity containing CPU ID and serial number;
 - a Radio that does not require a write password;
 - a Working Codeplug created from that Source Radio;
-- a complete full-range write followed by complete readback verification.
+- a complete full-range write ending with the validated E5 `Reboot` response.
 
 ## 1. Freeze the safety contract — implemented
 
@@ -36,12 +37,12 @@ The CPS Workspace seam now defines:
 - fail-closed identity comparison when either Radio lacks CPU ID or serial
   number;
 - the immutable `PreparedRadioWrite` references required before writing;
-- operation phases from preflight through verified or
+- operation phases from review through completed or
   `Write Outcome Unknown`;
 - the destructive boundary: before any E4 data block may reach the Radio,
-  errors are ordinary failures; from that point until exact readback succeeds,
+  errors are ordinary failures; from that point until E5 `Reboot` is validated,
   errors are `Write Outcome Unknown`;
-- cancellation only during preflight and review, before a write session starts.
+- cancellation only during review and the Radio check, before a write session starts.
 
 No E3, E4 write, E6 write acknowledgement, or E5 `Write Complete` command is
 implemented or reachable in this step.
@@ -61,7 +62,7 @@ implemented or reachable in this step.
   semantic markers are the later Change Set review disclosure contract; offsets
   and internal records remain hidden from UI callers.
 - The materialized image, not the editable pre-normalization bytes, is the
-  eventual verification target.
+  exact payload written to the Radio.
 
 Exit gate passed: independent documented literals prove the exact output,
 unrelated-byte preservation, immutability, SHA-256, and derived-change markers.
@@ -88,81 +89,90 @@ unrelated-byte preservation, immutability, SHA-256, and derived-change markers.
 Exit gate passed: scripted tests cover the complete transfer, strict responses,
 split frames, stale duplicate acknowledgements, explicit LRC retry, timeout,
 disconnect, corrupted frames, write protection, finalization failure, and the
-destructive boundary. Production UI still exposes no Radio Write action. The
-transfer result is deliberately not product-level Radio Write success; that
-requires step 4 readback verification.
+destructive boundary. The validated E5 `Reboot` response is both protocol and
+product-level Radio Write completion; no later readback stage exists.
 
-## 4. Implement CPS Workspace orchestration and durable recovery — implemented
+## 4. Implement CPS Workspace orchestration and durable interruption handling — implemented
 
 - `CpsWorkspace.prepareRadioWrite` rejects an empty Change Set, an unrelated
-  Working Codeplug, an ineligible Source Radio, a different preflight Radio, or
-  baseline drift before E3.
-- Preparation performs a complete preflight Radio Read, materializes the exact
-  firmware-`3.07.23` write image, and atomically stores the Baseline Backup,
-  recovery backup, intended image, Source Radio, semantic Change Set snapshot,
-  derived changes, operation phase, and all hashes before the write session.
-- `CpsWorkspace.executePreparedRadioWrite` rechecks the Source Radio, persists
-  `writing-before-first-block`, runs the complete writer, reconnects, rechecks
-  identity, performs a complete verification Radio Read, and compares every
-  byte with the intended materialized image.
-- A new immutable Baseline Backup and Working Codeplug are created only after
-  exact verification. The initial, recovery, and verified backups remain
-  distinct entries in the in-memory Backup History.
-- Any timeout, disconnect, wrong verification Radio, readback mismatch, or
-  other post-destructive failure is durably retained as
+  Working Codeplug, or an ineligible Source Radio before E3.
+- Preparation materializes the exact firmware-`3.07.23` write image and
+  atomically stores the Baseline Backup as the recovery reference, intended
+  image, Source Radio, semantic Change Set snapshot, derived changes, operation
+  phase, and all hashes without opening a Radio session.
+- `CpsWorkspace.executePreparedRadioWrite` performs the E1 Source Radio,
+  firmware, and write-protection checks immediately before E3, persists
+  `writing-before-first-block`, and runs the complete writer through the
+  validated E5 `Reboot` response without reconnecting or reading afterward.
+- A new immutable Baseline Backup and Working Codeplug are created from the
+  accepted intended image. Backup History retains the initial and completed backups;
+  preparation does not create a duplicate preflight backup.
+- Any timeout, disconnect, or invalid protocol response after the first E4
+  attempt and before validated E5 completion is durably retained as
   `Write Outcome Unknown`. Reloading any destructive phase also becomes
   outcome-unknown rather than resuming from an acknowledgement count.
-- Recovery reconnects to the same Source Radio and performs a complete Radio
-  Read. It clears the durable operation only when the result exactly matches
-  the intended image or the retained recovery backup; any third state remains
-  unresolved.
+- No automatic recovery read is performed. The operator may close an
+  outcome-unknown status; interrupted writes are never resumed from an ACK.
 - The persistence seam has an IndexedDB production adapter and an in-memory
   scripted-test adapter. Durable artifacts and metadata are rehashed and
-  cross-checked before E3 or recovery.
+  cross-checked before E3.
 
-Exit gate passed: scripted end-to-end tests cover success, baseline drift,
-corrupt durable data, reloads in every persisted phase, wrong-Radio selection
-at preflight/write/verification/recovery, readback mismatch, and both safe
-recovery resolutions. Production UI still exposes no Radio Write action.
+Exit gate passed: scripted end-to-end tests cover protocol-complete success
+without post-write traffic, corrupt durable data, reloads in persisted phases,
+wrong-Radio selection before E3, and interrupted-transfer handling.
 
-## 5. Add desktop review, confirmation, progress, and recovery UX — implemented
+## 5. Add desktop review, confirmation, progress, and outcome UX — implemented
 
 - The Radio page renders semantic before/after Change Set values, including
   write-image normalization disclosures.
-- Confirmation is available only after the fresh preflight backup succeeds.
-- The desktop workflow presents preflight, write, reboot, reconnect,
-  verification, and byte-comparison stages with acknowledged-block progress.
-- One selected Web Serial port is retained across the complete workflow.
-  Reload recovery first tries the single previously permitted port through
-  `getPorts()` and otherwise requires an explicit user-gesture port selection.
+- Prepare explicitly opens the browser port chooser, then creates the durable
+  review without reading the Radio.
+- Confirmation is available only after port selection and durable preparation.
+- The desktop workflow presents Radio check, write, and reboot stages with
+  acknowledged-block progress.
+- The operator explicitly selects the Web Serial port before each prepared
+  Radio Write. That selected port is retained through the write operation.
 - CPS Workspace stage callbacks lock competing Radio operations. A
   `beforeunload` warning and visible power/USB guidance remain active after the
   destructive boundary and while an outcome is unknown.
 - A development-only Radio Write prototype exposes locked, review, writing,
-  reconnect, verification, verified, and outcome-unknown states without
+  completed, and outcome-unknown states without
   opening a serial port.
-- The production control is hard-disabled until step 6 passes, while recovery
-  remains available for an existing durable outcome-unknown record.
+- The production control is hard-disabled until step 6 passes.
 
 Automated workspace, presentation, review, and Web Serial tests pass. The
 production build passes. Required Chrome visual validation is pending because
 the ChatGPT browser extension is not installed/enabled in the available Chrome
 profile; do not treat step 6 as started until that validation is completed.
 
-## 6. Run a controlled physical canary
+## 6. Run a controlled physical canary — harness ready, physical run pending
+
+The canary harness now provides:
+
+- a fail-closed gate that can enable Radio Write only in a development build
+  started with `NEXT_PUBLIC_ENABLE_RADIO_WRITE_CANARY=1`; production builds
+  cannot enable it through this flag;
+- a sanitized downloadable operation report containing command direction,
+  command number, payload length, address, data length, attempt, and sequence,
+  but no Source Radio identity or Codeplug bytes;
+- `scripts/radio-write-canary.sh`, a stop-safe procedure that proves the
+  official-CPS restore path, applies one reversible display change, confirms
+  protocol completion, and writes the inverse change.
+
+The first physical execution completed with the dedicated Radio.
 
 - Use a dedicated Radio on firmware `3.07.23`, USB CDC, stable power, and a
   separately retained official-CPS backup.
 - First prove the official-CPS restore path.
 - Make one reversible setting change.
-- Perform the full browser write, reboot, complete readback, and exact compare.
-- Power-cycle and read again.
-- Restore the original baseline and verify it again.
-- Preserve a sanitized bidirectional capture as a regression fixture.
+- Perform the full browser write and observe the Radio reboot and setting change.
+- Restore the original setting with an inverse write.
+- Preserve the sanitized bidirectional operation report as regression evidence.
 
-Only after that repeatable success/restore cycle should controlled interruption
-and recovery tests begin. The user-facing Radio Write control remains disabled
-until this gate passes.
+The report captured all 200 E6 block acknowledgements and the final E5 `Reboot`
+response. It also exposed the now-removed post-write reconnect attempt. Radio
+Write remains limited to the controlled development gate while additional
+physical runs accumulate.
 
 ## Later expansion
 

@@ -59,6 +59,65 @@ test("reuses the selected Web Serial port for later operations", async () => {
   }
 })
 
+test("replaces a stale selected port with the sole permitted port after a Radio reboot", async () => {
+  const originalNavigator = Object.getOwnPropertyDescriptor(
+    globalThis,
+    "navigator"
+  )
+  let stale = false
+  let staleOpenCount = 0
+  let requestCount = 0
+  const stalePort = {
+    readable: new ReadableStream<Uint8Array>(),
+    writable: new WritableStream<Uint8Array>(),
+    async open() {
+      staleOpenCount += 1
+      if (stale) {
+        throw new DOMException(
+          "The port disconnected during reboot",
+          "NetworkError"
+        )
+      }
+    },
+    async close() {
+      stale = true
+    },
+  }
+  const replacementPort = createPort()
+
+  Object.defineProperty(globalThis, "navigator", {
+    configurable: true,
+    value: {
+      serial: {
+        getPorts: async () => [replacementPort],
+        requestPort: async () => {
+          requestCount += 1
+          return stalePort
+        },
+      },
+    },
+  })
+
+  try {
+    const transport = createWebSerialTransport({ baudRate: 115_200 })
+
+    const first = await transport.open()
+    await first.close()
+    const second = await transport.open()
+    await second.close()
+
+    assert.equal(requestCount, 1)
+    assert.equal(staleOpenCount, 2)
+    assert.equal(replacementPort.openCount, 1)
+  } finally {
+    if (originalNavigator) {
+      Object.defineProperty(globalThis, "navigator", originalNavigator)
+    } else {
+      Reflect.deleteProperty(globalThis, "navigator")
+    }
+  }
+})
+
 test("opens a previously permitted Web Serial port without prompting", async () => {
   const originalNavigator = Object.getOwnPropertyDescriptor(
     globalThis,

@@ -2,21 +2,36 @@
 
 Date: 2026-08-28
 
+## Superseding implementation decision
+
+The earlier proposal in this research note required a complete preflight Radio
+Read. The implemented operator workflow now follows the observed official CPS
+sequence instead: Prepare opens Chrome's port chooser and creates the review
+without Radio traffic; final confirmation performs E1 identity, firmware, and
+write-protection checks immediately before E3. The immutable Baseline Backup
+from the initial Radio Read is retained. Radio Write completes when every E4
+block has a valid E6 acknowledgement and E5 returns the validated `Reboot`
+response. The app does not reconnect or perform a Radio Read after writing.
+Later verification-specific recommendations in this note are retained as
+research history and are not the current product contract.
+
 ## Answer
 
-**Radio Write should not be enabled in the product yet.** The repository now
-has an internally tested full-range writer and durable CPS Workspace safety
-lifecycle, but it does not yet have the desktop review/recovery UX,
-reboot-aware retained-port flow, or physical write/reboot/readback evidence for
-the browser path.
+**Radio Write is available through the controlled development gate.** The
+desktop workflow, full-range writer, durable operation state, and downloadable
+report are implemented. The first physical report confirmed 200 acknowledged
+512-byte blocks followed by the E5 `Reboot` response; the selected display
+setting changed on the Radio. That run also exposed and removed an incorrect
+post-write reconnect/readback step.
 
 There is no known vendor-protocol blocker for an unprotected UVL-15W on the
-currently validated normal-mode firmware `3.07.23`. The blocker is proof and
-implementation, not a missing command value. All range, size, address, and
-storage claims in this note are scoped to the `3.07.23` Codeplug layout; they
-must not be assumed for older or newer firmware. The supplied protocol defines
-a complete normal-mode write sequence over the same USB CDC transport already
-used for Radio Read:
+currently validated normal-mode firmware `3.07.23`. The scoped path is
+implemented and has one successful physical report; broader release confidence
+still requires repeat runs across additional Radios and host systems. All
+range, size, address, and storage claims in this note are scoped to the
+`3.07.23` Codeplug layout and must not be assumed for older or newer firmware.
+The supplied protocol defines a complete normal-mode write sequence over the
+same USB CDC transport already used for Radio Read:
 
 ```text
 E0/E1 identity
@@ -33,13 +48,11 @@ See the reviewed vendor communication protocol's
 [write-block format](../technical/TYT_UVL-15W_Communication_Protocol_V3.0_EN_REVIEWED.md#56-cmd-0xe4-write-a-data-block),
 and [complete write flow](../technical/TYT_UVL-15W_Communication_Protocol_V3.0_EN_REVIEWED.md#62-complete-write-flow).
 
-For this CPS, that protocol-level completion is **not** product success. A safe
-Radio Write must additionally reconnect, perform a complete Radio Read, compare
-all 102,400 bytes with the intended write image, and only then create a new
-Baseline Backup and report success. That requirement is already the canonical
-product meaning of Radio Write
-([domain context](../../CONTEXT.md#L47-L52)) and the documented safe-write plan
-([feature reference](../CPS_FEATURE_REFERENCE.md#83-safe-verified-writes--internal-workflow-implemented--ui-disabled)).
+For this CPS, validated protocol completion is product success. A completed
+write creates a new Baseline Backup from the accepted intended image. There is
+no automatic reconnect, Radio Read, or readback comparison after reboot. This
+superseding decision is the canonical product contract; verification-specific
+material below remains research history.
 
 The first supported scope should be **USB CDC only, firmware `3.07.23`, and a
 Radio that does not require a write password**. Bluetooth CPS transport remains
@@ -86,20 +99,20 @@ requires a separate E7 password feature.
   blocks, strict E6 acknowledgement validation, E5 completion, bounded retry
   only for explicit `Frame Lrc Error`, and destructive-boundary error details.
   It is covered through the scripted Transport, invoked only through the CPS
-  Workspace orchestration, and not exposed through the production UI
+  Workspace orchestration, and exposed through the controlled development gate
   ([Radio module](../../modules/uvl15w-radio/index.ts),
-  [writer tests](../../test-support/uvl15w-radio-write.test.ts)). E7 remains
+  [writer tests](../../test-support/uvl15w-radio.test.ts)). E7 remains
   unimplemented.
-- `CpsWorkspace` now owns preparation, complete preflight Radio Read, durable
-  artifacts and hashes, Source Radio rechecks, write execution, reboot
-  reconnect, complete verification Radio Read, exact comparison, new Baseline
-  Backup creation, and reload-safe `Write Outcome Unknown` recovery
+- `CpsWorkspace` now owns preparation without Radio traffic, durable artifacts
+  and hashes, the E1 Source Radio and firmware checks before E3, write execution
+  through the validated E5 `Reboot` response, new Baseline Backup creation from
+  the accepted intended image, and reload-safe `Write Outcome Unknown` handling
   ([workspace module](../../modules/cps-workspace/index.ts),
   [IndexedDB adapter](../../adapters/indexed-db-radio-write-store/index.ts),
   [scripted tests](../../test-support/cps-workspace-radio-write.test.ts)).
 - Semantic Change Set tracking now has a user-facing before/after review and a
-  confirmation gate after the preflight backup. The production action remains
-  disabled until the physical validation gate passes
+  confirmation gate after explicit port selection. The action is available
+  through the controlled development gate
   ([workspace controller](../../components/cps-workspace-controller.tsx),
   [Radio Write workflow](../../components/radio-write/radio-write-workflow.tsx)).
 - Ordinary Baseline Backup, Working Codeplug, Change Set, and Source Radio
@@ -108,15 +121,13 @@ requires a separate E7 password feature.
   IndexedDB. General durable Backup History, saved Working Codeplugs, and CPS
   import/export remain unfinished
   ([feature roadmap](../CPS_FEATURE_REFERENCE.md#epic-14--pwa--saved-working-codeplugs--import-export)).
-- The Web Serial adapter retains the selected port for the complete operation,
-  uses `getPorts()` for reload recovery when one permitted port exists, and
-  provides an explicit user-gesture selection fallback
+- Prepare opens Chrome's port chooser so the operator explicitly selects the
+  Source Radio. The Web Serial adapter retains that port for the complete write
+  operation and can replace a stale selection with the sole permitted port
   ([Web Serial adapter](../../adapters/web-serial/index.ts)). Chrome
   requires `requestPort()` to run from a user gesture, while `getPorts()`
   returns previously permitted ports and `connect`/`disconnect` events expose
-  device reattachment. This matters because the required workflow reboots the
-  Radio after the preflight read, after the write, and after the verification
-  read
+  device attachment. Radio Write itself ends at reboot and does not reconnect
   ([Chrome Web Serial guide](https://developer.chrome.com/docs/capabilities/serial),
   [Serial API specification](https://wicg.github.io/serial/#dom-serial-requestport)).
 - Normal-mode firmware compatibility is currently limited to `3.07.23`
@@ -141,40 +152,40 @@ physical browser Radio Write result.
   [Codeplug](../../modules/codeplug/index.ts)).
 
 The materialized write image, rather than the pre-normalization Working
-Codeplug bytes, is the future byte-for-byte verification target. The
+Codeplug bytes, is the exact full-range payload sent to the Radio. The
 materializer reports whether VFO/Temporary Channel mirroring or fixed Weather
 Channel restoration changed bytes so Change Set review can disclose those
 internal normalizations without exposing offsets.
 
-### Hardware-unverified assumptions
+### Physical evidence and remaining assumptions
 
-The repository currently has no retained capture or completed test of a normal
-Codeplug write from this browser CPS. The feature matrix explicitly leaves
-physical write/reboot/readback verification incomplete
-([feature status](../CPS_FEATURE_REFERENCE.md#13-feature-status-matrix)). Until
-tested, the following remain assumptions:
+The first controlled browser write retained a sanitized report with all 200
+E6 acknowledgements and the final E5 `Reboot` response. The Radio restarted and
+applied the selected display setting. The incorrect post-write reconnect that
+followed protocol completion was removed. The following broader assumptions
+remain outside that one successful run:
 
-- firmware `3.07.23` accepts the documented full-range E3/E4/E6/E5 flow from
-  Chrome over USB CDC;
-- 200 consecutive 512-byte E4 blocks are the correct browser transfer shape;
-- the Radio's E6 acknowledgement and E5 reboot response exactly match the
-  reviewed document during a Codeplug write;
 - resending an identical block after an explicit LRC error is safe on the
   physical Radio;
-- Chrome retains or rediscovers the selected USB port cleanly across each
-  Radio reboot on macOS and Windows;
+- repeatability across additional Radios and host operating systems;
 - the documented VFO/Temp mirroring and fixed WX templates match the currently
   supported firmware's real save behavior;
-- a disrupted write is recoverable by a subsequent complete read and complete
-  rewrite; the protocol does not promise atomicity or a resumable transaction;
+- a disrupted write can leave incomplete data; the protocol does not promise
+  atomicity or a resumable transaction;
 - every currently editable semantic mapping is safe to expose in a production
   write. In particular, DTMF, 2-Tone, and 5-Tone still lack the documented
-  controlled TYT CPS export-diff and physical read/write/readback verification
+  controlled TYT CPS export-diff and physical on-Radio application verification
   ([feature roadmap](../CPS_FEATURE_REFERENCE.md#epic-12--dtmf--2-tone--5-tone)).
 
-## Release blockers
+## Historical pre-canary proposal — superseded
 
-### Blockers before any engineering-only physical write
+The remainder of this document records the original conservative proposal. It
+is retained to explain earlier decisions, but it is not the current product
+contract or implementation plan. In particular, do not reintroduce a preflight
+Radio Read, post-write reconnect/readback, verification phases, or recovery-read
+UI from the historical material below.
+
+### Former blockers before any engineering-only physical write
 
 1. **Protocol writer — implemented in scripted tests.** E3, the complete
    full-range E4 transfer, strict E6 validation, E5 completion, progress, and

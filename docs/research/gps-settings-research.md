@@ -99,18 +99,18 @@ Radio implementation already reads that complete range into a `Codeplug`; see
 GPS-specific serial command is required to read or edit these settings in the
 Working Codeplug.
 
-The current product has no Radio Write implementation. It supports Radio Read,
-an immutable Baseline Backup, and in-memory Working Codeplug edits. Therefore:
+The product now has a controlled full-range Radio Write implementation.
+Therefore:
 
 - GPS decoding and editing can be implemented now.
 - The UI must describe changes as Working Codeplug changes, not changes already
   applied to the Radio.
 - Do not add a GPS-only or changed-byte Radio write. The project explicitly
   excludes partial writes until they are hardware-verified.
-- Applying GPS settings to hardware must wait for the general safe Radio Write
-  flow: identity check, preflight backup, full-range write with acknowledgements,
-  `E5 "Write Complete"`, reboot/reconnect, complete Radio Read, and byte-for-byte
-  verification. See the [reviewed communication protocol](../technical/TYT_UVL-15W_Communication_Protocol_V3.0_EN_REVIEWED.md#62-complete-write-flow).
+- Applying GPS settings uses the general Radio Write flow: Source Radio and
+  firmware check, full-range write with acknowledgement validation, and E5
+  `Reboot` completion. It does not use a GPS-specific write or automatic
+  post-write Radio Read. See the [reviewed communication protocol](../technical/TYT_UVL-15W_Communication_Protocol_V3.0_EN_REVIEWED.md#62-complete-write-flow).
 
 Position Info and Satellite Info are runtime Radio views, not persistent
 settings. Neither the reviewed clone protocol nor the current Radio module

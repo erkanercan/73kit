@@ -1,0 +1,3 @@
+# Complete Radio Write at the confirmed reboot
+
+Radio Write succeeds when the Source Radio passes the pre-write checks, every full-range data block is acknowledged, and the final write-complete command returns the validated reboot response. The CPS deliberately does not reconnect or perform an automatic Radio Read afterward: the Radio is restarting, the official CPS workflow ends at this boundary, and the first physical browser report showed that post-write reconnection can time out after a successful applied change. An interruption after writing may have begun but before the reboot response remains `Write Outcome Unknown`.
