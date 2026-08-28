@@ -4,11 +4,11 @@ Date: 2026-08-28
 
 ## Answer
 
-**Radio Write should not be enabled in the product yet.** The repository has
-enough protocol information to implement a full-range writer, but it does not
-yet have the durable safety lifecycle around the now-implemented internal
-protocol writer or physical write/reboot/readback evidence for the browser
-path.
+**Radio Write should not be enabled in the product yet.** The repository now
+has an internally tested full-range writer and durable CPS Workspace safety
+lifecycle, but it does not yet have the desktop review/recovery UX,
+reboot-aware retained-port flow, or physical write/reboot/readback evidence for
+the browser path.
 
 There is no known vendor-protocol blocker for an unprotected UVL-15W on the
 currently validated normal-mode firmware `3.07.23`. The blocker is proof and
@@ -39,7 +39,7 @@ all 102,400 bytes with the intended write image, and only then create a new
 Baseline Backup and report success. That requirement is already the canonical
 product meaning of Radio Write
 ([domain context](../../CONTEXT.md#L47-L52)) and the documented safe-write plan
-([feature reference](../CPS_FEATURE_REFERENCE.md#83-safe-verified-writes--high-value--future)).
+([feature reference](../CPS_FEATURE_REFERENCE.md#83-safe-verified-writes--internal-workflow-implemented--ui-disabled)).
 
 The first supported scope should be **USB CDC only, firmware `3.07.23`, and a
 Radio that does not require a write password**. Bluetooth CPS transport remains
@@ -85,22 +85,27 @@ requires a separate E7 password feature.
   materialized firmware-`3.07.23` image. It implements E3, 200 ordered E4
   blocks, strict E6 acknowledgement validation, E5 completion, bounded retry
   only for explicit `Frame Lrc Error`, and destructive-boundary error details.
-  It is covered through the scripted Transport but is not exposed through the
-  CPS Workspace or production UI
+  It is covered through the scripted Transport, invoked only through the CPS
+  Workspace orchestration, and not exposed through the production UI
   ([Radio module](../../modules/uvl15w-radio/index.ts),
   [writer tests](../../test-support/uvl15w-radio-write.test.ts)). E7 remains
   unimplemented.
-- `CpsWorkspace` creates an in-memory Baseline Backup and Working Codeplug after
-  a successful read, but exposes no write operation, no Backup History, and no
-  recovery state ([workspace module](../../modules/cps-workspace/index.ts)).
+- `CpsWorkspace` now owns preparation, complete preflight Radio Read, durable
+  artifacts and hashes, Source Radio rechecks, write execution, reboot
+  reconnect, complete verification Radio Read, exact comparison, new Baseline
+  Backup creation, and reload-safe `Write Outcome Unknown` recovery
+  ([workspace module](../../modules/cps-workspace/index.ts),
+  [IndexedDB adapter](../../adapters/indexed-db-radio-write-store/index.ts),
+  [scripted tests](../../test-support/cps-workspace-radio-write.test.ts)).
 - Semantic Change Set tracking exists for the current editors, but there is no
   user-facing review projection with before/after values and no confirmation
   gate. The UI provider exposes `readRadio` and edit actions, not `writeRadio`
   ([workspace provider](../../components/cps-workspace-provider.tsx#L75-L121)).
-- Baseline Backup, Working Codeplug, Change Set, and Source Radio live only in
-  React/module memory. Reloading or closing the tab loses them. Only Raw Backup
-  download exists; durable Backup History, saved Working Codeplugs, CPS
-  import/export, and interrupted-write recovery remain unfinished
+- Ordinary Baseline Backup, Working Codeplug, Change Set, and Source Radio
+  sessions still live only in React/module memory. An active prepared or
+  outcome-unknown Radio Write now durably stores all safety artifacts in
+  IndexedDB. General durable Backup History, saved Working Codeplugs, and CPS
+  import/export remain unfinished
   ([feature roadmap](../CPS_FEATURE_REFERENCE.md#epic-14--pwa--saved-working-codeplugs--import-export)).
 - The Web Serial adapter always calls `requestPort()` and has no `getPorts()`,
   retained-port, or reconnect API
@@ -175,38 +180,36 @@ tested, the following remain assumptions:
    not physical write evidence or product-level success.
 2. **Use the exact write image.** The firmware-`3.07.23` Codeplug materializer
    now applies the VFO-to-Temp and fixed-WX invariants without exposing offsets,
-   and freezes/hashes the 102,400-byte result. The future writer and coordinator
-   must use this artifact rather than `WorkingCodeplug.codeplug.toBytes()`.
+   and freezes/hashes the 102,400-byte result. The writer and coordinator use
+   this artifact rather than `WorkingCodeplug.codeplug.toBytes()`.
 3. **Failure boundaries — implemented at the protocol seam.** Failures before
    the first E4 attempt are ordinary failures. From immediately before that
    attempt, protocol errors report `write-outcome-unknown` and acknowledged
-   byte count. Timeout/disconnect resume is deliberately absent. Step 4 must
-   durably preserve this state until exact readback resolves it.
+   byte count. Timeout/disconnect resume is deliberately absent. The CPS
+   Workspace now durably preserves this state until exact readback resolves it.
 4. **Create a controlled recovery setup.** Preserve a known-good baseline and
    confirm that the official TYT CPS can read and restore the test Radio before
    the browser sends E3. Use USB only and a dedicated/recoverable Radio.
 
 ### Blockers before a user-facing beta
 
-1. **Move orchestration into the CPS Workspace.** It must own an immutable
-   operation snapshot, Source Radio checks, preflight read, recovery backup,
-   write, post-reboot read, exact comparison, Baseline Backup creation, and
-   recovery. The React provider should render state and invoke this one deep
-   workflow, not assemble protocol phases itself
+1. **CPS Workspace orchestration — implemented internally.** It owns the
+   immutable operation snapshot, Source Radio checks, preflight read, recovery
+   backup, write, post-reboot read, exact comparison, Baseline Backup creation,
+   and recovery. The React provider must later render and invoke this deep
+   workflow rather than assemble protocol phases itself
    ([module ownership](../architecture/module-design.md#cps-workspace)).
-2. **Persist safety data before E3.** Store the immutable preflight backup,
-   intended write-image hash/bytes, Source Radio fingerprint, Change Set
-   snapshot, operation phase, and timestamps in durable browser storage. Keep
-   the record until exact verification succeeds. `localStorage` is suitable for
-   small recovery metadata, but the Codeplug bytes and Backup History should use
-   IndexedDB or an equivalent durable local store.
-3. **Define Source Radio identity.** Add one canonical stable fingerprint and
-   comparator. A reasonable design is model + sub-model + CPU ID + serial
-   number, with firmware/hardware/bootloader handled as compatibility gates
-   rather than permanent identity because firmware/resources can change. This
-   is an inference from the E1 fields and must be made explicit and tested.
-4. **Implement preflight semantics exactly.** Re-read the Radio immediately
-   before writing and retain that read as the recovery backup. If its Source
+2. **Persist safety data before E3 — implemented internally.** The immutable
+   preflight backup, intended write-image hash/bytes, Source Radio fingerprint,
+   Change Set snapshot, operation phase, and timestamps are stored in IndexedDB
+   through the Radio Write store seam and retained until recovery or exact
+   verification resolves the operation.
+3. **Source Radio identity — implemented.** The canonical stable fingerprint
+   and comparator use model + sub-model + CPU ID + serial number, with
+   firmware/hardware/bootloader handled as compatibility gates rather than
+   permanent identity because firmware/resources can change.
+4. **Preflight semantics — implemented internally.** The CPS re-reads the Radio
+   immediately before writing and retains that read as the recovery backup. If its Source
    Radio differs, stop. If its bytes differ from the expected Baseline Backup,
    stop and begin a new working session; never silently rebase the user's
    Change Set
@@ -226,8 +229,9 @@ tested, the following remain assumptions:
    a clear `write-password-required` result. General availability needs E7 type
    `0x01`, transient password handling, no logging/persistence of the password,
    explicit incorrect-password behavior, and tests.
-8. **Add recovery UX.** On reload, show the persisted `Write Outcome Unknown`
-   record first. The only safe next action is reconnect, read the whole Radio,
+8. **Add recovery UX.** The workflow and durable recovery resolution are
+   implemented; on reload, the UI must show the persisted
+   `Write Outcome Unknown` record first. The only safe next action is reconnect, read the whole Radio,
    compare against both recovery backup and intended image, then guide a fresh
    reviewed full write if recovery is needed. Never claim success from ACK
    count alone.
@@ -282,12 +286,13 @@ Use the existing scripted Transport and production frame codec. Cover:
 Exit gate: unit/integration tests prove every command and failure boundary, and
 the production UI still has no reachable Radio Write action.
 
-### Phase 3 — Implement the CPS Workspace coordinator and persistence
+### Phase 3 — Implement the CPS Workspace coordinator and persistence — implemented
 
 - Materialize and hash the intended write image.
 - Persist the Baseline Backup, automatic preflight recovery backup, intended
   image, fingerprint, and operation record before E3.
-- Add preflight read/baseline/source checks and semantic review projection.
+- Add preflight read/baseline/source checks and a durable semantic Change Set
+  snapshot.
 - Add post-write reconnect, complete verification Radio Read, byte comparison,
   new immutable Baseline Backup, and ordered Backup History.
 - On any uncertain result, retain recovery state across reload and power loss.

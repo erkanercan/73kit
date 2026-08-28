@@ -1002,7 +1002,7 @@ CH 043
 
 Before a Radio Write, perform a complete Radio Read and retain its immutable Codeplug Backup as the recovery point. The read also produces a separate Working Codeplug as required by the normal Radio Read lifecycle. If the result exactly matches the expected Baseline Backup, the existing Working Codeplug and Change Set remain valid. If it differs, stop: make the newly read Codeplug the basis of a new working session and require the intended changes to be reapplied and reviewed. Never silently rebase a Change Set.
 
-## 8.3 Safe verified writes — HIGH VALUE / FUTURE
+## 8.3 Safe verified writes — INTERNAL WORKFLOW IMPLEMENTED / UI DISABLED
 
 Documented write flow followed by the required verification read:
 
@@ -1015,7 +1015,7 @@ E0/E1 → E3 → E4 block → E6 ACK → repeat
 
 The docs do not establish atomic writes. Assume disconnect can leave partially changed SPI flash.
 
-Planned safety model:
+Implemented internal safety model:
 
 - verify Source Radio identity and preflight backup first
 - write every block in the declared range unless partial-write behavior is separately hardware-verified
@@ -1023,16 +1023,23 @@ Planned safety model:
 - address/length echo validation
 - send `E5 "Write Complete"` to finish the write session and reboot
 - reconnect and perform a complete Radio Read
-- byte-for-byte comparison against the intended Working Codeplug
+- byte-for-byte comparison against the materialized intended write image
 - report success only after verification and create a new Baseline Backup from the verified result
 - after writing may have begun, report `Write Outcome Unknown` if the session is interrupted or verification cannot be completed
-- persist recovery metadata
+- persist the complete recovery artifacts, references, hashes, and phase
 
 Changed-block or other partial-write strategies are FUTURE / RESEARCH. The supplied protocol describes sending blocks until all data in the declared range has been sent; it does not establish that omitted blocks are safe.
 
-## 8.4 Interrupted-write recovery — HIGH VALUE / FUTURE
+## 8.4 Interrupted-write recovery — INTERNAL WORKFLOW IMPLEMENTED / UI DISABLED
 
 On reconnect, perform a Radio Read and compare the result with the recovery Codeplug Backup and intended Working Codeplug. Do not blindly resume from the last ACK. Until exact verification succeeds, retain the `Write Outcome Unknown` state and present recovery guidance.
+
+The CPS Workspace now persists the complete safety record through a Radio Write
+store seam, restores destructive phases as `Write Outcome Unknown`, and clears
+the record only after a same-Radio complete read exactly matches the intended
+image or the recovery backup. The IndexedDB adapter is implemented; user-facing
+review, confirmation, progress, retained-port reconnection, and recovery UX are
+not yet exposed.
 
 ## 8.5 Bulk editing — HIGH VALUE / PLANNED
 
@@ -1195,17 +1202,16 @@ Backups (planned)
 
 ## Epic 7 — Safe writer
 
-- pre-write read
-- complete preflight Radio Read and immutable recovery Codeplug Backup
-- explicit new working session if the preflight result differs from the Baseline Backup
-- Source Radio and Baseline Backup comparison
+- [x] complete preflight Radio Read and immutable recovery Codeplug Backup
+- [x] stop on Baseline Backup drift without silently rebasing
+- [x] Source Radio and Baseline Backup comparison at every reconnect
 - [x] E3/E4/E6 protocol writer behind the Radio interface
 - [x] strict ACK validation and destructive-boundary error details
 - [x] E5 Write Complete protocol completion
-- post-reboot reconnect and complete Radio Read
-- byte-for-byte verification before reporting success
-- `Write Outcome Unknown` handling
-- interrupted-write recovery
+- [x] post-reboot reconnect and complete Radio Read orchestration
+- [x] byte-for-byte verification before reporting success
+- [x] durable `Write Outcome Unknown` handling across reload
+- [x] interrupted-write recovery comparison against intended/recovery bytes
 
 Partial or changed-block writes are excluded until hardware-verified.
 

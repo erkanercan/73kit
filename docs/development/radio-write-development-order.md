@@ -1,6 +1,6 @@
 # Radio Write development order
 
-Status: steps 1-3 implemented; Radio Write remains unavailable in the product.
+Status: steps 1-4 implemented; Radio Write remains unavailable in the product.
 
 ## Firmware-scoped rule
 
@@ -91,21 +91,40 @@ destructive boundary. Production UI still exposes no Radio Write action. The
 transfer result is deliberately not product-level Radio Write success; that
 requires step 4 readback verification.
 
-## 4. Implement CPS Workspace orchestration and durable recovery — next
+## 4. Implement CPS Workspace orchestration and durable recovery — implemented
 
-- Persist the prepared operation, recovery backup, intended write image, and
-  hashes before E3.
-- Perform a complete preflight Radio Read and compare it to the Baseline Backup.
-- Stop on Source Radio mismatch, incomplete identity, firmware mismatch, empty
-  Change Set, or baseline drift.
-- Coordinate write, reboot, reconnect, complete verification Radio Read, and
-  byte-for-byte comparison.
-- Create a new immutable Baseline Backup only after exact verification.
-- Persist `Write Outcome Unknown` across reloads until recovery resolves it.
+- `CpsWorkspace.prepareRadioWrite` rejects an empty Change Set, an unrelated
+  Working Codeplug, an ineligible Source Radio, a different preflight Radio, or
+  baseline drift before E3.
+- Preparation performs a complete preflight Radio Read, materializes the exact
+  firmware-`3.07.23` write image, and atomically stores the Baseline Backup,
+  recovery backup, intended image, Source Radio, semantic Change Set snapshot,
+  derived changes, operation phase, and all hashes before the write session.
+- `CpsWorkspace.executePreparedRadioWrite` rechecks the Source Radio, persists
+  `writing-before-first-block`, runs the complete writer, reconnects, rechecks
+  identity, performs a complete verification Radio Read, and compares every
+  byte with the intended materialized image.
+- A new immutable Baseline Backup and Working Codeplug are created only after
+  exact verification. The initial, recovery, and verified backups remain
+  distinct entries in the in-memory Backup History.
+- Any timeout, disconnect, wrong verification Radio, readback mismatch, or
+  other post-destructive failure is durably retained as
+  `Write Outcome Unknown`. Reloading any destructive phase also becomes
+  outcome-unknown rather than resuming from an acknowledgement count.
+- Recovery reconnects to the same Source Radio and performs a complete Radio
+  Read. It clears the durable operation only when the result exactly matches
+  the intended image or the retained recovery backup; any third state remains
+  unresolved.
+- The persistence seam has an IndexedDB production adapter and an in-memory
+  scripted-test adapter. Durable artifacts and metadata are rehashed and
+  cross-checked before E3 or recovery.
 
-Exit gate: tests cover reloads and wrong-Radio selection at every phase.
+Exit gate passed: scripted end-to-end tests cover success, baseline drift,
+corrupt durable data, reloads in every persisted phase, wrong-Radio selection
+at preflight/write/verification/recovery, readback mismatch, and both safe
+recovery resolutions. Production UI still exposes no Radio Write action.
 
-## 5. Add desktop review, confirmation, progress, and recovery UX
+## 5. Add desktop review, confirmation, progress, and recovery UX — next
 
 - Render semantic before/after Change Set values.
 - Require explicit confirmation after the preflight backup succeeds.

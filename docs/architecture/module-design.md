@@ -30,6 +30,7 @@ modules/
   update-package/            Fir and DAT parsing and validation
   uvl15w-updater/            Update-mode firmware/resource protocols
 adapters/
+  indexed-db-radio-write-store/ Durable prepared-write and recovery adapter
   web-serial/                Production Transport adapter
 test-support/
   scripted-transport/        Deterministic Transport adapter for tests
@@ -40,6 +41,19 @@ Create these directories only when their first implementation file is needed.
 ## CPS Workspace
 
 The CPS Workspace module is the interface used by the UI. It owns Source Radio binding, Baseline Backup, Working Codeplug, Change Set, Backup History, import/export semantics, and Radio Write safety. The UI invokes high-level actions and renders returned state; it does not handle protocol bytes or mutate Codeplugs directly.
+
+Its Radio Write interface prepares and durably records one complete operation,
+then executes or resolves it. Preparation owns the preflight Radio Read and
+review gate; execution owns Source Radio rechecks, the complete protocol write,
+reboot reconnect, complete verification Radio Read, exact comparison, and new
+Baseline Backup. A destructive phase restored after reload is always treated
+as `Write Outcome Unknown`, never resumed from its last acknowledgement.
+
+The Radio Write store seam has two adapters: IndexedDB in the browser and an
+in-memory scripted-test adapter. One atomic record contains the prepared
+operation and all three complete byte artifacts. The CPS Workspace validates
+their lengths, SHA-256 values, references, Source Radio identity, layout, and
+Change Set hash before any E3 command or recovery read.
 
 Deleting this module would force lifecycle and safety rules into routes, UI state, import/export code, and Radio Write callers, so it provides leverage and locality rather than acting as a pass-through.
 
@@ -55,6 +69,12 @@ interface Uvl15wRadio {
   read(options: {
     onProgress(progress: RadioReadProgress): void
   }): Promise<Codeplug>
+  write(
+    image: CodeplugWriteImage,
+    options: {
+      onProgress(progress: RadioWriteProgress): void
+    }
+  ): Promise<RadioWriteTransferResult>
   disconnect(): Promise<void>
 }
 ```
@@ -69,6 +89,11 @@ Interface invariants:
 - `read` returns only a complete, validated Codeplug.
 - Interrupted or invalid read data is discarded.
 - Read completion includes the required protocol termination.
+- `write` accepts only the complete materialized firmware-`3.07.23` image,
+  validates every acknowledgement, and reports protocol transfer completion,
+  not product-level Radio Write success.
+- The CPS Workspace, not the Radio module, owns preflight backup, durable
+  recovery, reconnect, complete verification Radio Read, and exact comparison.
 - Cancellation is not exposed until safe cancellation semantics are defined.
 
 ## Codeplug

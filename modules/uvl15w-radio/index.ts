@@ -444,7 +444,7 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
         parseWriteAcknowledgement(response, address, block.byteLength)
 
         bytesAcknowledged += block.byteLength
-        options.onProgress?.({
+        await options.onProgress?.({
           bytesWritten: bytesAcknowledged,
           totalBytes: bytes.byteLength,
           percent: (bytesAcknowledged / bytes.byteLength) * 100,
