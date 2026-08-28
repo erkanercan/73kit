@@ -128,3 +128,22 @@ export type {
   CpsWorkspaceSnapshot,
   WorkingCodeplug,
 }
+export {
+  canCancelRadioWrite,
+  classifyRadioWriteFailure,
+  compareSourceRadios,
+  evaluateRadioWriteSource,
+} from "./radio-write-policy.ts"
+export type {
+  PreparedRadioWrite,
+  RadioWriteArtifactReference,
+  RadioWriteFailureDisposition,
+  RadioWriteLayout,
+  RadioWriteOperationSnapshot,
+  RadioWritePhase,
+  RadioWriteRecoveryRecord,
+  RadioWriteSourceEvaluation,
+  SourceRadioComparison,
+  SourceRadioIdentity,
+  SourceRadioIdentityField,
+} from "./radio-write-policy.ts"
