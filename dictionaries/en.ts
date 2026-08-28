@@ -970,6 +970,86 @@ const en = {
   firmwareDemoVariantA: "Decision lab",
   firmwareDemoVariantB: "Handshake pipeline",
   firmwareDemoVariantC: "Version matrix",
+  firmwareDemoVariantD: "Radio operations",
+  firmwareDemoOperationsTitle: "Radio operation simulator",
+  firmwareDemoOperationsNoticeTitle: "No Radio will be accessed",
+  firmwareDemoOperationsNotice:
+    "This development simulator runs entirely in memory. It does not open Web Serial, change a Radio, or add entries to Backup History.",
+  firmwareDemoOperationsFirmware:
+    "The simulated handshake uses the production firmware compatibility decision.",
+  firmwareDemoOperationState: "Simulation state",
+  firmwareDemoOperationStateDescription:
+    "The current Read, Working Codeplug, and Write state.",
+  firmwareDemoReadTitle: "Simulated Radio Read",
+  firmwareDemoReadDescription:
+    "Run port selection, handshake, firmware validation, complete Codeplug transfer, and Backup creation.",
+  firmwareDemoWriteScenarioTitle: "Radio Write outcome",
+  firmwareDemoWriteScenarioDescription:
+    "Choose what the simulated Radio or browser will do, then use the real Radio Write review and confirmation flow below.",
+  firmwareDemoReadScenario: "Radio Read outcome",
+  firmwareDemoWriteScenario: "Radio Write outcome",
+  firmwareDemoScenarioDescription:
+    "The selected case stops at the same safe or uncertain stage as the production operation.",
+  firmwareDemoRunAgain: "Run scenario again",
+  firmwareDemoWriteStopped: "Radio Write stopped",
+  firmwareDemoStorageWarningTitle: "Operation complete, backup not saved",
+  firmwareDemoReadStageHandshake: "Selecting port and checking Radio",
+  firmwareDemoScenarioGroupSuccess: "Completion",
+  firmwareDemoScenarioGroupBrowser: "Browser and port",
+  firmwareDemoScenarioGroupConnection: "Connection",
+  firmwareDemoScenarioGroupRadio: "Radio and protocol",
+  firmwareDemoScenarioGroupStorage: "Local backup storage",
+  firmwareDemoScenarioReadSuccess: "Complete Radio Read and Backup creation",
+  firmwareDemoScenarioWriteSuccess: "Complete Radio Write and Radio reboot",
+  firmwareDemoScenarioBackupSave:
+    "Operation succeeds, Backup History save fails",
+  firmwareDemoScenarioWebSerial: "Web Serial is unavailable",
+  firmwareDemoScenarioSecureContext: "Page is not in a secure context",
+  firmwareDemoScenarioNoRadio: "Port picker closes without a Radio",
+  firmwareDemoScenarioPermission: "Serial-port permission is denied",
+  firmwareDemoScenarioPortSelection: "A Source Radio port must be selected",
+  firmwareDemoScenarioPortUnavailable: "Selected serial port cannot be opened",
+  firmwareDemoScenarioStreams: "Selected port has no usable streams",
+  firmwareDemoScenarioSerialClosed: "USB serial connection closes",
+  firmwareDemoScenarioAlreadyConnected: "A Radio is already connected",
+  firmwareDemoScenarioNotConnected: "No Radio connection is active",
+  firmwareDemoScenarioBusy: "Another Radio operation is in progress",
+  firmwareDemoScenarioRadioClosed: "Radio connection closes during transfer",
+  firmwareDemoScenarioTimeoutHandshake: "Radio times out during handshake",
+  firmwareDemoScenarioTimeoutTransfer:
+    "Radio times out during Codeplug transfer",
+  firmwareDemoScenarioProtocol: "Radio sends invalid Codeplug data",
+  firmwareDemoScenarioWrongModel: "Connected Radio is not a UVL-15W",
+  firmwareDemoScenarioFirmware: "Firmware is unsupported or unvalidated",
+  firmwareDemoScenarioReadPassword: "Read protection requires a password",
+  firmwareDemoScenarioUnexpected: "Radio sends an unexpected response",
+  firmwareDemoScenarioUnknown: "Unknown error before transfer",
+  firmwareDemoScenarioSourceMismatch:
+    "Selected Radio differs from the Source Radio",
+  firmwareDemoScenarioIdentityIncomplete: "Source Radio identity is incomplete",
+  firmwareDemoScenarioWritePassword: "Write protection requires a password",
+  firmwareDemoScenarioProtocolBeforeWrite:
+    "Protocol error during the pre-write Radio check",
+  firmwareDemoScenarioUnexpectedBeforeWrite:
+    "Unexpected response during the pre-write Radio check",
+  firmwareDemoScenarioDisconnectWriting:
+    "Connection closes after writing starts",
+  firmwareDemoScenarioTimeoutWriting: "Radio times out after writing starts",
+  firmwareDemoScenarioProtocolWriting: "Protocol error after writing starts",
+  firmwareDemoScenarioUnexpectedWriting:
+    "Unexpected response after writing starts",
+  firmwareDemoScenarioRebootTimeout:
+    "Radio does not confirm completion or reboot",
+  firmwareDemoScenarioRebootInvalid: "Radio returns an invalid final response",
+  firmwareDemoScenarioUnknownWriting: "Unknown error after writing starts",
+  firmwareDemoSourceMismatch:
+    "The selected Radio does not match the Source Radio used to create this Working Codeplug. No data was written.",
+  firmwareDemoIdentityIncomplete:
+    "The Source Radio identity is incomplete, so this CPS cannot prove that the selected Radio is the same Radio. No data was written.",
+  firmwareDemoReviewDisplay: "Display Settings",
+  firmwareDemoReviewTheme: "System theme",
+  firmwareDemoReviewChannel: "Memory channel 1",
+  firmwareDemoReviewChannelAfter: "Local repeater",
   firmwareDemoInputTitle: "Simulated firmware",
   firmwareDemoInputDescription:
     "Enter the eight-byte firmware field as the Radio might report it.",

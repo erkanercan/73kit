@@ -978,6 +978,95 @@ const tr = {
   firmwareDemoVariantA: "Karar laboratuvarı",
   firmwareDemoVariantB: "El sıkışma akışı",
   firmwareDemoVariantC: "Sürüm matrisi",
+  firmwareDemoVariantD: "Telsiz işlemleri",
+  firmwareDemoOperationsTitle: "Telsiz işlemi simülatörü",
+  firmwareDemoOperationsNoticeTitle: "Hiçbir telsize erişilmez",
+  firmwareDemoOperationsNotice:
+    "Bu geliştirme simülatörü tamamen bellekte çalışır. Web Serial'ı açmaz, telsizde değişiklik yapmaz veya Yedek Geçmişine kayıt eklemez.",
+  firmwareDemoOperationsFirmware:
+    "Simüle edilen bağlantı, üretimdeki firmware uyumluluk kararını kullanır.",
+  firmwareDemoOperationState: "Simülasyon durumu",
+  firmwareDemoOperationStateDescription:
+    "Güncel Okuma, Çalışma Codeplug'ı ve Yazma durumu.",
+  firmwareDemoReadTitle: "Simüle edilen Telsizden Okuma",
+  firmwareDemoReadDescription:
+    "Port seçimini, telsiz bağlantısını, firmware kontrolünü, eksiksiz Codeplug aktarımını ve yedek oluşturmayı çalıştırın.",
+  firmwareDemoWriteScenarioTitle: "Telsize Yazma sonucu",
+  firmwareDemoWriteScenarioDescription:
+    "Simüle edilen telsizin veya tarayıcının davranışını seçin, ardından aşağıdaki gerçek Telsize Yazma inceleme ve onay akışını kullanın.",
+  firmwareDemoReadScenario: "Telsizden Okuma sonucu",
+  firmwareDemoWriteScenario: "Telsize Yazma sonucu",
+  firmwareDemoScenarioDescription:
+    "Seçilen durum, üretimdeki işlemle aynı güvenli veya belirsiz aşamada durur.",
+  firmwareDemoRunAgain: "Senaryoyu yeniden çalıştır",
+  firmwareDemoWriteStopped: "Telsize Yazma durdu",
+  firmwareDemoStorageWarningTitle: "İşlem tamamlandı, yedek kaydedilemedi",
+  firmwareDemoReadStageHandshake: "Port seçiliyor ve telsiz kontrol ediliyor",
+  firmwareDemoScenarioGroupSuccess: "Tamamlanma",
+  firmwareDemoScenarioGroupBrowser: "Tarayıcı ve port",
+  firmwareDemoScenarioGroupConnection: "Bağlantı",
+  firmwareDemoScenarioGroupRadio: "Telsiz ve protokol",
+  firmwareDemoScenarioGroupStorage: "Yerel yedek depolama",
+  firmwareDemoScenarioReadSuccess:
+    "Telsizden Okuma ve yedek oluşturma tamamlanır",
+  firmwareDemoScenarioWriteSuccess:
+    "Telsize Yazma tamamlanır ve telsiz yeniden başlar",
+  firmwareDemoScenarioBackupSave:
+    "İşlem tamamlanır, Yedek Geçmişine kayıt başarısız olur",
+  firmwareDemoScenarioWebSerial: "Web Serial kullanılamaz",
+  firmwareDemoScenarioSecureContext: "Sayfa güvenli bir bağlantıda değildir",
+  firmwareDemoScenarioNoRadio: "Telsiz seçilmeden port penceresi kapatılır",
+  firmwareDemoScenarioPermission: "Seri port izni reddedilir",
+  firmwareDemoScenarioPortSelection: "Kaynak Telsiz portu seçilmelidir",
+  firmwareDemoScenarioPortUnavailable: "Seçilen seri port açılamaz",
+  firmwareDemoScenarioStreams:
+    "Seçilen port kullanılabilir veri akışı sağlamaz",
+  firmwareDemoScenarioSerialClosed: "USB seri bağlantısı kapanır",
+  firmwareDemoScenarioAlreadyConnected: "Bir telsiz zaten bağlıdır",
+  firmwareDemoScenarioNotConnected: "Etkin telsiz bağlantısı yoktur",
+  firmwareDemoScenarioBusy: "Başka bir telsiz işlemi sürüyordur",
+  firmwareDemoScenarioRadioClosed:
+    "Codeplug aktarımı sırasında telsiz bağlantısı kapanır",
+  firmwareDemoScenarioTimeoutHandshake:
+    "Bağlantı kurulurken telsiz zaman aşımına uğrar",
+  firmwareDemoScenarioTimeoutTransfer:
+    "Codeplug aktarımı sırasında telsiz zaman aşımına uğrar",
+  firmwareDemoScenarioProtocol: "Telsiz geçersiz Codeplug verisi gönderir",
+  firmwareDemoScenarioWrongModel: "Bağlı telsiz UVL-15W değildir",
+  firmwareDemoScenarioFirmware:
+    "Firmware desteklenmiyordur veya doğrulanmamıştır",
+  firmwareDemoScenarioReadPassword: "Okuma koruması parola gerektirir",
+  firmwareDemoScenarioUnexpected: "Telsiz beklenmeyen bir yanıt gönderir",
+  firmwareDemoScenarioUnknown: "Aktarım öncesinde bilinmeyen hata oluşur",
+  firmwareDemoScenarioSourceMismatch:
+    "Seçilen telsiz Kaynak Telsizden farklıdır",
+  firmwareDemoScenarioIdentityIncomplete: "Kaynak Telsiz kimliği eksiktir",
+  firmwareDemoScenarioWritePassword: "Yazma koruması parola gerektirir",
+  firmwareDemoScenarioProtocolBeforeWrite:
+    "Yazma öncesi telsiz kontrolünde protokol hatası oluşur",
+  firmwareDemoScenarioUnexpectedBeforeWrite:
+    "Yazma öncesi telsiz kontrolünde beklenmeyen yanıt alınır",
+  firmwareDemoScenarioDisconnectWriting:
+    "Yazma başladıktan sonra bağlantı kapanır",
+  firmwareDemoScenarioTimeoutWriting:
+    "Yazma başladıktan sonra telsiz zaman aşımına uğrar",
+  firmwareDemoScenarioProtocolWriting:
+    "Yazma başladıktan sonra protokol hatası oluşur",
+  firmwareDemoScenarioUnexpectedWriting:
+    "Yazma başladıktan sonra beklenmeyen yanıt alınır",
+  firmwareDemoScenarioRebootTimeout:
+    "Telsiz tamamlanmayı veya yeniden başlamayı onaylamaz",
+  firmwareDemoScenarioRebootInvalid: "Telsiz geçersiz bir son yanıt gönderir",
+  firmwareDemoScenarioUnknownWriting:
+    "Yazma başladıktan sonra bilinmeyen hata oluşur",
+  firmwareDemoSourceMismatch:
+    "Seçilen telsiz, bu Çalışma Codeplug'ının oluşturulduğu Kaynak Telsizle eşleşmiyor. Hiçbir veri yazılmadı.",
+  firmwareDemoIdentityIncomplete:
+    "Kaynak Telsiz kimliği eksik olduğu için bu CPS seçilen telsizin aynı telsiz olduğunu doğrulayamıyor. Hiçbir veri yazılmadı.",
+  firmwareDemoReviewDisplay: "Ekran Ayarları",
+  firmwareDemoReviewTheme: "Sistem teması",
+  firmwareDemoReviewChannel: "Hafıza kanalı 1",
+  firmwareDemoReviewChannelAfter: "Yerel röle",
   firmwareDemoInputTitle: "Simüle edilen firmware",
   firmwareDemoInputDescription:
     "Telsizin bildirebileceği sekiz baytlık firmware alanını girin.",

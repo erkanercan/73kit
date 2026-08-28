@@ -14,6 +14,7 @@ import {
 import { useTranslations } from "next-intl"
 
 import { PageHeader } from "@/components/page-header"
+import { RadioOperationSimulator } from "@/components/prototype/radio-operation-simulator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -57,7 +58,7 @@ const PRESET_VERSIONS = [
   "",
 ] as const
 
-const VARIANTS = ["a", "b", "c"] as const
+const VARIANTS = ["a", "b", "c", "d"] as const
 type PrototypeVariant = (typeof VARIANTS)[number]
 
 function FirmwareCompatibilityPrototype() {
@@ -89,6 +90,13 @@ function FirmwareCompatibilityPrototype() {
       )}
       {variant === "c" && (
         <VariantVersionMatrix
+          firmwareVersion={firmwareVersion}
+          compatibility={compatibility}
+          onFirmwareVersionChange={setFirmwareVersion}
+        />
+      )}
+      {variant === "d" && (
+        <RadioOperationSimulator
           firmwareVersion={firmwareVersion}
           compatibility={compatibility}
           onFirmwareVersionChange={setFirmwareVersion}
@@ -572,6 +580,7 @@ function PrototypeSwitcher({
     a: t("firmwareDemoVariantA"),
     b: t("firmwareDemoVariantB"),
     c: t("firmwareDemoVariantC"),
+    d: t("firmwareDemoVariantD"),
   }
 
   return (
