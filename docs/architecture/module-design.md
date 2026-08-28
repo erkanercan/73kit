@@ -57,6 +57,14 @@ The CPS Workspace validates
 their lengths, SHA-256 values, references, Source Radio identity, layout, and
 Change Set hash before any E3 command.
 
+The Backup History store is a separate seam with the same browser and test
+adapter split. The CPS Workspace saves only successful reads and completed
+writes through that interface. Browser storage uses a dedicated IndexedDB
+object store, while sharing one versioned database opener with Radio Write
+recovery so schema upgrades remain compatible. Backup persistence errors are
+reported independently and never change a completed Radio operation into a
+failed one.
+
 Deleting this module would force lifecycle and safety rules into routes, UI state, import/export code, and Radio Write callers, so it provides leverage and locality rather than acting as a pass-through.
 
 ## UVL-15W Radio

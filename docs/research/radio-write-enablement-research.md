@@ -115,11 +115,11 @@ requires a separate E7 password feature.
   through the controlled development gate
   ([workspace controller](../../components/cps-workspace-controller.tsx),
   [Radio Write workflow](../../components/radio-write/radio-write-workflow.tsx)).
-- Ordinary Baseline Backup, Working Codeplug, Change Set, and Source Radio
-  sessions still live only in React/module memory. An active prepared or
-  outcome-unknown Radio Write now durably stores all safety artifacts in
-  IndexedDB. General durable Backup History, saved Working Codeplugs, and CPS
-  import/export remain unfinished
+- The current Working Codeplug and Change Set still live only in React/module
+  memory. Successful Radio Reads and completed Radio Writes now add immutable
+  Codeplug Backups to durable IndexedDB Backup History. An active prepared or
+  outcome-unknown Radio Write separately stores all safety artifacts in
+  IndexedDB. Saved Working Codeplugs and CPS import/export remain unfinished
   ([feature roadmap](../CPS_FEATURE_REFERENCE.md#epic-14--pwa--saved-working-codeplugs--import-export)).
 - Prepare opens Chrome's port chooser so the operator explicitly selects the
   Source Radio. The Web Serial adapter retains that port for the complete write

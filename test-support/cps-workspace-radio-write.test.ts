@@ -20,6 +20,7 @@ import {
   ScriptedTransport,
   type ScriptStep,
 } from "./scripted-transport/index.ts"
+import { InMemoryBackupHistoryStore } from "./in-memory-backup-history-store/index.ts"
 import { InMemoryRadioWriteStore } from "./in-memory-radio-write-store/index.ts"
 
 const encoder = new TextEncoder()
@@ -28,9 +29,11 @@ test("prepares and durably stores a reviewed full-range Radio Write without open
   const baselineBytes = radioBytes()
   const transport = new ScriptedTransport([...readSessionSteps(baselineBytes)])
   const store = new InMemoryRadioWriteStore()
+  const backupHistoryStore = new InMemoryBackupHistoryStore()
   const workspace = createCpsWorkspace(transport, {
     responseTimeoutMs: 100,
     radioWriteStore: store,
+    backupHistoryStore,
   })
   const visiblePhases: string[] = []
 
@@ -77,6 +80,14 @@ test("prepares and durably stores a reviewed full-range Radio Write without open
   ])
   assert.equal(workspace.getRadioWriteSnapshot()?.phase, "review-required")
   assert.deepEqual(visiblePhases, ["review-required"])
+  assert.deepEqual(
+    (await backupHistoryStore.list()).map(({ origin, changeCount, bytes }) => ({
+      origin,
+      changeCount,
+      bytes,
+    })),
+    [{ origin: "radio-read", changeCount: 0, bytes: baselineBytes }]
+  )
   transport.assertComplete()
 })
 
@@ -94,10 +105,12 @@ test("completes after every block and E5 Reboot are acknowledged without reconne
     ...writeSessionSteps(intendedBytes),
   ])
   const store = new InMemoryRadioWriteStore()
+  const backupHistoryStore = new InMemoryBackupHistoryStore()
   const debugEvents: RadioDebugEvent[] = []
   const workspace = createCpsWorkspace(transport, {
     responseTimeoutMs: 100,
     radioWriteStore: store,
+    backupHistoryStore,
     onDebugEvent: (event) => {
       debugEvents.push(event)
     },
@@ -149,6 +162,17 @@ test("completes after every block and E5 Reboot are acknowledged without reconne
     [...new Set(visiblePhases)],
     ["checking-radio", "writing-before-first-block", "writing", "completed"]
   )
+  assert.deepEqual(
+    (await backupHistoryStore.list()).map(({ origin, changeCount, bytes }) => ({
+      origin,
+      changeCount,
+      bytes,
+    })),
+    [
+      { origin: "radio-write", changeCount: 3, bytes: intendedBytes },
+      { origin: "radio-read", changeCount: 0, bytes: baselineBytes },
+    ]
+  )
   transport.assertComplete()
 })
 
@@ -191,9 +215,11 @@ test("persists Write Outcome Unknown and restores it after a workspace reload", 
     ...interruptedWrite,
   ])
   const store = new InMemoryRadioWriteStore()
+  const backupHistoryStore = new InMemoryBackupHistoryStore()
   const workspace = createCpsWorkspace(transport, {
     responseTimeoutMs: 5,
     radioWriteStore: store,
+    backupHistoryStore,
   })
 
   await workspace.connect()
@@ -213,6 +239,10 @@ test("persists Write Outcome Unknown and restores it after a workspace reload", 
   assert.equal(
     workspace.getRadioWriteSnapshot()?.phase,
     "write-outcome-unknown"
+  )
+  assert.deepEqual(
+    (await backupHistoryStore.list()).map(({ origin }) => origin),
+    ["radio-read"]
   )
 
   const reloaded = createCpsWorkspace(new ScriptedTransport([]), {

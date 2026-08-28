@@ -142,10 +142,6 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           },
         ]
       : []),
-    {
-      label: t("navData"),
-      items: [{ title: t("navBackups"), icon: ArchiveIcon, planned: true }],
-    },
   ]
   const guardedNavigation = navigation.map((section) => ({
     ...section,
@@ -156,6 +152,13 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     })),
   }))
   const secondaryNavigation = [
+    {
+      title: t("navBackups"),
+      href: "/backups",
+      icon: ArchiveIcon,
+      active: pathname === "/backups",
+      planned: false,
+    },
     {
       title: t("navUpdates"),
       href: "/updates",

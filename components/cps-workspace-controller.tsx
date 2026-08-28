@@ -11,6 +11,7 @@ import {
   type WebSerialTransport,
 } from "@/adapters/web-serial/index"
 import { createIndexedDbRadioWriteStore } from "@/adapters/indexed-db-radio-write-store/index"
+import { createIndexedDbBackupHistoryStore } from "@/adapters/indexed-db-backup-history-store/index"
 import {
   createCpsWorkspace,
   type CompletedRadioRead,
@@ -167,6 +168,7 @@ type WorkspaceErrorKey =
   | "readPasswordRequired"
   | "writePasswordRequired"
   | "unexpectedRadioResponse"
+  | "backupHistorySaveFailed"
   | "unknownRadioError"
 
 function useCpsWorkspaceController() {
@@ -241,6 +243,10 @@ function useCpsWorkspaceController() {
       })
       const nextWorkspace = createCpsWorkspace(nextTransport, {
         radioWriteStore: createIndexedDbRadioWriteStore(),
+        backupHistoryStore: createIndexedDbBackupHistoryStore(),
+        onBackupHistoryError: () => {
+          if (mounted.current) setError({ key: "backupHistorySaveFailed" })
+        },
         onDebugEvent: RADIO_WRITE_RELEASED ? recordRadioDebugEvent : undefined,
       })
       radioTransport.current = nextTransport
@@ -1333,6 +1339,10 @@ function useCpsWorkspaceController() {
     })
     const recoveryWorkspace = createCpsWorkspace(recoveryTransport, {
       radioWriteStore: createIndexedDbRadioWriteStore(),
+      backupHistoryStore: createIndexedDbBackupHistoryStore(),
+      onBackupHistoryError: () => {
+        if (mounted.current) setError({ key: "backupHistorySaveFailed" })
+      },
       onDebugEvent: RADIO_WRITE_RELEASED ? recordRadioDebugEvent : undefined,
     })
     radioTransport.current = recoveryTransport

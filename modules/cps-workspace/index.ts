@@ -28,6 +28,11 @@ import type {
   RadioWriteChangeSnapshot,
   RadioWriteStore,
 } from "./radio-write-store.ts"
+import type {
+  BackupHistoryEntry,
+  BackupHistoryOrigin,
+  BackupHistoryStore,
+} from "./backup-history.ts"
 
 interface CodeplugBackup {
   readonly id: string
@@ -70,6 +75,11 @@ interface ExecuteRadioWriteOptions {
 
 interface CpsWorkspaceOptions extends Uvl15wRadioOptions {
   readonly radioWriteStore?: RadioWriteStore
+  readonly backupHistoryStore?: BackupHistoryStore
+  readonly onBackupHistoryError?: (
+    origin: BackupHistoryOrigin,
+    error: unknown
+  ) => void
 }
 
 type CpsWorkspaceRadioWriteErrorCode =
@@ -127,13 +137,24 @@ interface CpsWorkspace {
 class CpsWorkspaceImplementation implements CpsWorkspace {
   readonly #radio: Uvl15wRadio
   readonly #radioWriteStore: RadioWriteStore | undefined
+  readonly #backupHistoryStore: BackupHistoryStore | undefined
+  readonly #onBackupHistoryError:
+    ((origin: BackupHistoryOrigin, error: unknown) => void) | undefined
   #snapshot: CpsWorkspaceSnapshot = { status: "disconnected" }
   #radioWriteSnapshot: RadioWriteOperationSnapshot | null = null
   #persistedRadioWrite: PersistedRadioWriteOperation | null = null
 
-  constructor(radio: Uvl15wRadio, radioWriteStore?: RadioWriteStore) {
+  constructor(
+    radio: Uvl15wRadio,
+    options: Pick<
+      CpsWorkspaceOptions,
+      "radioWriteStore" | "backupHistoryStore" | "onBackupHistoryError"
+    >
+  ) {
     this.#radio = radio
-    this.#radioWriteStore = radioWriteStore
+    this.#radioWriteStore = options.radioWriteStore
+    this.#backupHistoryStore = options.backupHistoryStore
+    this.#onBackupHistoryError = options.onBackupHistoryError
   }
 
   getSnapshot() {
@@ -192,6 +213,7 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
         status: "ready",
         ...completedRead,
       }
+      await this.#saveBackupHistory(baselineBackup, "radio-read", 0)
 
       return completedRead
     } catch (error) {
@@ -409,6 +431,11 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
         () => undefined
       )
       this.#snapshot = { status: "ready", ...completedWrite }
+      await this.#saveBackupHistory(
+        completedBackup,
+        "radio-write",
+        persisted.changeSet.length + persisted.derivedChanges.length
+      )
       return completedWrite
     } catch (error) {
       await this.#radio.disconnect().catch(() => undefined)
@@ -537,6 +564,21 @@ class CpsWorkspaceImplementation implements CpsWorkspace {
     await this.#radio.disconnect()
     this.#snapshot = { status: "disconnected" }
   }
+
+  async #saveBackupHistory(
+    backup: CodeplugBackup,
+    origin: BackupHistoryOrigin,
+    changeCount: number
+  ) {
+    if (!this.#backupHistoryStore) return
+
+    const entry = backupHistoryEntry(backup, origin, changeCount)
+    try {
+      await this.#backupHistoryStore.save(entry)
+    } catch (error) {
+      this.#onBackupHistoryError?.(origin, error)
+    }
+  }
 }
 
 async function notifyRadioWriteProgress(
@@ -550,10 +592,15 @@ function createCpsWorkspace(
   transport: RadioTransport,
   options: CpsWorkspaceOptions = {}
 ) {
-  const { radioWriteStore, ...radioOptions } = options
+  const {
+    radioWriteStore,
+    backupHistoryStore,
+    onBackupHistoryError,
+    ...radioOptions
+  } = options
   return new CpsWorkspaceImplementation(
     createUvl15wRadio(transport, radioOptions),
-    radioWriteStore
+    { radioWriteStore, backupHistoryStore, onBackupHistoryError }
   )
 }
 
@@ -572,6 +619,25 @@ async function createCodeplugBackup(
 
 function createArtifactId(prefix: string) {
   return `${prefix}:${crypto.randomUUID()}`
+}
+
+function backupHistoryEntry(
+  backup: CodeplugBackup,
+  origin: BackupHistoryOrigin,
+  changeCount: number
+): BackupHistoryEntry {
+  const bytes = backup.codeplug.toBytes()
+  return Object.freeze({
+    schemaVersion: 1 as const,
+    id: backup.id,
+    origin,
+    sourceRadio: backup.sourceRadio,
+    createdAt: backup.createdAt.toISOString(),
+    sha256: backup.sha256,
+    byteLength: bytes.byteLength,
+    changeCount,
+    bytes,
+  })
 }
 
 function artifactReference(backup: CodeplugBackup) {
@@ -730,6 +796,11 @@ function rehydrateBackup(
 
 export { CpsWorkspaceRadioWriteError, createCpsWorkspace }
 export { createRadioWriteReview } from "./radio-write-review.ts"
+export type {
+  BackupHistoryEntry,
+  BackupHistoryOrigin,
+  BackupHistoryStore,
+} from "./backup-history.ts"
 export type {
   CodeplugBackup,
   CompletedRadioWrite,

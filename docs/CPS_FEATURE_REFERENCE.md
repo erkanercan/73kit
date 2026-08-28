@@ -300,9 +300,16 @@ Export a portable package that preserves Source Radio identity and the informati
 
 Support Raw Backup Exports and CPS Exports using the binding rules above. CSV and other future imports also create Unbound Codeplugs unless Source Radio identity can be proven.
 
-### Backup History — P0 / PLANNED
+### Backup History — P0 / IMPLEMENTED
 
-Retain the ordered collection of immutable Codeplug Backups for each Source Radio across successful Radio Reads and completed Radio Writes. Durable browser storage may use IndexedDB; the Backup History lifecycle is not optional.
+The browser retains an immutable Codeplug Backup in IndexedDB after every
+successful Radio Read and completed Radio Write. A completed write stores the
+accepted intended Codeplug image; it does not perform a post-reboot Radio Read.
+Failed, cancelled, interrupted and unknown-outcome operations are not history
+entries. The desktop Backup History page lists the Source Radio and firmware,
+distinguishes reads from writes, and lets the operator download or delete one
+Raw Backup or delete all saved backups. Clearing Backup History does not clear
+the separate active Radio Write recovery record.
 
 ### Change Set review — P1 / REQUIRED FOR RADIO WRITE
 
@@ -1265,7 +1272,8 @@ Partial or changed-block writes are excluded until hardware-verified.
 - [x] exact immutable Baseline Backup Raw Backup Export
 - [ ] Raw Backup import as an Unbound Codeplug
 - [ ] identity-bound CPS Export and import
-- [ ] durable Backup History and saved Working Codeplugs
+- [x] durable Backup History
+- [ ] saved Working Codeplugs
 - [ ] PWA/offline packaging
 
 ---
@@ -1330,7 +1338,7 @@ firmware update commands
 - [x] Codeplug core
 - [x] Raw Backup Export
 - [ ] CPS Export and import handling
-- [ ] Backup History
+- [x] Backup History
 - [x] Channel parser
 - [x] virtualized 1000-channel table
 - [x] CTCSS/DCS display
