@@ -1,6 +1,6 @@
 # Radio Write development order
 
-Status: development contract only; Radio Write remains unavailable.
+Status: steps 1-3 implemented; Radio Write remains unavailable in the product.
 
 ## Firmware-scoped rule
 
@@ -65,20 +65,33 @@ implemented or reachable in this step.
 Exit gate passed: independent documented literals prove the exact output,
 unrelated-byte preservation, immutability, SHA-256, and derived-change markers.
 
-## 3. Implement the protocol writer using the scripted Transport — next
+## 3. Implement the protocol writer using the scripted Transport — implemented
 
-- Add E3 full-range start and strict `WRITE START OK` validation.
-- Send 200 ordered 512-byte E4 blocks.
-- Validate each E6 command, `WF OK`, echoed address, and echoed length.
-- Retry only the explicitly documented LRC-error case.
-- Never resume after timeout or disconnect.
-- Send exact E5 `Write Complete` and validate `Reboot`.
-- Record when the first E4 block may have reached the Radio.
+- The Radio interface accepts only a complete materialized
+  `uvl15w-3.07.23` write image.
+- It sends the E3 full range and strictly validates the E3 command and
+  `WRITE START OK` payload.
+- It sends exactly 200 ordered 512-byte E4 blocks and reports progress only
+  after each valid acknowledgement.
+- It strictly validates every E6 command, exact 11-byte payload, `WF OK`,
+  echoed address, and echoed length before sending the next block.
+- It retries the identical encoded command only when the Radio explicitly
+  returns `EE "Frame Lrc Error"`. Decoder errors, timeouts, disconnects, and
+  malformed acknowledgements are never retried or resumed.
+- It sends exact E5 `Write Complete` and strictly validates the E5 `Reboot`
+  response.
+- `RadioWriteError` records acknowledged bytes and distinguishes an ordinary
+  failure before the first E4 attempt from `write-outcome-unknown` beginning
+  immediately before that attempt.
 
-Exit gate: exhaustive scripted tests pass while production UI still exposes no
-Radio Write action.
+Exit gate passed: scripted tests cover the complete transfer, strict responses,
+split frames, stale duplicate acknowledgements, explicit LRC retry, timeout,
+disconnect, corrupted frames, write protection, finalization failure, and the
+destructive boundary. Production UI still exposes no Radio Write action. The
+transfer result is deliberately not product-level Radio Write success; that
+requires step 4 readback verification.
 
-## 4. Implement CPS Workspace orchestration and durable recovery
+## 4. Implement CPS Workspace orchestration and durable recovery — next
 
 - Persist the prepared operation, recovery backup, intended write image, and
   hashes before E3.

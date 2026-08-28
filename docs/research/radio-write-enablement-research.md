@@ -6,8 +6,9 @@ Date: 2026-08-28
 
 **Radio Write should not be enabled in the product yet.** The repository has
 enough protocol information to implement a full-range writer, but it does not
-yet have the writer, the durable safety lifecycle around it, or physical
-write/reboot/readback evidence for the browser path.
+yet have the durable safety lifecycle around the now-implemented internal
+protocol writer or physical write/reboot/readback evidence for the browser
+path.
 
 There is no known vendor-protocol blocker for an unprotected UVL-15W on the
 currently validated normal-mode firmware `3.07.23`. The blocker is proof and
@@ -80,10 +81,15 @@ requires a separate E7 password feature.
   checksum retry machinery already exist and are used by the hardware-proven
   read path ([protocol codec](../../modules/uvl15w-radio/protocol.ts),
   [Radio module](../../modules/uvl15w-radio/index.ts)).
-- `Uvl15wRadio` exposes only `connect`, `read`, and `disconnect`. Its command
-  set has E0, E1, E2, E4 read response, E5, E6 read request, and EE, but no E3,
-  host-to-Radio E4 writer, E6 write-ACK parser, E7, or `write` method
-  ([Radio interface and command set](../../modules/uvl15w-radio/index.ts#L24-L49)).
+- `Uvl15wRadio` now exposes an internal `write` operation for a complete
+  materialized firmware-`3.07.23` image. It implements E3, 200 ordered E4
+  blocks, strict E6 acknowledgement validation, E5 completion, bounded retry
+  only for explicit `Frame Lrc Error`, and destructive-boundary error details.
+  It is covered through the scripted Transport but is not exposed through the
+  CPS Workspace or production UI
+  ([Radio module](../../modules/uvl15w-radio/index.ts),
+  [writer tests](../../test-support/uvl15w-radio-write.test.ts)). E7 remains
+  unimplemented.
 - `CpsWorkspace` creates an in-memory Baseline Backup and Working Codeplug after
   a successful read, but exposes no write operation, no Backup History, and no
   recovery state ([workspace module](../../modules/cps-workspace/index.ts)).
@@ -163,19 +169,19 @@ tested, the following remain assumptions:
 
 ### Blockers before any engineering-only physical write
 
-1. **Implement and exhaustively test the protocol writer.** Add E3, full-range
-   E4 blocks, strict E6 `WF OK`/address/length validation, E5 `Write Complete`,
-   progress, and destructive-start tracking inside `modules/uvl15w-radio`.
+1. **Protocol writer — implemented in scripted tests.** E3, the complete
+   full-range E4 transfer, strict E6 validation, E5 completion, progress, and
+   destructive-start tracking now live inside `modules/uvl15w-radio`. This is
+   not physical write evidence or product-level success.
 2. **Use the exact write image.** The firmware-`3.07.23` Codeplug materializer
    now applies the VFO-to-Temp and fixed-WX invariants without exposing offsets,
    and freezes/hashes the 102,400-byte result. The future writer and coordinator
    must use this artifact rather than `WorkingCodeplug.codeplug.toBytes()`.
-3. **Define failure boundaries.** Failures before the first E4 transmission are
-   ordinary preflight failures. From the moment the first E4 may have reached
-   the Radio until exact readback succeeds, any timeout, disconnect, malformed
-   ACK, finalization failure, wrong Radio, or unavailable verification path is
-   `Write Outcome Unknown`. Do not automatically retry timeouts or resume at
-   the last ACK; those behaviors are not proven safe.
+3. **Failure boundaries — implemented at the protocol seam.** Failures before
+   the first E4 attempt are ordinary failures. From immediately before that
+   attempt, protocol errors report `write-outcome-unknown` and acknowledged
+   byte count. Timeout/disconnect resume is deliberately absent. Step 4 must
+   durably preserve this state until exact readback resolves it.
 4. **Create a controlled recovery setup.** Preserve a known-good baseline and
    confirm that the official TYT CPS can read and restore the test Radio before
    the browser sends E3. Use USB only and a dedicated/recoverable Radio.
@@ -256,7 +262,7 @@ Exit gate: domain tests prove that an empty Change Set, Unbound Codeplug,
 mismatched Source Radio, baseline drift, unsupported firmware, and
 write-protected Radio are rejected before E3.
 
-### Phase 2 — TDD the Radio writer without hardware
+### Phase 2 — TDD the Radio writer without hardware — implemented
 
 Use the existing scripted Transport and production frame codec. Cover:
 

@@ -1,6 +1,8 @@
 import {
+  CODEPLUG_LAYOUT_3_07_23,
   CODEPLUG_SIZE,
   type Codeplug,
+  type CodeplugWriteImage,
   createCodeplug,
 } from "../codeplug/index.ts"
 import {
@@ -15,8 +17,8 @@ import {
 } from "./firmware-compatibility.ts"
 import type { RadioConnection, RadioTransport } from "./transport.ts"
 
-const CODEPLUG_START_ADDRESS = 0x8000
-const CODEPLUG_END_ADDRESS = 0x21000
+const CODEPLUG_START_ADDRESS = CODEPLUG_LAYOUT_3_07_23.startAddress
+const CODEPLUG_END_ADDRESS = CODEPLUG_LAYOUT_3_07_23.endAddress
 const DEFAULT_READ_BLOCK_SIZE = 128
 const DEFAULT_RESPONSE_TIMEOUT_MS = 5_000
 const DEFAULT_CHECKSUM_RETRIES = 2
@@ -25,16 +27,22 @@ const COMMAND = {
   deviceInformationRequest: 0xe0,
   deviceInformationResponse: 0xe1,
   beginRead: 0xe2,
+  beginWrite: 0xe3,
+  writeDataRequest: 0xe4,
   readDataResponse: 0xe4,
   completeSession: 0xe5,
+  writeDataResponse: 0xe6,
   readDataRequest: 0xe6,
   error: 0xee,
 } as const
 
 const MODEL_PAYLOAD = new TextEncoder().encode("UVL-15W")
 const READ_START_OK = "READ START OK"
+const WRITE_START_OK = "WRITE START OK"
 const READ_COMPLETE = new TextEncoder().encode("Read Complete")
+const WRITE_COMPLETE = new TextEncoder().encode("Write Complete")
 const REBOOT = "Reboot"
+const WRITE_ACKNOWLEDGEMENT = new TextEncoder().encode("WF OK")
 
 type Uvl15wRadioErrorCode =
   | "already-connected"
@@ -46,6 +54,7 @@ type Uvl15wRadioErrorCode =
   | "incompatible-radio"
   | "unsupported-firmware"
   | "read-password-required"
+  | "write-password-required"
   | "unexpected-response"
 
 class Uvl15wRadioError extends Error {
@@ -83,6 +92,24 @@ class UnsupportedFirmwareError extends Uvl15wRadioError {
   }
 }
 
+type RadioWriteFailureDisposition = "ordinary-failure" | "write-outcome-unknown"
+
+class RadioWriteError extends Uvl15wRadioError {
+  readonly disposition: RadioWriteFailureDisposition
+  readonly bytesAcknowledged: number
+
+  constructor(
+    error: Uvl15wRadioError,
+    disposition: RadioWriteFailureDisposition,
+    bytesAcknowledged: number
+  ) {
+    super(error.code, error.message, { cause: error })
+    this.name = "RadioWriteError"
+    this.disposition = disposition
+    this.bytesAcknowledged = bytesAcknowledged
+  }
+}
+
 interface SourceRadio {
   readonly model: "UVL-15W"
   readonly subModel: number
@@ -106,6 +133,21 @@ interface RadioReadOptions {
   readonly onProgress?: (progress: RadioReadProgress) => void
 }
 
+interface RadioWriteProgress {
+  readonly bytesWritten: number
+  readonly totalBytes: number
+  readonly percent: number
+}
+
+interface RadioWriteOptions {
+  readonly onProgress?: (progress: RadioWriteProgress) => void
+}
+
+interface RadioWriteTransferResult {
+  readonly bytesWritten: number
+  readonly totalBytes: number
+}
+
 interface Uvl15wRadioOptions {
   readonly readBlockSize?: number
   readonly responseTimeoutMs?: number
@@ -115,6 +157,10 @@ interface Uvl15wRadioOptions {
 interface Uvl15wRadio {
   connect(): Promise<SourceRadio>
   read(options?: RadioReadOptions): Promise<Codeplug>
+  write(
+    image: CodeplugWriteImage,
+    options?: RadioWriteOptions
+  ): Promise<RadioWriteTransferResult>
   disconnect(): Promise<void>
 }
 
@@ -324,6 +370,119 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
     }
   }
 
+  async write(
+    image: CodeplugWriteImage,
+    options: RadioWriteOptions = {}
+  ): Promise<RadioWriteTransferResult> {
+    const connection = this.#requireConnection()
+    const sourceRadio = this.#sourceRadio
+    const bytes = image.toBytes()
+
+    if (!sourceRadio) {
+      throw new Uvl15wRadioError(
+        "not-connected",
+        "Device information must be read before starting a Radio Write"
+      )
+    }
+
+    if (sourceRadio.writeProtected) {
+      throw new Uvl15wRadioError(
+        "write-password-required",
+        "This Radio requires a write password, which is not supported yet"
+      )
+    }
+
+    if (
+      image.layoutId !== CODEPLUG_LAYOUT_3_07_23.id ||
+      image.byteLength !== CODEPLUG_LAYOUT_3_07_23.byteLength ||
+      bytes.byteLength !== CODEPLUG_LAYOUT_3_07_23.byteLength
+    ) {
+      throw new Uvl15wRadioError(
+        "protocol",
+        `Radio Write requires a complete ${CODEPLUG_LAYOUT_3_07_23.id} image`
+      )
+    }
+
+    if (this.#operationInProgress) {
+      throw new Uvl15wRadioError(
+        "operation-in-progress",
+        "Another Radio operation is already in progress"
+      )
+    }
+
+    this.#operationInProgress = true
+    let writeMayHaveStarted = false
+    let bytesAcknowledged = 0
+
+    try {
+      const beginResponse = await this.#exchangeWriteCommand(
+        COMMAND.beginWrite,
+        encodeAddressRange(
+          CODEPLUG_LAYOUT_3_07_23.startAddress,
+          CODEPLUG_LAYOUT_3_07_23.endAddress
+        )
+      )
+      expectAsciiResponse(
+        beginResponse,
+        COMMAND.beginWrite,
+        WRITE_START_OK,
+        "begin-write"
+      )
+
+      while (bytesAcknowledged < bytes.byteLength) {
+        const address = CODEPLUG_LAYOUT_3_07_23.startAddress + bytesAcknowledged
+        const block = bytes.slice(
+          bytesAcknowledged,
+          bytesAcknowledged + CODEPLUG_LAYOUT_3_07_23.writeBlockSize
+        )
+
+        writeMayHaveStarted = true
+        const response = await this.#exchangeWriteCommand(
+          COMMAND.writeDataRequest,
+          encodeWriteRequest(address, block)
+        )
+        parseWriteAcknowledgement(response, address, block.byteLength)
+
+        bytesAcknowledged += block.byteLength
+        options.onProgress?.({
+          bytesWritten: bytesAcknowledged,
+          totalBytes: bytes.byteLength,
+          percent: (bytesAcknowledged / bytes.byteLength) * 100,
+        })
+      }
+
+      const completeResponse = await this.#exchangeWriteCommand(
+        COMMAND.completeSession,
+        WRITE_COMPLETE
+      )
+      expectAsciiResponse(
+        completeResponse,
+        COMMAND.completeSession,
+        REBOOT,
+        "write-complete"
+      )
+
+      this.#connection = undefined
+      this.#sourceRadio = undefined
+      await connection.close().catch(() => undefined)
+
+      return {
+        bytesWritten: bytesAcknowledged,
+        totalBytes: bytes.byteLength,
+      }
+    } catch (error) {
+      await this.disconnect().catch(() => undefined)
+      const radioError = normalizeRadioError(error)
+      throw new RadioWriteError(
+        radioError,
+        writeMayHaveStarted ? "write-outcome-unknown" : "ordinary-failure",
+        bytesAcknowledged
+      )
+    } finally {
+      this.#operationInProgress = false
+    }
+  }
+
   async disconnect() {
     const connection = this.#connection
     this.#connection = undefined
@@ -361,6 +520,36 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
           continue
         }
 
+        throw new Uvl15wRadioError("protocol", event.error.message, {
+          cause: event.error,
+        })
+      }
+
+      if (event.frame.command === COMMAND.error) {
+        const message = decodeAsciiResponse(event.frame.payload)
+
+        if (message === "Frame Lrc Error" && attempt < this.#checksumRetries) {
+          continue
+        }
+
+        throw new Uvl15wRadioError("protocol", `Radio error: ${message}`)
+      }
+
+      return event.frame
+    }
+
+    throw new Uvl15wRadioError("protocol", "Checksum retries were exhausted")
+  }
+
+  async #exchangeWriteCommand(command: number, payload: Uint8Array) {
+    const connection = this.#requireConnection()
+    const request = encodeRequestFrame(command, payload)
+
+    for (let attempt = 0; attempt <= this.#checksumRetries; attempt += 1) {
+      await connection.write(request)
+      const event = await this.#inbox.next(this.#responseTimeoutMs)
+
+      if (event.type === "error") {
         throw new Uvl15wRadioError("protocol", event.error.message, {
           cause: event.error,
         })
@@ -542,6 +731,75 @@ function encodeReadRequest(address: number, length: number) {
   return payload
 }
 
+function encodeWriteRequest(address: number, block: Uint8Array) {
+  const payload = new Uint8Array(6 + block.byteLength)
+  const view = new DataView(payload.buffer)
+  view.setUint32(0, address, false)
+  view.setUint16(4, block.byteLength, false)
+  payload.set(block, 6)
+  return payload
+}
+
+function parseWriteAcknowledgement(
+  frame: ProtocolFrame,
+  expectedAddress: number,
+  expectedLength: number
+) {
+  if (frame.command !== COMMAND.writeDataResponse) {
+    throw new Uvl15wRadioError(
+      "unexpected-response",
+      `Expected write acknowledgement command 0xE6; received 0x${frame.command.toString(16)}`
+    )
+  }
+
+  if (frame.payload.byteLength !== 11) {
+    throw new Uvl15wRadioError(
+      "protocol",
+      `Write acknowledgement must contain 11 bytes; received ${frame.payload.byteLength}`
+    )
+  }
+
+  if (
+    !WRITE_ACKNOWLEDGEMENT.every((byte, index) => frame.payload[index] === byte)
+  ) {
+    throw new Uvl15wRadioError(
+      "unexpected-response",
+      `Expected write acknowledgement ${JSON.stringify("WF OK")}`
+    )
+  }
+
+  const view = new DataView(
+    frame.payload.buffer,
+    frame.payload.byteOffset,
+    frame.payload.byteLength
+  )
+  const address = view.getUint32(5, false)
+  const length = view.getUint16(9, false)
+
+  if (address !== expectedAddress || length !== expectedLength) {
+    throw new Uvl15wRadioError(
+      "protocol",
+      `Write acknowledgement echoed address/length ${address}/${length}; expected ${expectedAddress}/${expectedLength}`
+    )
+  }
+}
+
+function expectAsciiResponse(
+  frame: ProtocolFrame,
+  expectedCommand: number,
+  expectedPayload: string,
+  responseName: string
+) {
+  if (frame.command !== expectedCommand) {
+    throw new Uvl15wRadioError(
+      "unexpected-response",
+      `Expected ${responseName} command 0x${expectedCommand.toString(16)}; received 0x${frame.command.toString(16)}`
+    )
+  }
+
+  expectAsciiPayload(frame, expectedPayload)
+}
+
 function expectAsciiPayload(frame: ProtocolFrame, expected: string) {
   const actual = decodeAsciiResponse(frame.payload)
   if (actual !== expected) {
@@ -583,9 +841,20 @@ function toHex(bytes: Uint8Array) {
   return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("")
 }
 
+function normalizeRadioError(error: unknown) {
+  return error instanceof Uvl15wRadioError
+    ? error
+    : new Uvl15wRadioError(
+        "protocol",
+        error instanceof Error ? error.message : "Radio Write failed",
+        error instanceof Error ? { cause: error } : undefined
+      )
+}
+
 export {
   CODEPLUG_END_ADDRESS,
   CODEPLUG_START_ADDRESS,
+  RadioWriteError,
   UnsupportedFirmwareError,
   Uvl15wRadioError,
   createUvl15wRadio,
@@ -594,6 +863,10 @@ export {
 export type {
   RadioReadOptions,
   RadioReadProgress,
+  RadioWriteFailureDisposition,
+  RadioWriteOptions,
+  RadioWriteProgress,
+  RadioWriteTransferResult,
   SourceRadio,
   Uvl15wRadio,
   Uvl15wRadioErrorCode,

@@ -216,17 +216,17 @@ Do not use `Promise.race(reader.read(), timeout)` because the losing `reader.rea
 
 ## 5. Normal CPS Commands
 
-| Command | Purpose                                                        | Project status                             |
-| ------- | -------------------------------------------------------------- | ------------------------------------------ |
-| `E0`    | Request radio information / handshake                          | **PROVEN**                                 |
-| `E1`    | Radio information response                                     | **PROVEN**                                 |
-| `E2`    | Start read session                                             | **PROVEN**                                 |
-| `E3`    | Start write session                                            | **DOCUMENTED, NOT YET ENABLED**            |
-| `E4`    | Host→radio write block / radio→host read response by direction | **READ RESPONSE PROVEN; WRITING DISABLED** |
-| `E5`    | Complete read/write session and reboot                         | **READ COMPLETE PROVEN**                   |
-| `E6`    | Host read request / radio write ACK by direction               | **READ REQUEST PROVEN**                    |
-| `E7`    | Read/write password validation                                 | **DOCUMENTED**                             |
-| `EE`    | Error response                                                 | **DOCUMENTED**                             |
+| Command | Purpose                                                        | Project status                          |
+| ------- | -------------------------------------------------------------- | --------------------------------------- |
+| `E0`    | Request radio information / handshake                          | **PROVEN**                              |
+| `E1`    | Radio information response                                     | **PROVEN**                              |
+| `E2`    | Start read session                                             | **PROVEN**                              |
+| `E3`    | Start write session                                            | **INTERNAL WRITER TESTED; UI DISABLED** |
+| `E4`    | Host→radio write block / radio→host read response by direction | **READ PROVEN; INTERNAL WRITER TESTED** |
+| `E5`    | Complete read/write session and reboot                         | **READ PROVEN; INTERNAL WRITER TESTED** |
+| `E6`    | Host read request / radio write ACK by direction               | **READ PROVEN; INTERNAL ACK TESTED**    |
+| `E7`    | Read/write password validation                                 | **DOCUMENTED**                          |
+| `EE`    | Error response                                                 | **DOCUMENTED**                          |
 
 ---
 
@@ -1199,9 +1199,9 @@ Backups (planned)
 - complete preflight Radio Read and immutable recovery Codeplug Backup
 - explicit new working session if the preflight result differs from the Baseline Backup
 - Source Radio and Baseline Backup comparison
-- E3/E4/E6
-- ACK validation
-- E5 Write Complete
+- [x] E3/E4/E6 protocol writer behind the Radio interface
+- [x] strict ACK validation and destructive-boundary error details
+- [x] E5 Write Complete protocol completion
 - post-reboot reconnect and complete Radio Read
 - byte-for-byte verification before reporting success
 - `Write Outcome Unknown` handling

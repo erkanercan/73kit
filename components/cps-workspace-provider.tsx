@@ -146,6 +146,7 @@ type WorkspaceErrorKey =
   | "radioProtocolError"
   | "incompatibleRadio"
   | "readPasswordRequired"
+  | "writePasswordRequired"
   | "unexpectedRadioResponse"
   | "unknownRadioError"
 
@@ -1375,6 +1376,7 @@ function workspaceError(error: unknown): WorkspaceError {
       protocol: "radioProtocolError",
       "incompatible-radio": "incompatibleRadio",
       "read-password-required": "readPasswordRequired",
+      "write-password-required": "writePasswordRequired",
       "unexpected-response": "unexpectedRadioResponse",
     }
 

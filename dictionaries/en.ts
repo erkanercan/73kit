@@ -943,6 +943,8 @@ const en = {
   firmwareDemoNextVariant: "Next prototype variant",
   readPasswordRequired:
     "This Radio has read protection enabled. Password-protected Radio Reads are not supported yet.",
+  writePasswordRequired:
+    "This Radio has write protection enabled. Password-protected Radio Writes are not supported yet.",
   unexpectedRadioResponse:
     "The Radio sent an unexpected response. No Codeplug Backup was created; reconnect it and try again.",
   unknownRadioError: "An unknown Radio error occurred.",

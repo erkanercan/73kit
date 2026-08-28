@@ -953,6 +953,8 @@ const tr = {
   firmwareDemoNextVariant: "Sonraki prototip varyantı",
   readPasswordRequired:
     "Bu telsizde okuma koruması açık. Parola korumalı telsiz okuma henüz desteklenmiyor.",
+  writePasswordRequired:
+    "Bu telsizde yazma koruması açık. Parola korumalı telsiz yazma henüz desteklenmiyor.",
   unexpectedRadioResponse:
     "Telsiz beklenmeyen bir yanıt gönderdi. Codeplug Yedeği oluşturulmadı; telsizi yeniden bağlayıp tekrar deneyin.",
   unknownRadioError: "Bilinmeyen bir telsiz hatası oluştu.",
