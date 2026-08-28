@@ -37,6 +37,7 @@ interface BrowserSerialPort {
   readonly readable: ReadableStream<Uint8Array> | null
   readonly writable: WritableStream<Uint8Array> | null
   open(options: SerialOpenOptions): Promise<void>
+  setSignals?(signals: { readonly requestToSend?: boolean }): Promise<void>
   close(): Promise<void>
 }
 
@@ -52,6 +53,7 @@ interface NavigatorWithSerial extends Navigator {
 
 interface WebSerialTransportOptions extends SerialOpenOptions {
   readonly filters?: readonly SerialPortFilter[]
+  readonly requestToSend?: boolean
 }
 
 class WebSerialConnection implements RadioConnection {
@@ -157,6 +159,17 @@ class WebSerialTransport implements RadioTransport {
     }
     try {
       await port.open(openOptions)
+      if (this.#options.requestToSend !== undefined) {
+        if (!port.setSignals) {
+          throw new WebSerialTransportError(
+            "unavailable",
+            "The selected serial port cannot set the updater RTS signal"
+          )
+        }
+        await port.setSignals({
+          requestToSend: this.#options.requestToSend,
+        })
+      }
     } catch (error) {
       await port.close().catch(() => undefined)
       throw error

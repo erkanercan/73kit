@@ -27,14 +27,14 @@ Evidence labels used below:
 | -------------------------------------- | ---------------------------------------- |
 | Firmware `3.7.23` package and transfer | Captured twice; fully reproduced offline |
 | Language `1.01.05` Resource Flash      | Captured repeatedly bidirectionally      |
-| Image `1.01.00` Resource Flash         | Captured once bidirectionally            |
+| Image `1.01.00` Resource Flash         | Captured fresh and during recovery       |
 | Combined language/image Resource Flash | Captured once bidirectionally            |
 
 Language-only, Image-only, and combined Resource Flash are physically captured.
 The official CPS's variable `E3` source has also been explained by static binary
-analysis. Resource Flash is no longer blocked on another official-CPS capture;
-it remains release-gated on implementation and physical validation of the
-compatibility payload policy in section 7.
+analysis. All four exact packages have completed the browser success path on
+one compatible Radio and are released as beta; stable promotion remains gated
+as described in section 11.
 
 ## 2. Transport and frame envelope
 
@@ -216,6 +216,21 @@ After the shared handshake:
    "WF OK" | echoedAddress BE32 | echoedDeclaredLength BE16
    ```
 
+If the Radio returns `EE / Frame Head Error`, `Frame Tail Error`,
+`Frame Length Error`, or `Frame Lrc Error`, resend the exact same encoded `E4`
+frame at most two additional times. These responses mean the Radio rejected the
+frame before executing its Resource Flash request. Do not rebuild the payload,
+change the address, or advance the block counter until the matching `E6`
+acknowledgement arrives. `Option Value Error`, other responses, timeouts,
+disconnects, and exhausted retries are not automatically retried and enter
+Update Outcome Unknown after writing has started.
+
+The additional parser-error retry policy is supported by the reviewed protocol
+error definitions and the 2026-08-28 browser trace at block 2,218: the Radio
+returned `Frame Head Error` for address `0x00285200`, while the browser's
+525-byte frame had valid framing/LRC and matched the successful official-CPS
+frame for that address byte-for-byte.
+
 5. Host sends `E5 "Read Complete"`; Radio responds `E5 "OK"`.
 6. Perform the shared post-transfer handshake and `C4` completion.
 
@@ -261,11 +276,12 @@ responses are consistent with that binary behavior.
 Do not reproduce Qt object-layout leakage in the browser. Use the exact
 known-successful compatibility payload for the validated package kind:
 
-| Package kind | E3 payload         | Evidence                                |
-| ------------ | ------------------ | --------------------------------------- |
-| Language     | `0000000D00000000` | Two complete writes, captures 03 and 09 |
-| Image        | `0000001D00000000` | Complete 5,795-block write, capture 06  |
-| Combined     | `0000001100000000` | Complete 13,056-block write, capture 07 |
+| Package kind | Mode     | E3 payload         | Evidence                                |
+| ------------ | -------- | ------------------ | --------------------------------------- |
+| Language     | Fresh    | `0000000D00000000` | Two complete writes, captures 03 and 09 |
+| Image        | Fresh    | `0000001D00000000` | Complete 5,795-block write, capture 06  |
+| Image        | Recovery | `0000000000000000` | Full partial-state recovery, capture 10 |
+| Combined     | Fresh    | `0000001100000000` | Complete 13,056-block write, capture 07 |
 
 This is a version-scoped compatibility policy, not a universal protocol
 constant. Require the validated package kind and supported model/CPS evidence
@@ -313,6 +329,73 @@ Never retain raw `1C` identity/activation fields or session keys. Never claim
 success until final protocol verification, reboot/reconnection, installed
 version verification, and a normal Codeplug read all succeed.
 
+### Bounded parser-error block retry
+
+The Radio can reject a structurally valid data frame with `Frame Head Error`,
+`Frame Tail Error`, `Frame Length Error`, or `Frame Lrc Error` before executing
+the block. For only those explicit parser responses, the browser may resend the
+exact same encoded `C2` Firmware block or `E4` Resource Flash block, with three
+total attempts. Encryption, payload, block number/address, and declared length
+must not be recomputed or advanced between attempts. Progress advances only
+after the matching `2C "OK"` or `E6` acknowledgement.
+
+This exception does not authorize retrying `Option Value Error`, unknown or
+unexpected responses, timeouts, disconnects, handshake/start commands,
+Firmware verification, Resource completion, or finalization. Exhausting the
+three attempts remains Update Outcome Unknown and retains the preceding
+acknowledged block/address.
+
+### Transfer-timeout diagnostics
+
+A `TX` frame record alone does not prove that the Web Serial writer accepted
+the bytes. During `C2` and `E4` transfer loops, the internal diagnostic buffer
+therefore records four distinct boundaries: the encoded request, successful
+serial-write completion, each raw RX chunk before frame decoding, and the
+decoded response. On timeout or connection closure it also records the number
+of bytes still buffered by the response decoder, including those bytes only
+while transfer-only raw tracing is enabled.
+
+These diagnostics distinguish a rejected frame, a failed serial write, no
+response after a completed write, and a truncated response. They do not make a
+timeout safe to retry. Raw tracing is disabled during both identity handshakes
+and finalization so `1C` identity/activation fields remain excluded.
+
+Protocol events are never rendered as a live frontend console. The newest 120
+events remain in memory and are included only when the user explicitly
+downloads an error report after an ordinary failure or Update Outcome Unknown.
+The JSON report also contains the failure code and phase, package metadata,
+progress, recovery state, browser identification, page URL, and recent serial
+traffic. That traffic can contain transmitted package blocks. The report does
+not contain firmware session keys or `1C` identity/activation payloads, and it
+is never uploaded automatically.
+
+The persisted outcome-unknown record includes the validated package summary
+without package bytes. This allows the same package metadata to be restored in
+the report after a page reload. Older records without the summary remain
+readable and retain the existing recovery path.
+
+### Captured Image recovery profile
+
+Capture 10 starts from a known partial Image write after block 418 had been
+acknowledged. The official CPS does not resume from block 419. It sends the
+recovery-only all-zero `E3` payload, rewrites the entire validated Image
+`1.01.00` package from address `0x00170000`, receives all 5,795 acknowledgements,
+finalizes, and then performs a normal Radio read.
+
+The browser may use this profile only after a normal-mode Radio inspection and
+selection of the exact package hash recorded for the interrupted Image update.
+Recovery still starts at the package's first address. Do not substitute the
+fresh Image payload, resume from the stored block/address, or apply this profile
+to Language, combined, Firmware, another package, or another Radio build. If an
+exact recovery profile is absent from the catalog, reject before opening the
+serial port and direct the user to the official TYT CPS.
+
+After a successful normal-mode Radio Read, the user may explicitly confirm that
+recovery was completed with the exact package in the official CPS. This clears
+only the browser's persisted outcome-unknown record and performs no Radio
+write. The record must not be clearable through this path before the normal
+read succeeds.
+
 ## 10. Regression evidence
 
 The retained external evidence is indexed in
@@ -325,3 +408,44 @@ state machines. It proves the existing evidence without using a Radio.
 The reviewed Communication Protocol and Data Storage Reference remain
 authoritative for normal Codeplug operations. Their normal write flow must not
 be used to authorize updater addresses or updater-specific command payloads.
+
+## 11. Browser implementation and release gate
+
+Release-specific data is owned by
+[`data/update-catalog/uvl15w.json`](../../data/update-catalog/uvl15w.json).
+The generic package and transport modules consume this catalog; they do not own
+firmware versions, package hashes, resource address maps, prerequisites, or
+captured update-mode identities. The adjacent catalog README is the required
+procedure for adding older or newer packages without widening compatibility by
+accident.
+
+The browser implementation follows these boundaries:
+
+- `modules/update-catalog`: versioned package, compatibility, prerequisite, and
+  normal-mode firmware support policy loaded from the data catalog;
+- `modules/update-package`: exact package classification, SHA-256, Firmware
+  integrity, DAT grammar, continuity, and address policy;
+- `modules/uvl15w-updater`: update-mode handshake, compatibility policy,
+  Firmware and Resource state machines, transforms, acknowledgements,
+  finalization, and sanitized recovery facts;
+- `components/update-coordinator-provider.tsx`: exclusive operation ownership,
+  persistent Update Outcome Unknown records, restart flow, installed-version
+  checks, and complete post-reboot Radio Read;
+- `components/updates`: the localized single-Radio flow, split into package,
+  preparation, transfer, verification, and shared-feedback components.
+
+The preparation screen exposes browser connection readiness before Start can
+be enabled. Active updates lock unrelated navigation with an operation-specific
+message, and the Codeplug status footer is hidden on the updater route so it
+cannot be mistaken for update status.
+
+Each catalog package owns an explicit `disabled`, `beta`, or `stable` release
+status. `disabled` packages are rejected before Web Serial. `beta` packages
+require a risk dialog on every Updates-page visit and explicit acknowledgement
+before package selection. The acknowledged state is passed into the normal
+preparation policy and enforced again by the coordinator before writing.
+`stable` requires a second compatible Radio and the controlled
+interruption/recovery matrix. Follow
+[`../testing/updater-manual-validation.md`](../testing/updater-manual-validation.md)
+before changing a package's status; never derive availability from build mode,
+filename, version, or package kind.

@@ -21,12 +21,199 @@ const tr = {
   navConfiguration: "Programlama",
   navDevelopment: "Geliştirme",
   navFirmwareSimulator: "Firmware Simülatörü",
+  navUpdates: "Güncellemeler",
   navAprs: "APRS",
   navGps: "GPS",
   navBluetooth: "Bluetooth",
   navFmRadio: "FM Radyo",
   navSettings: "Telsiz Ayarları",
   navSignalSystem: "Sinyal Sistemi",
+  updatesTitle: "Telsiz Güncellemeleri",
+  updatesBetaBadge: "Beta",
+  updatesStepsLabel: "Güncelleme akışı",
+  updatesStepPackage: "Paket",
+  updatesStepPackageHint: "Dosyayı kontrol et",
+  updatesStepTransfer: "Aktarım",
+  updatesStepTransferHint: "Telsize yükle",
+  updatesStepVerify: "Kontrol",
+  updatesStepVerifyHint: "Yeniden başlatıp kontrol et",
+  updatesStepComplete: "Tamamlandı",
+  updatesPackageTitle: "Resmî TYT paketini seçin",
+  updatesPackageDescription:
+    "Seri port erişimi istenmeden önce dosyanın tamamı kontrol edilir.",
+  updatesChooseDifferent: "Başka paket seç",
+  updatesValidatingPackage: "Paket doğrulanıyor",
+  updatesValidatingPackageHint:
+    "Dosyanın eksiksiz ve bu telsiz için desteklenen bir paket olduğu kontrol ediliyor.",
+  updatesSelectPackage: "Güncelleme paketi seçin",
+  updatesSelectPackageHint:
+    "Firmware, dil, görsel ve birleşik dil-görsel paketleri desteklenir.",
+  updatesBrowsePackage: "Paket seç",
+  updatesAcceptedPackages: "Yalnız resmî .Fir veya .DAT dosyaları",
+  updatesPackageFacts: "{size} · {blocks, number} blok",
+  updatesPackageValidated: "Doğrulanmış paket",
+  updatesPackageValidatedHint:
+    "Bu dosya desteklenen resmî UVL-15W paketlerinden biriyle eşleşiyor. Desteklenmeyen dosyalar telsize bağlanamaz.",
+  updatesPrepareTitle: "Telsizi Hazırlayın",
+  updatesPrepareDescription:
+    "Yazma işlemini başlatmadan önce tüm hazırlıkları tamamlayın.",
+  updatesBrowserCheckingTitle: "Tarayıcı kontrol ediliyor",
+  updatesBrowserCheckingDescription:
+    "Tarayıcı telsize bağlanmaya hazır olduğunda güncelleme düğmesi açılır.",
+  updatesBrowserUnavailableTitle: "Bu tarayıcı telsize bağlanamıyor",
+  updatesBrowserUnavailableDescription:
+    "USB seri port erişimi olan masaüstü Chrome, Edge veya Brave ile bu sayfayı yeniden açın.",
+  updatesBrowserInsecureDescription:
+    "CPS'yi güvenli bir HTTPS bağlantısı üzerinden açıp güncelleme sayfasına yeniden girin.",
+  updatesBackupCheck: "Güncel bir Codeplug yedeğim var",
+  updatesBackupCheckHint:
+    "Telsiz güncellemesi Codeplug yedeğinin yerini tutmaz. Devam etmeden önce çalıştığını bildiğiniz bir yedek alın.",
+  updatesPowerCheck: "Pil ve USB bağlantısı hazır",
+  updatesPowerCheckHint:
+    "Şarjlı pil ve doğrudan USB bağlantısı kullanın. Gevşek kablo veya hub kullanmayın.",
+  updatesLanguagePrerequisiteCheck: "Dil paketi {version} zaten yüklü",
+  updatesLanguagePrerequisiteCheckHint:
+    "Firmware {firmwareVersion} yüklenmeden önce Dil Paketi {languageVersion} kurulmuş olmalıdır. Emin değilseniz önce dil paketini yükleyin.",
+  updatesBootModeCheck: "Telsiz güncelleme modunda",
+  updatesBootModeCheckHint:
+    "Telsizi kapatın. Açarken PTT ve üst turuncu tuşa basılı tutun; USB bağlı kalsın.",
+  updatesBetaTitle: "Beta güncelleme özelliği",
+  updatesBetaDialogDescription:
+    "Firmware ve flash güncellemeleri telsizin normal açılmasını etkileyebilir. Devam etmeden önce bu riskleri okuyun.",
+  updatesBetaRiskInterruptTitle: "Yazma işlemini kesmeyin",
+  updatesBetaRiskInterruptDescription:
+    "USB bağlantısının kesilmesi, tarayıcının kapanması veya güç kaybı güncellemeyi yarım bırakabilir.",
+  updatesBetaRiskRecoveryTitle: "Kurtarma gerekebilir",
+  updatesBetaRiskRecoveryDescription:
+    "Sonuç doğrulanamazsa telsizi kurtarmak için resmî TYT CPS'ye ve aynı pakete ihtiyacınız olabilir.",
+  updatesBetaRiskPackageTitle: "Yalnız doğru resmî paketi kullanın",
+  updatesBetaRiskPackageDescription:
+    "Başka model paketi, test firmware'i, özel dosya veya eski sürüm kullanmayın.",
+  updatesBetaLeave: "Telsiz sayfasına dön",
+  updatesBetaContinue: "Riskleri anlıyorum - devam et",
+  updatesNoCancelHint:
+    "Yazma başladıktan sonra iptal düğmesi yoktur. Doğrulama bitene kadar bu sayfayı açık tutun.",
+  updatesStart: "Güncellemeyi başlat",
+  updatesDoNotDisconnect: "Bağlantıyı kesmeyin veya telsizi kapatmayın",
+  updatesDoNotDisconnectHint:
+    "Telsiz her bloğu onaylıyor. Tarayıcıyı kapatmak veya USB'yi kesmek güncelleme sonucunu belirsiz bırakabilir.",
+  updatesProgressValue:
+    "{total, number} bloktan {completed, number} tamamlandı",
+  updatesPhaseConnecting: "Bağlanıyor",
+  updatesPhaseHandshake: "Telsiz kontrol ediliyor",
+  updatesPhaseTransfer: "Paket yazılıyor",
+  updatesPhaseVerify: "Aktarım doğrulanıyor",
+  updatesPhaseFinalize: "Tamamlanıyor",
+  updatesRestartTitle: "Telsizi yeniden başlatın ve doğrulayın",
+  updatesRestartDescription:
+    "Dosya aktarıldı. Telsiz normal şekilde açılıp eksiksiz Telsiz Okuma tamamlanmadan güncelleme başarılı sayılmaz.",
+  updatesTransferAccepted: "Dosya aktarıldı",
+  updatesRestartStepOff: "Telsizi kapatın ve tüm tuşları bırakın.",
+  updatesRestartStepNormal:
+    "Normal şekilde açın. PTT veya turuncu tuşa basmayın.",
+  updatesRestartStepConnect:
+    "USB'yi bağlayın, ardından aşağıdan telsiz portunu seçin.",
+  updatesLanguageVerifyCheck:
+    "Telsizde Dil Paketi {version} sürümünü kontrol ettim",
+  updatesLanguageVerifyCheckHint:
+    "Telsiz Okuma, yüklü dil paketi sürümünü otomatik olarak göstermez. Devam etmeden önce sürümü telsizin menüsünden kontrol edin.",
+  updatesReadingRadio: "Eksiksiz Telsiz Okuma yapılıyor",
+  updatesVerificationHint:
+    "Bu işlem telsizin bildirdiği sürümü kontrol eder ve güncellemeden sonra Codeplug'ın tamamını okur.",
+  updatesVerifyButton: "Bağlan ve doğrula",
+  updatesCompleteTitle: "Güncelleme doğrulandı",
+  updatesCompleteDescription:
+    "Güncelleme tamamlandı; telsiz normal açıldı, beklenen sürümler kontrol edildi ve eksiksiz Telsiz Okuma başarılı oldu.",
+  updatesAnother: "Başka bir paket yükle",
+  updatesUnknownTitle: "Güncellemenin sonucu doğrulanamadı",
+  updatesUnknownDescription:
+    "Yazma işlemi başlamış olabilir ancak paketin başarıyla yüklendiği doğrulanamadı. Bu nedenle işlem başarılı veya başarısız sayılmıyor.",
+  updatesActionRequired: "Kurtarma gerekli",
+  updatesDoNotRetry: "Körü körüne yeniden denemeyin",
+  updatesDoNotRetryHint:
+    "Bu aşamada yeniden yazmak güvenli olmayabilir. Kurtarma kaydını koruyun ve ne yapacağınıza karar vermeden önce telsizi kontrol edin.",
+  updatesRecoveryPackage: "Paket",
+  updatesRecoveryLastBlock: "Son onaylanan blok",
+  updatesRecoveryTime: "Kaydedildi",
+  updatesRecoveryFingerprint: "Arındırılmış telsiz parmak izi",
+  updatesRecoveryInstructions:
+    "Telsizi bir kez kapatıp normal şekilde açın. Açılmazsa aynı resmî TYT paketiyle resmî CPS kurtarma işlemini uygulayın. Başka model, sürüm, eski sürüm veya test firmware'i denemeyin.",
+  updatesRecoveryCheckTitle: "Telsizi normal modda kontrol edin",
+  updatesRecoveryCheckHint:
+    "Telsizi normal şekilde açın, USB'yi bağlayın ve yeniden yazmayı denemeden önce eksiksiz Telsiz Okuma yapın.",
+  updatesRecoveryCheckButton: "Telsize bağlan ve kontrol et",
+  updatesRecoveryChecking:
+    "Telsizin normal açılışı ve verileri kontrol ediliyor",
+  updatesRecoveryRadioReady: "Telsiz normal şekilde çalışıyor",
+  updatesRecoveryRadioReadyBrowserHint:
+    "Bu paket tarayıcıdan kurtarmayı destekliyor. Aynı paketi yeniden seçebilir veya resmî CPS ile kurtarmayı tamamladıktan sonra bu uyarıyı kaldırabilirsiniz.",
+  updatesRecoveryRadioReadyOfficialHint:
+    "Bu paket tarayıcıdan kurtarmayı desteklemiyor. Kesilen işlemde kullanılan paketin aynısıyla resmî TYT CPS üzerinden kurtarma yapın, ardından burada onaylayın.",
+  updatesRecoveryChooseSamePackage: "Aynı paketi yeniden seç",
+  updatesRecoveryOfficialComplete: "Resmî CPS ile kurtarmayı tamamladım",
+  updatesSafetyTitle: "Güvenlik sınırı",
+  updatesSafetyDescription:
+    "Bu araç, resmî CPS'deki toplu güncelleme özelliğinden daha sınırlı çalışır.",
+  updatesSafetyOfficial: "Yalnız bilinen paketler",
+  updatesSafetyOfficialHint:
+    "Dosyanın SHA-256 özeti, bütünlüğü, kayıt yapısı ve adres aralıkları kontrol edilir.",
+  updatesSafetyConnection: "Her blok için onay",
+  updatesSafetyConnectionHint:
+    "Sonraki blok gönderilmeden önce her blok tam olarak beklenen yanıtı almalıdır.",
+  updatesSafetyLocal: "Sunucuya gönderim yok",
+  updatesSafetyLocalHint:
+    "Paketler, telsiz bilgileri, oturum anahtarları ve seri iletişim kayıtları yalnızca bu tarayıcı oturumunda kalır.",
+  updatesStayOnPage: "Telsizle işlem yapılırken diğer sayfalara geçilemez.",
+  updatesKindFirmware: "Firmware Güncellemesi",
+  updatesKindLanguage: "Dil Paketi Yükleme",
+  updatesKindImage: "Görsel Paketi Yükleme",
+  updatesKindCombined: "Dil ve Görsel Paketi Yükleme",
+  updatesStoppedTitle: "Güncelleme durdu",
+  updatesErrorEmpty: "Seçilen paket boş.",
+  updatesErrorExtension: "Resmî TYT .Fir veya .DAT paketi seçin.",
+  updatesErrorUnknownPackage:
+    "Bu paket UVL-15W güncellemesi için desteklenmiyor. Seri port açılmadı.",
+  updatesErrorPackageNotReleased:
+    "Bu paket sistemde kayıtlı ancak tarayıcıdan yüklemeye henüz açılmadı. Seri port açılmadı.",
+  updatesErrorFirmwareIntegrity:
+    "Firmware paketi TYT bütünlük kontrolünü geçemedi. Seri port açılmadı.",
+  updatesErrorDatInvalid:
+    "Veri paketinin kayıt yapısı, sıralaması veya adresleri geçersiz. Seri port açılmadı.",
+  updatesErrorBusy: "Başka bir telsiz işlemi zaten etkin.",
+  updatesErrorConfirmation: "Önce gerekli tüm hazırlık maddelerini onaylayın.",
+  updatesErrorPermission:
+    "Telsiz portu seçilmedi veya seri port izni reddedildi.",
+  updatesErrorSerial: "Seçilen seri port güncelleme modunda açılamadı.",
+  updatesErrorConnection: "İşlem sırasında USB seri bağlantısı kapandı.",
+  updatesErrorTimeout: "Telsiz beklenen yanıtı zamanında vermedi.",
+  updatesErrorProtocol:
+    "Telsiz, mevcut güncelleme adımında beklenmeyen bir yanıt verdi.",
+  updatesErrorFrameHead:
+    "Telsiz veri çerçevesinin başlangıcını reddetti. Başka bir komut denenmeden güncelleme durduruldu.",
+  updatesErrorFrameTail:
+    "Telsiz veri çerçevesinin eksik olduğunu bildirdi. Sonraki bloğa geçilmeden güncelleme durduruldu.",
+  updatesErrorFrameLength:
+    "Telsiz çerçeve uzunluğunu reddetti. Sonraki bloğa geçilmeden güncelleme durduruldu.",
+  updatesErrorFrameLrc:
+    "Telsiz, çerçeve bütünlük hatası nedeniyle aynı bloğu üç kez reddetti.",
+  updatesErrorOptionValue:
+    "Telsiz güncelleme komutunu veya değerlerinden birini reddetti. Yeniden denemeden önce telsizin güncelleme modunda açıldığını doğrulayın.",
+  updatesErrorUnsupportedRecovery:
+    "Bu paket tarayıcıdan kurtarmayı desteklemiyor. Resmî TYT CPS ile kurtarma yapın.",
+  updatesErrorRecoveryPackageMismatch:
+    "Kesilen güncellemede kullanılan resmî paketin birebir aynısını seçin.",
+  updatesErrorIncompatible:
+    "Bu telsizin model, donanım, bootloader veya firmware bilgileri bu güncelleme için desteklenmiyor.",
+  updatesErrorVerification:
+    "Telsiz yeniden başladı ancak bildirilen yüklü sürüm paketle eşleşmedi.",
+  updatesErrorLanguageVerification:
+    "Devam etmeden önce telsizde dil paketi sürümünü kontrol edin.",
+  updatesErrorUnknown:
+    "Bilinmeyen bir hata nedeniyle güncelleme sürdürülemedi.",
+  updatesSupportReportTitle: "Sorunu incelememize yardımcı olun",
+  updatesSupportReportDescription:
+    "Hata raporunu indirip destek talebinize ekleyin. Rapor paket bilgilerini ve son seri iletişim kayıtlarını içerir; firmware oturum anahtarını ve telsiz kimlik yanıtını içermez. Hiçbir veri otomatik olarak gönderilmez.",
+  updatesSupportReportDownload: "Raporu indir",
   signalSystemTitle: "Sinyal Sistemi",
   signalReadRequiredTitle:
     "Sinyal ayarlarını düzenlemek için bir telsiz okuyun",

@@ -83,6 +83,8 @@ interface CpsWorkspaceContextValue {
   readonly capability: RadioCapability | "checking"
   readonly busy: boolean
   readonly changes: readonly WorkspaceChange[]
+  claimExternalRadioOperation(): boolean
+  releaseExternalRadioOperation(): void
   readRadio(): Promise<void>
   downloadRawBackup(): void
   addMemoryChannel(): void
@@ -165,9 +167,24 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
   }>({ completedRead: null, changes: [] })
   const [progress, setProgress] = React.useState(0)
   const [error, setError] = React.useState<WorkspaceError | null>(null)
+  const [externalOperationBusy, setExternalOperationBusy] =
+    React.useState(false)
   const { completedRead, changes } = documentState
 
-  const busy = phase === "connecting" || phase === "reading"
+  const busy =
+    phase === "connecting" || phase === "reading" || externalOperationBusy
+
+  const claimExternalRadioOperation = React.useCallback(() => {
+    if (operationInProgress.current) return false
+    operationInProgress.current = true
+    setExternalOperationBusy(true)
+    return true
+  }, [])
+
+  const releaseExternalRadioOperation = React.useCallback(() => {
+    operationInProgress.current = false
+    setExternalOperationBusy(false)
+  }, [])
 
   const readRadio = React.useCallback(async () => {
     if (capability !== "available" || busy || operationInProgress.current) {
@@ -1211,6 +1228,8 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       capability,
       busy,
       changes,
+      claimExternalRadioOperation,
+      releaseExternalRadioOperation,
       readRadio,
       downloadRawBackup,
       addMemoryChannel,
@@ -1252,6 +1271,8 @@ function CpsWorkspaceProvider({ children }: { children: React.ReactNode }) {
       capability,
       busy,
       changes,
+      claimExternalRadioOperation,
+      releaseExternalRadioOperation,
       readRadio,
       downloadRawBackup,
       addMemoryChannel,

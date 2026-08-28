@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 2,
+  "normalModeFirmwareVersions": ["3.07.23"],
+  "radioProfiles": [
+    {
+      "id": "uvl15w-production-2026-07",
+      "hardwareFieldHashes": [
+        "940e607dca75543b3d6625ea8b088d503beccc079ed628e4a7b40bc02168b339"
+      ],
+      "bootloaderFieldHashes": [
+        "bc20d0d2b480678a1b2ac78be8770d641051fe49c7ff366965a7c8121e153f7e"
+      ],
+      "modelFieldHashes": [
+        "7471941dd79d582f650b4e454f94bc6fa2806f991de010419c723026f6e92417"
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "id": "firmware-3.7.23",
+      "kind": "firmware",
+      "fileType": "fir",
+      "version": "3.7.23",
+      "releaseStatus": "beta",
+      "sha256": "3b4bc8f8feff871e0ea082a31f99488f411eaefd879903f13bbb7c30d385f6b4",
+      "radioProfileId": "uvl15w-production-2026-07",
+      "sourceFirmwareVersions": ["3.07.23"],
+      "targets": { "firmware": "3.07.23" },
+      "prerequisites": [
+        { "kind": "language", "version": "1.01.05", "relation": "exact" }
+      ]
+    },
+    {
+      "id": "language-1.01.05",
+      "kind": "language",
+      "fileType": "dat",
+      "version": "1.01.05",
+      "releaseStatus": "beta",
+      "sha256": "bcf6c1f19233518d7bb7fde970a1062843f3868b5876d3ea6c3e6ed5e291e1e6",
+      "radioProfileId": "uvl15w-production-2026-07",
+      "sourceFirmwareVersions": ["3.07.23"],
+      "targets": { "language": "1.01.05" },
+      "prerequisites": [],
+      "resource": {
+        "startAddress": 7602176,
+        "endAddress": 7701024,
+        "recordCount": 3089,
+        "compatibilityPayloadHex": "0000000d00000000"
+      }
+    },
+    {
+      "id": "image-1.01.00",
+      "kind": "image",
+      "fileType": "dat",
+      "version": "1.01.00",
+      "releaseStatus": "beta",
+      "sha256": "0164e952aca45c345f152936fd57b54744be5aff78f6ef0b9ec5f63c2abbb5d2",
+      "radioProfileId": "uvl15w-production-2026-07",
+      "sourceFirmwareVersions": ["3.07.23"],
+      "targets": { "image": "1.01.00" },
+      "prerequisites": [],
+      "resource": {
+        "startAddress": 1507328,
+        "endAddress": 4474272,
+        "recordCount": 92717,
+        "compatibilityPayloadHex": "0000001d00000000",
+        "recoveryCompatibilityPayloadHex": "0000000000000000"
+      }
+    },
+    {
+      "id": "language-1.01.05-image-1.01.00",
+      "kind": "combined",
+      "fileType": "dat",
+      "version": "Language 1.01.05 + Image 1.01.00",
+      "releaseStatus": "beta",
+      "sha256": "56213735761983aefd5ea6e9e449c1cbb0d998ebe851857102a02275fdf80934",
+      "radioProfileId": "uvl15w-production-2026-07",
+      "sourceFirmwareVersions": ["3.07.23"],
+      "targets": { "language": "1.01.05", "image": "1.01.00" },
+      "prerequisites": [],
+      "resource": {
+        "startAddress": 1507328,
+        "endAddress": 8192000,
+        "recordCount": 208896,
+        "compatibilityPayloadHex": "0000001100000000"
+      }
+    }
+  ]
+}

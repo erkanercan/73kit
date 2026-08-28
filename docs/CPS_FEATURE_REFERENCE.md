@@ -1380,8 +1380,10 @@ firmware update commands
 - [x] combined Language/Image Resource Flash captured bidirectionally
 - [x] Language/Image/combined DAT structure and inclusion verified offline
 - [x] explain variable Resource Flash `E3` source and pin compatibility payloads
-- [ ] browser Firmware Update implementation and physical verification
-- [ ] browser Resource Flash implementation and recovery validation
+- [x] catalog-driven browser Firmware Update released as single-Radio beta
+- [x] catalog-driven browser Resource Flash released as single-Radio beta
+- [x] physical browser success path for each supported package kind
+- [ ] second-Radio and interruption/recovery validation
 - [ ] custom firmware tooling
 
 ---

@@ -116,6 +116,10 @@ function encodeResponseFrame(
 class ResponseFrameDecoder {
   #buffer: number[] = []
 
+  pendingBytes() {
+    return Uint8Array.from(this.#buffer)
+  }
+
   push(chunk: Uint8Array): FrameDecodeEvent[] {
     this.#buffer.push(...chunk)
     const events: FrameDecodeEvent[] = []

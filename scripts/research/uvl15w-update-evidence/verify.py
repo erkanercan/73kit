@@ -23,6 +23,7 @@ EXPECTED_HASHES = {
     "07-combined-1.01.05-image-1.01.00-callsite.jsonl": "b8026214ebcd65acb8f7d75a6b1d9ac4c28c65faa9f2227e9ed49be8dfbdf5d2",
     "08-language-e3-callsite-v2.jsonl": "e3fb97e42f0b668429c84aff2828305b403ff4bc4e79c2f835f2840e8f03c7f1",
     "09-language-e3-cps-callsite-v3.jsonl": "3f4bfb1414dded0ee6844e64c0b0dc37062bdc3ac7ba76cb00f15ffe7eb86340",
+    "10-image-recovery-after-partial.jsonl": "639e6befc94b76bed43b9ec9c7202787c1268b874ea0816c339e469a0b671b9b",
 }
 
 VENDOR_FILES = {
@@ -313,7 +314,7 @@ def main() -> int:
         path = args.capture_dir / name
         require(path.is_file(), f"missing capture: {path}")
         require(sha256(path) == expected, f"capture hash mismatch: {name}")
-    print("PASS capture manifest (9 files)")
+    print("PASS capture manifest (10 files)")
 
     parsed_captures = {
         name: load_capture(args.capture_dir / name)[0] for name in EXPECTED_HASHES
@@ -326,13 +327,14 @@ def main() -> int:
         "07-combined-1.01.05-image-1.01.00-callsite.jsonl": "0000001100000000",
         "08-language-e3-callsite-v2.jsonl": "0000000100000001",
         "09-language-e3-cps-callsite-v3.jsonl": "0000000D00000000",
+        "10-image-recovery-after-partial.jsonl": "0000000000000000",
     }
     for name, expected in expected_e3.items():
         starts = frames_in(parsed_captures[name], "tx", 0xE3)
         require(len(starts) == 1, f"{name}: Resource Flash E3 count")
         require(starts[0].payload.hex().upper() == expected, f"{name}: E3 payload")
-    require(len(set(expected_e3.values())) == 6, "expected six distinct E3 payloads")
-    print("PASS all capture frame LRCs and seven pinned E3 observations")
+    require(len(set(expected_e3.values())) == 7, "expected seven distinct E3 payloads")
+    print("PASS all capture frame LRCs and eight pinned E3 observations")
 
     cps_path = args.vendor_root / "UVL-15W_Program_Software.exe"
     require(cps_path.is_file(), f"missing vendor CPS: {cps_path}")
@@ -389,6 +391,19 @@ def main() -> int:
         args.capture_dir / "06-image-1.01.00-callsite.jsonl", image, 5795
     )
     print("PASS captured image write and 5,795 acknowledgements")
+
+    verify_resource(
+        args.capture_dir / "10-image-recovery-after-partial.jsonl", image, 5795
+    )
+    recovery_frames = parsed_captures["10-image-recovery-after-partial.jsonl"]
+    require(
+        len(frames_in(recovery_frames, "tx", 0xE0)) == 1
+        and len(frames_in(recovery_frames, "rx", 0xE1)) == 1
+        and len(frames_in(recovery_frames, "tx", 0xE6)) == 50
+        and len(frames_in(recovery_frames, "rx", 0xE4)) == 50,
+        "Image recovery post-write normal Radio read",
+    )
+    print("PASS captured Image recovery full rewrite and normal Radio read")
 
     verify_resource(
         args.capture_dir / "07-combined-1.01.05-image-1.01.00-callsite.jsonl",

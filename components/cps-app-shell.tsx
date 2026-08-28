@@ -15,6 +15,7 @@ import {
   useCpsWorkspace,
   type WorkspacePhase,
 } from "@/components/cps-workspace-provider"
+import { useUpdateCoordinator } from "@/components/update-coordinator-provider"
 import { Badge } from "@/components/ui/badge"
 import {
   Breadcrumb,
@@ -61,6 +62,7 @@ function CpsAppShell({ children }: { children: React.ReactNode }) {
 
 function AppHeader() {
   const { busy, capability, completedRead, readRadio } = useCpsWorkspace()
+  const { busy: updateBusy } = useUpdateCoordinator()
   const pathname = usePathname()
   const t = useTranslations()
 
@@ -81,53 +83,61 @@ function AppHeader() {
                   ? t("navZones")
                   : pathname === "/scan-lists"
                     ? t("navScanLists")
-                    : pathname === "/prototype/firmware-compatibility"
-                      ? t("navFirmwareSimulator")
-                      : pathname.startsWith("/radio-settings")
-                        ? t("navSettings")
-                        : t("navRadio")}
+                    : pathname === "/updates"
+                      ? t("navUpdates")
+                      : pathname === "/prototype/firmware-compatibility"
+                        ? t("navFirmwareSimulator")
+                        : pathname.startsWith("/radio-settings")
+                          ? t("navSettings")
+                          : t("navRadio")}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
       <div className="ml-auto flex items-center gap-2">
         <LanguageSwitcher />
-        <Button
-          size="sm"
-          disabled={busy || capability !== "available"}
-          onClick={() => void readRadio()}
-        >
-          {busy ? (
-            <LoaderCircleIcon
-              data-icon="inline-start"
-              className="animate-spin"
-            />
-          ) : (
-            <DownloadIcon data-icon="inline-start" />
-          )}
-          <span className="hidden sm:inline">
-            {busy
-              ? t("readingRadio")
-              : completedRead
-                ? t("readAgain")
-                : t("readRadio")}
-          </span>
-          <span className="sr-only sm:hidden">
-            {busy
-              ? t("readingRadioPlain")
-              : completedRead
-                ? t("readAgain")
-                : t("readRadio")}
-          </span>
-        </Button>
-        <Button size="sm" variant="outline" disabled>
-          <UploadIcon data-icon="inline-start" />
-          <span className="hidden sm:inline">{t("writeRadio")}</span>
-          <span className="sr-only sm:hidden">{t("writeRadioPlanned")}</span>
-        </Button>
-        <Badge variant="outline" className="hidden lg:inline-flex">
-          {t("planned")}
-        </Badge>
+        {pathname !== "/updates" && (
+          <>
+            <Button
+              size="sm"
+              disabled={busy || updateBusy || capability !== "available"}
+              onClick={() => void readRadio()}
+            >
+              {busy ? (
+                <LoaderCircleIcon
+                  data-icon="inline-start"
+                  className="animate-spin"
+                />
+              ) : (
+                <DownloadIcon data-icon="inline-start" />
+              )}
+              <span className="hidden sm:inline">
+                {busy
+                  ? t("readingRadio")
+                  : completedRead
+                    ? t("readAgain")
+                    : t("readRadio")}
+              </span>
+              <span className="sr-only sm:hidden">
+                {busy
+                  ? t("readingRadioPlain")
+                  : completedRead
+                    ? t("readAgain")
+                    : t("readRadio")}
+              </span>
+            </Button>
+            <Button size="sm" variant="outline" disabled>
+              <UploadIcon data-icon="inline-start" />
+              <span className="hidden sm:inline">{t("writeRadio")}</span>
+              <span className="sr-only sm:hidden">
+                {t("writeRadioPlanned")}
+              </span>
+            </Button>
+            <Badge variant="outline" className="hidden lg:inline-flex">
+              {t("planned")}
+            </Badge>
+          </>
+        )}
       </div>
     </header>
   )
@@ -135,7 +145,10 @@ function AppHeader() {
 
 function WorkspaceStatusBar() {
   const { changes, completedRead, phase, sourceRadio } = useCpsWorkspace()
+  const pathname = usePathname()
   const t = useTranslations()
+
+  if (pathname === "/updates") return null
 
   return (
     <>

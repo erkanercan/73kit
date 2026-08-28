@@ -3,7 +3,7 @@
 This standard-library-only tool replays the retained official-CPS evidence
 offline. It opens no serial port and cannot write to a Radio.
 
-Keep the nine raw capture files outside Git because they contain opaque Radio
+Keep the ten raw capture files outside Git because they contain opaque Radio
 identity/activation material. The verifier pins their SHA-256 hashes, validates
 every captured frame LRC, and performs these checks:
 
@@ -11,10 +11,13 @@ every captured frame LRC, and performs these checks:
   `E4` write blocks, including all 194 `E6` acknowledgements.
 - Image `1.01.00.DAT` exact reconstruction from 5,795 captured `E4` blocks and
   all corresponding acknowledgements.
+- Image recovery after a partial browser write: recovery-only `E3` payload,
+  full rewrite from the package's first address, 5,795 acknowledgements, and
+  the official CPS's following normal Radio read.
 - Combined Language `1.01.05` and Image `1.01.00` exact reconstruction from
   13,056 captured blocks and acknowledgements.
-- Every complete frame LRC in all nine captures and all seven pinned Resource
-  Flash `E3` observations (six distinct payloads).
+- Every complete frame LRC in all ten captures and all eight pinned Resource
+  Flash `E3` observations (seven distinct payloads).
 - The v3 direct CPS callsite diagnostic and its complete Language transfer.
 - The pinned official CPS executable and exact E3-builder/object-layout
   signatures used by the static analysis conclusion.

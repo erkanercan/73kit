@@ -63,6 +63,19 @@ test("reassembles a response across arbitrary serial chunks", () => {
   }
 })
 
+test("retains an incomplete response for transfer-timeout diagnostics", () => {
+  const decoder = new ResponseFrameDecoder()
+  const frame = encodeResponseFrame(0x2c, encoder.encode("OK"))
+  const partial = frame.slice(0, -1)
+
+  assert.deepEqual(decoder.push(partial), [])
+  assert.deepEqual(decoder.pendingBytes(), partial)
+
+  const events = decoder.push(frame.slice(-1))
+  assert.equal(events.length, 1)
+  assert.deepEqual(decoder.pendingBytes(), new Uint8Array())
+})
+
 test("rejects Codeplugs that are not the complete documented region", () => {
   assert.throws(
     () => createCodeplug(new Uint8Array(CODEPLUG_SIZE - 1)),

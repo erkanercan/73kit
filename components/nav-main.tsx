@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Link } from "@/i18n/navigation"
+import { getNavigationItemState } from "@/modules/update-presentation/index"
 
 interface NavigationItem {
   readonly title: string
@@ -24,6 +25,8 @@ interface NavigationItem {
   readonly href?: string
   readonly active?: boolean
   readonly planned?: boolean
+  readonly disabled?: boolean
+  readonly disabledDescription?: string
 }
 
 interface NavigationSection {
@@ -44,48 +47,61 @@ function NavMain({
     <SidebarGroup key={section.label}>
       <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
       <SidebarMenu>
-        {section.items.map((item) => (
-          <SidebarMenuItem key={item.title}>
-            {item.href ? (
-              <SidebarMenuButton
-                tooltip={item.title}
-                isActive={item.active}
-                render={<Link href={item.href} />}
-              >
-                <item.icon />
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-            ) : (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <span
-                      className="block"
-                      tabIndex={0}
-                      aria-label={t("plannedUnavailable", {
-                        item: item.title,
-                      })}
-                    />
-                  }
+        {section.items.map((item) => {
+          const state = getNavigationItemState({
+            planned: item.planned ?? false,
+            disabled: item.disabled ?? false,
+          })
+
+          return (
+            <SidebarMenuItem key={item.title}>
+              {item.href && state === "available" ? (
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  isActive={item.active}
+                  render={<Link href={item.href} />}
                 >
-                  <SidebarMenuButton disabled>
-                    <item.icon />
-                    <span>{item.title}</span>
-                    <Badge
-                      variant="outline"
-                      className="ml-auto group-data-[collapsible=icon]:hidden"
-                    >
-                      {plannedLabel}
-                    </Badge>
-                  </SidebarMenuButton>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  {t("plannedUnavailable", { item: item.title })}
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </SidebarMenuItem>
-        ))}
+                  <item.icon />
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <span
+                        className="block"
+                        tabIndex={0}
+                        aria-label={
+                          state === "locked"
+                            ? item.disabledDescription
+                            : t("plannedUnavailable", { item: item.title })
+                        }
+                      />
+                    }
+                  >
+                    <SidebarMenuButton disabled>
+                      <item.icon />
+                      <span>{item.title}</span>
+                      {state === "planned" && (
+                        <Badge
+                          variant="outline"
+                          className="ml-auto group-data-[collapsible=icon]:hidden"
+                        >
+                          {plannedLabel}
+                        </Badge>
+                      )}
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    {state === "locked"
+                      ? item.disabledDescription
+                      : t("plannedUnavailable", { item: item.title })}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </SidebarMenuItem>
+          )
+        })}
       </SidebarMenu>
     </SidebarGroup>
   ))

@@ -97,15 +97,18 @@ function requestCommand(buffer, length) {
 }
 
 function relativeAddress(address) {
-  const module = Process.enumerateModules().find(
+  const ownerModule = Process.enumerateModules().find(
     (candidate) =>
       address.compare(candidate.base) >= 0 &&
       address.compare(candidate.base.add(candidate.size)) < 0
   )
 
   return {
-    module: module?.name ?? null,
-    rva: module === undefined ? null : address.sub(module.base).toString(),
+    module: ownerModule?.name ?? null,
+    rva:
+      ownerModule === undefined
+        ? null
+        : address.sub(ownerModule.base).toString(),
   }
 }
 
@@ -180,15 +183,15 @@ function installFirmwareTransformHook() {
 function installHooks() {
   if (installed) return
 
-  const module = Process.findModuleByName(SERIAL_MODULE)
-  if (module === null) return
+  const serialModule = Process.findModuleByName(SERIAL_MODULE)
+  if (serialModule === null) return
 
   installed = true
 
   installFirmwareTransformHook()
 
-  const writeAddress = module.findExportByName(SYMBOLS.writeData)
-  const readAddress = module.findExportByName(SYMBOLS.readData)
+  const writeAddress = serialModule.findExportByName(SYMBOLS.writeData)
+  const readAddress = serialModule.findExportByName(SYMBOLS.readData)
 
   if (writeAddress === null || readAddress === null) {
     emit({

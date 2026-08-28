@@ -17,6 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Link } from "@/i18n/navigation"
 
 function NavSecondary({
   items,
@@ -27,6 +28,9 @@ function NavSecondary({
     readonly title: string
     readonly icon: LucideIcon
     readonly planned: boolean
+    readonly href?: string
+    readonly active?: boolean
+    readonly badge?: string
   }[]
   plannedLabel: string
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
@@ -38,33 +42,53 @@ function NavSecondary({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <span
-                      className="block"
-                      tabIndex={0}
-                      aria-label={t("plannedUnavailable", {
-                        item: item.title,
-                      })}
-                    />
-                  }
+              {item.href && !item.planned ? (
+                <SidebarMenuButton
+                  size="sm"
+                  tooltip={item.title}
+                  isActive={item.active}
+                  render={<Link href={item.href} />}
                 >
-                  <SidebarMenuButton size="sm" disabled>
-                    <item.icon />
-                    <span>{item.title}</span>
+                  <item.icon />
+                  <span>{item.title}</span>
+                  {item.badge && (
                     <Badge
-                      variant="outline"
+                      variant="warning"
                       className="ml-auto group-data-[collapsible=icon]:hidden"
                     >
-                      {plannedLabel}
+                      {item.badge}
                     </Badge>
-                  </SidebarMenuButton>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  {t("plannedUnavailable", { item: item.title })}
-                </TooltipContent>
-              </Tooltip>
+                  )}
+                </SidebarMenuButton>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <span
+                        className="block"
+                        tabIndex={0}
+                        aria-label={t("plannedUnavailable", {
+                          item: item.title,
+                        })}
+                      />
+                    }
+                  >
+                    <SidebarMenuButton size="sm" disabled>
+                      <item.icon />
+                      <span>{item.title}</span>
+                      <Badge
+                        variant="outline"
+                        className="ml-auto group-data-[collapsible=icon]:hidden"
+                      >
+                        {plannedLabel}
+                      </Badge>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    {t("plannedUnavailable", { item: item.title })}
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

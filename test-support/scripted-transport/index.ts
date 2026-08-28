@@ -4,7 +4,8 @@ import type {
 } from "../../modules/uvl15w-radio/transport.ts"
 
 interface ScriptStep {
-  readonly expectedWrite: Uint8Array
+  readonly expectedWrite:
+    Uint8Array | ((bytes: Uint8Array, stepNumber: number) => void)
   readonly responseChunks?: readonly Uint8Array[]
   readonly closeAfterWrite?: boolean
 }
@@ -55,7 +56,9 @@ class ScriptedTransport implements RadioTransport, RadioConnection {
       )
     }
 
-    if (!equalBytes(bytes, step.expectedWrite)) {
+    if (typeof step.expectedWrite === "function") {
+      step.expectedWrite(bytes.slice(), this.#stepIndex + 1)
+    } else if (!equalBytes(bytes, step.expectedWrite)) {
       throw new Error(
         `Write ${this.#stepIndex + 1} did not match the scripted request\nExpected: ${toHex(step.expectedWrite)}\nReceived: ${toHex(bytes)}`
       )

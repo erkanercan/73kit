@@ -20,12 +20,198 @@ const en = {
   navConfiguration: "Programming",
   navDevelopment: "Development",
   navFirmwareSimulator: "Firmware Simulator",
+  navUpdates: "Updates",
   navAprs: "APRS",
   navGps: "GPS",
   navBluetooth: "Bluetooth",
   navFmRadio: "FM Radio",
   navSettings: "Radio Settings",
   navSignalSystem: "Signal System",
+  updatesTitle: "Radio Updates",
+  updatesBetaBadge: "Beta",
+  updatesStepsLabel: "Update workflow",
+  updatesStepPackage: "Package",
+  updatesStepPackageHint: "Inspect and validate",
+  updatesStepTransfer: "Transfer",
+  updatesStepTransferHint: "Write in update mode",
+  updatesStepVerify: "Verify",
+  updatesStepVerifyHint: "Restart and read back",
+  updatesStepComplete: "Complete",
+  updatesPackageTitle: "Choose an official TYT package",
+  updatesPackageDescription:
+    "The package is fully validated before the browser asks for a serial port.",
+  updatesChooseDifferent: "Choose different",
+  updatesValidatingPackage: "Validating package",
+  updatesValidatingPackageHint:
+    "Checking that the file is complete and supported for this Radio.",
+  updatesSelectPackage: "Select one update package",
+  updatesSelectPackageHint:
+    "Firmware, Language Resources, Image Resources, and combined resource packages are supported.",
+  updatesBrowsePackage: "Choose package",
+  updatesAcceptedPackages: "Official .Fir or .DAT files only",
+  updatesPackageFacts: "{size} · {blocks, number} transfer blocks",
+  updatesPackageValidated: "Validated package",
+  updatesPackageValidatedHint:
+    "This file matches a supported official UVL-15W package. Unsupported files cannot connect to the Radio.",
+  updatesPrepareTitle: "Prepare the Radio",
+  updatesPrepareDescription:
+    "Confirm every prerequisite before the destructive transfer is enabled.",
+  updatesBrowserCheckingTitle: "Checking this browser",
+  updatesBrowserCheckingDescription:
+    "The update button will be available when the browser is ready to connect to the Radio.",
+  updatesBrowserUnavailableTitle: "This browser cannot connect to the Radio",
+  updatesBrowserUnavailableDescription:
+    "Use desktop Chrome, Edge, or Brave with USB serial access, then reopen this page.",
+  updatesBrowserInsecureDescription:
+    "Open this CPS over a secure HTTPS connection, then reopen the update page.",
+  updatesBackupCheck: "I have a current Codeplug Backup",
+  updatesBackupCheckHint:
+    "Radio updates do not replace a Codeplug Backup. Keep a known-good copy before continuing.",
+  updatesPowerCheck: "Power and USB are stable",
+  updatesPowerCheckHint:
+    "Use a charged battery and a direct USB connection. Do not use a loose cable or hub.",
+  updatesLanguagePrerequisiteCheck: "Language {version} is already installed",
+  updatesLanguagePrerequisiteCheckHint:
+    "TYT requires Language {languageVersion} before Firmware {firmwareVersion}. Install the Language package first if unsure.",
+  updatesBootModeCheck: "The Radio is in update mode",
+  updatesBootModeCheckHint:
+    "Power the Radio off. Hold PTT and the top orange button while powering it on, then keep USB connected.",
+  updatesBetaTitle: "Beta updater",
+  updatesBetaDialogDescription:
+    "Firmware and flash updates can affect whether the Radio starts normally. Read these risks before continuing.",
+  updatesBetaRiskInterruptTitle: "Do not interrupt the write",
+  updatesBetaRiskInterruptDescription:
+    "Disconnecting USB, closing the browser, or losing power can leave the update unfinished.",
+  updatesBetaRiskRecoveryTitle: "Recovery may be required",
+  updatesBetaRiskRecoveryDescription:
+    "If the result cannot be verified, you may need the official TYT CPS and the exact same package to recover the Radio.",
+  updatesBetaRiskPackageTitle: "Use only the correct official package",
+  updatesBetaRiskPackageDescription:
+    "Do not use packages for another model, test firmware, custom files, or an older version.",
+  updatesBetaLeave: "Return to Radio",
+  updatesBetaContinue: "I understand the risks - continue",
+  updatesNoCancelHint:
+    "There is no cancel button after writing begins. Keep this page open until verification finishes.",
+  updatesStart: "Start {operation}",
+  updatesDoNotDisconnect: "Do not disconnect or power off",
+  updatesDoNotDisconnectHint:
+    "The Radio is acknowledging each block. Closing the browser or interrupting USB can leave the update outcome unknown.",
+  updatesProgressValue: "{completed, number} of {total, number} blocks",
+  updatesPhaseConnecting: "Connecting",
+  updatesPhaseHandshake: "Checking Radio",
+  updatesPhaseTransfer: "Writing package",
+  updatesPhaseVerify: "Verifying transfer",
+  updatesPhaseFinalize: "Finalizing",
+  updatesRestartTitle: "Restart and verify the Radio",
+  updatesRestartDescription:
+    "The transfer completed, but success is not declared until the Radio restarts normally and passes a complete Radio Read.",
+  updatesTransferAccepted: "Transfer accepted",
+  updatesRestartStepOff: "Power the Radio off and release all buttons.",
+  updatesRestartStepNormal:
+    "Power it on normally. Do not hold PTT or the orange button.",
+  updatesRestartStepConnect: "Reconnect USB, then select the Radio port below.",
+  updatesLanguageVerifyCheck: "I verified Language {version} on the Radio",
+  updatesLanguageVerifyCheckHint:
+    "The normal handshake does not report the installed Language Resource version. Check it on the Radio before final verification.",
+  updatesReadingRadio: "Running complete Radio Read",
+  updatesVerificationHint:
+    "This checks the reported version where available and reads the complete Codeplug after {operation}.",
+  updatesVerifyButton: "Connect and verify",
+  updatesCompleteTitle: "Update verified",
+  updatesCompleteDescription:
+    "{operation} completed, the Radio restarted normally, expected versions were checked, and a complete Radio Read succeeded.",
+  updatesAnother: "Update another package",
+  updatesUnknownTitle: "Update Outcome Unknown",
+  updatesUnknownDescription:
+    "Writing may have started, but the installed result could not be proven. This is not reported as success or ordinary failure.",
+  updatesActionRequired: "Recovery required",
+  updatesDoNotRetry: "Do not retry blindly",
+  updatesDoNotRetryHint:
+    "A repeated write may not be safe at this phase. Preserve this recovery record and inspect the Radio before choosing a recovery path.",
+  updatesRecoveryPackage: "Package",
+  updatesRecoveryLastBlock: "Last acknowledged block",
+  updatesRecoveryTime: "Recorded",
+  updatesRecoveryFingerprint: "Sanitized Radio fingerprint",
+  updatesRecoveryInstructions:
+    "Power-cycle the Radio once and inspect whether it starts normally. If it does not, use the same official TYT package and official CPS recovery workflow; do not try another model, version, downgrade, or test firmware.",
+  updatesRecoveryCheckTitle: "Check the Radio in normal mode",
+  updatesRecoveryCheckHint:
+    "Power the Radio on normally, connect USB, and run a complete Radio Read before retrying any write.",
+  updatesRecoveryCheckButton: "Connect and check Radio",
+  updatesRecoveryChecking: "Checking normal startup and reading the Radio",
+  updatesRecoveryRadioReady: "Normal Radio operation confirmed",
+  updatesRecoveryRadioReadyBrowserHint:
+    "This package supports browser recovery. You can choose it again, or clear this warning after completing official CPS recovery.",
+  updatesRecoveryRadioReadyOfficialHint:
+    "Browser recovery is unavailable for this package. Complete recovery in the official TYT CPS with the exact same package, then confirm it here.",
+  updatesRecoveryChooseSamePackage: "Choose same package",
+  updatesRecoveryOfficialComplete: "Official CPS recovery completed",
+  updatesSafetyTitle: "Safety boundary",
+  updatesSafetyDescription:
+    "The updater deliberately supports less than the vendor's generic batch window.",
+  updatesSafetyOfficial: "Known packages only",
+  updatesSafetyOfficialHint:
+    "Exact SHA-256, package integrity, record grammar, and address ranges are enforced.",
+  updatesSafetyConnection: "Strict acknowledgements",
+  updatesSafetyConnectionHint:
+    "Every block must receive the exact expected response before the next block is sent.",
+  updatesSafetyLocal: "No server upload",
+  updatesSafetyLocalHint:
+    "Packages, Radio identity, session keys, and serial traffic remain in this browser session.",
+  updatesStayOnPage: "Navigation is locked while a Radio operation is active.",
+  updatesKindFirmware: "Firmware Update",
+  updatesKindLanguage: "Language Resource Write",
+  updatesKindImage: "Image Resource Flash",
+  updatesKindCombined: "Combined Resource Flash",
+  updatesStoppedTitle: "Update stopped",
+  updatesErrorEmpty: "The selected package is empty.",
+  updatesErrorExtension: "Choose an official TYT .Fir or .DAT package.",
+  updatesErrorUnknownPackage:
+    "This package is not supported for UVL-15W updating. No serial port was opened.",
+  updatesErrorPackageNotReleased:
+    "This exact package is registered, but it is not released for browser updating. No serial port was opened.",
+  updatesErrorFirmwareIntegrity:
+    "The Firmware Package failed its TYT integrity check. No serial port was opened.",
+  updatesErrorDatInvalid:
+    "The Flash Data Package has invalid records, continuity, or addresses. No serial port was opened.",
+  updatesErrorBusy: "Another Radio operation is already active.",
+  updatesErrorConfirmation: "Confirm every required preparation item first.",
+  updatesErrorPermission:
+    "No Radio port was selected or serial permission was denied.",
+  updatesErrorSerial:
+    "The selected serial port could not be opened for update mode.",
+  updatesErrorConnection:
+    "The USB serial connection closed during the operation.",
+  updatesErrorTimeout:
+    "The Radio did not return the expected response in time.",
+  updatesErrorProtocol:
+    "The Radio returned a response that did not match the active update step.",
+  updatesErrorFrameHead:
+    "The Radio rejected the frame header. The update was stopped without retrying a different command.",
+  updatesErrorFrameTail:
+    "The Radio reported an incomplete frame. The update was stopped without continuing to another block.",
+  updatesErrorFrameLength:
+    "The Radio rejected the frame length. The update was stopped without continuing to another block.",
+  updatesErrorFrameLrc:
+    "The Radio rejected the same block three times because of a frame integrity error.",
+  updatesErrorOptionValue:
+    "The Radio rejected the update command or one of its values. Confirm that the Radio was started in update mode before trying again.",
+  updatesErrorUnsupportedRecovery:
+    "Browser recovery is unavailable for this package. Use the official TYT CPS recovery flow.",
+  updatesErrorRecoveryPackageMismatch:
+    "Select the exact same official package used by the interrupted update.",
+  updatesErrorIncompatible:
+    "This Radio's model, hardware, bootloader, or firmware is not supported for this update.",
+  updatesErrorVerification:
+    "The Radio restarted, but the reported installed version did not match the package.",
+  updatesErrorLanguageVerification:
+    "Verify the Language Resource version on the Radio before continuing.",
+  updatesErrorUnknown:
+    "The update could not continue because of an unknown error.",
+  updatesSupportReportTitle: "Help us diagnose this update",
+  updatesSupportReportDescription:
+    "Download the local error report and attach it when contacting support. It contains package metadata and recent update traffic, but not the firmware session key or Radio identity response. Nothing is uploaded automatically.",
+  updatesSupportReportDownload: "Download report",
   signalSystemTitle: "Signal System",
   signalReadRequiredTitle: "Read a Radio to edit its signaling settings",
   signalBasicSettings: "Basic Settings",

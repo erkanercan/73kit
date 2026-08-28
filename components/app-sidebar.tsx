@@ -17,6 +17,7 @@ import {
   BluetoothIcon,
   Settings2Icon,
   AudioLinesIcon,
+  HardDriveUploadIcon,
   WaypointsIcon,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -24,6 +25,7 @@ import { useTranslations } from "next-intl"
 import { NavMain, type NavigationSection } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
+import { useUpdateCoordinator } from "@/components/update-coordinator-provider"
 import { Badge } from "@/components/ui/badge"
 import {
   Sidebar,
@@ -39,6 +41,7 @@ import { Link, usePathname } from "@/i18n/navigation"
 
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { completedRead, phase } = useCpsWorkspace()
+  const { busy: updateBusy } = useUpdateCoordinator()
   const pathname = usePathname()
   const t = useTranslations()
   const navigation: NavigationSection[] = [
@@ -144,7 +147,23 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [{ title: t("navBackups"), icon: ArchiveIcon, planned: true }],
     },
   ]
+  const guardedNavigation = navigation.map((section) => ({
+    ...section,
+    items: section.items.map((item) => ({
+      ...item,
+      disabled: updateBusy && item.href !== "/updates",
+      disabledDescription: updateBusy ? t("updatesStayOnPage") : undefined,
+    })),
+  }))
   const secondaryNavigation = [
+    {
+      title: t("navUpdates"),
+      href: "/updates",
+      icon: HardDriveUploadIcon,
+      active: pathname === "/updates",
+      planned: false,
+      badge: t("updatesBetaBadge"),
+    },
     { title: t("navDiagnostics"), icon: CircleGaugeIcon, planned: true },
     { title: t("navAbout"), icon: BookOpenIcon, planned: true },
   ]
@@ -173,7 +192,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain sections={navigation} plannedLabel={t("planned")} />
+        <NavMain sections={guardedNavigation} plannedLabel={t("planned")} />
         <NavSecondary
           items={secondaryNavigation}
           plannedLabel={t("planned")}

@@ -1,4 +1,6 @@
-const VALIDATED_FIRMWARE_VERSIONS = Object.freeze(["3.07.23"] as const)
+import { getNormalModeFirmwareVersions } from "../update-catalog/index.ts"
+
+const VALIDATED_FIRMWARE_VERSIONS = getNormalModeFirmwareVersions()
 
 type UnsupportedFirmwareReason =
   "older" | "unvalidated" | "newer-unvalidated" | "unrecognized"
