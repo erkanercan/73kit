@@ -109,7 +109,7 @@ requires a separate E7 password feature.
 - Normal-mode firmware compatibility is currently limited to `3.07.23`
   ([update catalog](../../data/update-catalog/uvl15w.json)).
 
-### Strong storage evidence that still needs write-path implementation
+### Strong storage evidence and implemented write-image materialization
 
 The reviewed storage reference is reconstructed from the vendor Qt CPS and
 controlled exports. It is strong implementation evidence, but it is not a
@@ -121,17 +121,17 @@ physical browser Radio Write result.
 - A full write should restore all ten fixed WX records from the documented
   templates
   ([WX rule](../technical/TYT_UVL-15W_Data_Storage_Reference_V1.0_EN_REVIEWED.md#35-wx-channels)).
-- The current Codeplug editor changes VFO records only and `toBytes()` returns
-  its exact stored bytes. There is no private write-image materializer that
-  applies the VFO/Temp and WX rules
-  ([channel editor](../../modules/codeplug/channel-edit.ts),
+- The Codeplug interface now materializes a firmware-`3.07.23` write image that
+  applies both rules, preserves the Working Codeplug, returns immutable bytes
+  and SHA-256, and exposes only semantic derived-change markers
+  ([write-image materializer](../../modules/codeplug/write-image.ts),
   [Codeplug](../../modules/codeplug/index.ts)).
 
 The materialized write image, rather than the pre-normalization Working
-Codeplug bytes, must become the byte-for-byte verification target. The product
-also needs an explicit rule for how these derived internal changes appear in
-Change Set review; silently changing hidden bytes would otherwise conflict with
-the promise that values outside the Change Set remain unchanged.
+Codeplug bytes, is the future byte-for-byte verification target. The
+materializer reports whether VFO/Temporary Channel mirroring or fixed Weather
+Channel restoration changed bytes so Change Set review can disclose those
+internal normalizations without exposing offsets.
 
 ### Hardware-unverified assumptions
 
@@ -166,10 +166,10 @@ tested, the following remain assumptions:
 1. **Implement and exhaustively test the protocol writer.** Add E3, full-range
    E4 blocks, strict E6 `WF OK`/address/length validation, E5 `Write Complete`,
    progress, and destructive-start tracking inside `modules/uvl15w-radio`.
-2. **Build the exact write image.** Add a private Codeplug operation that
-   applies the VFO-to-Temp and fixed-WX invariants without exposing offsets to
-   the workspace or UI. Freeze/hash the resulting 102,400-byte target before
-   starting the operation.
+2. **Use the exact write image.** The firmware-`3.07.23` Codeplug materializer
+   now applies the VFO-to-Temp and fixed-WX invariants without exposing offsets,
+   and freezes/hashes the 102,400-byte result. The future writer and coordinator
+   must use this artifact rather than `WorkingCodeplug.codeplug.toBytes()`.
 3. **Define failure boundaries.** Failures before the first E4 transmission are
    ordinary preflight failures. From the moment the first E4 may have reached
    the Radio until exact readback succeeds, any timeout, disconnect, malformed

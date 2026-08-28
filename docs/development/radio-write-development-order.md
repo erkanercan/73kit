@@ -45,21 +45,27 @@ The CPS Workspace seam now defines:
 No E3, E4 write, E6 write acknowledgement, or E5 `Write Complete` command is
 implemented or reachable in this step.
 
-## 2. Materialize the firmware-specific write image
+## 2. Materialize the firmware-specific write image — implemented
 
-- Add one private Codeplug operation for the `uvl15w-3.07.23` profile.
-- Apply the documented VFO-to-Temporary-Channel mirror rules.
-- Apply the documented fixed Weather Channel templates.
-- Preserve all other opaque and reserved bytes.
-- Produce exactly 102,400 immutable bytes and a SHA-256 digest.
-- Make the materialized image, not the editable pre-normalization bytes, the
+- The Codeplug interface materializes only the `uvl15w-3.07.23` profile.
+- It copies the complete VFO A/B records to Temporary Channels A/B.
+- It restores all ten documented fixed Weather Channel records from exact Qt
+  literals.
+- It preserves all other opaque and reserved bytes and does not mutate the
+  Working Codeplug.
+- It returns exactly 102,400 immutable bytes, their SHA-256 digest, and the
+  layout ID.
+- It reports `mirror-vfo-temporary-channels` and
+  `restore-fixed-weather-channels` only when those rules change bytes. These
+  semantic markers are the later Change Set review disclosure contract; offsets
+  and internal records remain hidden from UI callers.
+- The materialized image, not the editable pre-normalization bytes, is the
   eventual verification target.
-- Decide how derived internal changes are disclosed in Change Set review.
 
-Exit gate: fixture tests prove exact bytes and demonstrate that unrelated bytes
-remain unchanged.
+Exit gate passed: independent documented literals prove the exact output,
+unrelated-byte preservation, immutability, SHA-256, and derived-change markers.
 
-## 3. Implement the protocol writer using the scripted Transport
+## 3. Implement the protocol writer using the scripted Transport — next
 
 - Add E3 full-range start and strict `WRITE START OK` validation.
 - Send 200 ordered 512-byte E4 blocks.

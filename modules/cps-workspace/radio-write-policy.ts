@@ -1,16 +1,7 @@
 import { evaluateFirmwareCompatibility } from "../uvl15w-radio/index.ts"
 import type { SourceRadio } from "../uvl15w-radio/index.ts"
-
-const RADIO_WRITE_LAYOUT_3_07_23 = Object.freeze({
-  id: "uvl15w-3.07.23" as const,
-  firmwareVersion: "3.07.23" as const,
-  startAddress: 0x8000,
-  endAddress: 0x21000,
-  byteLength: 0x19000,
-  writeBlockSize: 512,
-})
-
-type RadioWriteLayout = typeof RADIO_WRITE_LAYOUT_3_07_23
+import { CODEPLUG_LAYOUT_3_07_23 } from "../codeplug/index.ts"
+import type { CodeplugLayout as RadioWriteLayout } from "../codeplug/index.ts"
 
 interface SourceRadioIdentity {
   readonly model: SourceRadio["model"]
@@ -121,8 +112,7 @@ function evaluateRadioWriteSource(
 
   if (
     compatibility.status !== "supported" ||
-    compatibility.normalizedVersion !==
-      RADIO_WRITE_LAYOUT_3_07_23.firmwareVersion
+    compatibility.normalizedVersion !== CODEPLUG_LAYOUT_3_07_23.firmwareVersion
   ) {
     return Object.freeze({
       status: "unsupported-firmware",
@@ -146,7 +136,7 @@ function evaluateRadioWriteSource(
   return Object.freeze({
     status: "eligible",
     identity: sourceRadioIdentity(sourceRadio),
-    layout: RADIO_WRITE_LAYOUT_3_07_23,
+    layout: CODEPLUG_LAYOUT_3_07_23,
   })
 }
 

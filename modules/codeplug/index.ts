@@ -139,8 +139,11 @@ import type {
   FmBroadcastSettings,
   FmBroadcastSettingsPatch,
 } from "./fm-broadcast.ts"
+import { CODEPLUG_LAYOUT_3_07_23 } from "./layout.ts"
+import type { CodeplugLayoutId } from "./layout.ts"
+import { materializeCodeplugWriteImage } from "./write-image.ts"
 
-const CODEPLUG_SIZE = 0x19000
+const CODEPLUG_SIZE = CODEPLUG_LAYOUT_3_07_23.byteLength
 
 class Codeplug {
   readonly #bytes: Uint8Array
@@ -208,6 +211,10 @@ class Codeplug {
 
   toBytes() {
     return this.#bytes.slice()
+  }
+
+  materializeWriteImage(layoutId: CodeplugLayoutId) {
+    return materializeCodeplugWriteImage(this.#bytes, layoutId)
   }
 
   getChannels() {
@@ -441,12 +448,18 @@ function createCodeplug(bytes: Uint8Array) {
 }
 
 export {
+  CODEPLUG_LAYOUT_3_07_23,
   CODEPLUG_SIZE,
   CTCSS_FREQUENCIES_HZ,
   DCS_CODES,
   Codeplug,
   createCodeplug,
 }
+export type { CodeplugLayout, CodeplugLayoutId } from "./layout.ts"
+export type {
+  CodeplugWriteDerivedChange,
+  CodeplugWriteImage,
+} from "./write-image.ts"
 export type { Channel, SpecialChannel } from "./channel.ts"
 export type { ChannelModulation, ChannelStepKHz } from "./channel.ts"
 export type { BandZoneSelections, RadioBand } from "./band-zone-selection.ts"
