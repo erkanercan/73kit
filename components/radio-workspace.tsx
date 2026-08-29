@@ -3,17 +3,16 @@
 import {
   ChevronDownIcon,
   DownloadIcon,
-  HardDriveIcon,
   InfoIcon,
   LoaderCircleIcon,
   RadioIcon,
-  ShieldCheckIcon,
 } from "lucide-react"
-import { useFormatter, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 
 import { StatusText } from "@/components/cps-app-shell"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
+import { RadioReadButton } from "@/components/radio-read-button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -36,35 +35,26 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import {
-  Progress,
-  ProgressLabel,
-  ProgressValue,
-} from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { WorkspaceErrorAlert } from "@/components/workspace-error-alert"
-import { formatPercent } from "@/lib/format-percent"
 import type { SourceRadio } from "@/modules/uvl15w-radio/index"
 
-function RadioOverview() {
+function RadioWorkspace() {
   const t = useTranslations()
   const {
     busy,
     capability,
-    changes,
     completedRead,
-    downloadRawBackup,
     error,
     phase,
-    progress,
     readRadio,
     sourceRadio,
   } = useCpsWorkspace()
   const displayedRadio = sourceRadio ?? completedRead?.sourceRadio ?? null
 
   return (
-    <div className="flex w-full flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
-      <PageHeader title="UVL-15W" />
+    <main className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-6 lg:p-8">
+      <PageHeader title={t("radioTitle")} />
 
       {capability === "unsupported" && (
         <Alert>
@@ -84,24 +74,35 @@ function RadioOverview() {
 
       {error && <WorkspaceErrorAlert error={error} operation="read" />}
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(18rem,0.75fr)]">
-        <RadioInformationCard
-          radio={displayedRadio}
-          phase={phase}
-          busy={busy}
-          canRead={capability === "available"}
-          readAgain={completedRead !== null}
-          onRead={() => void readRadio()}
-        />
-        <WorkspaceCard
-          phase={phase}
-          progress={progress}
-          completedRead={completedRead}
-          changeCount={changes.length}
-          onDownload={downloadRawBackup}
-        />
-      </div>
-    </div>
+      {displayedRadio ? (
+        <div className="max-w-4xl">
+          <RadioInformationCard
+            radio={displayedRadio}
+            phase={phase}
+            busy={busy}
+            canRead={capability === "available"}
+            readAgain={completedRead !== null}
+            onRead={() => void readRadio()}
+          />
+        </div>
+      ) : (
+        <Empty className="min-h-[32rem] border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <RadioIcon />
+            </EmptyMedia>
+            <EmptyTitle>{t("noRadioInformation")}</EmptyTitle>
+          </EmptyHeader>
+          <EmptyContent>
+            <RadioReadButton
+              busy={busy}
+              disabled={capability !== "available"}
+              onClick={() => void readRadio()}
+            />
+          </EmptyContent>
+        </Empty>
+      )}
+    </main>
   )
 }
 
@@ -113,7 +114,7 @@ function RadioInformationCard({
   readAgain,
   onRead,
 }: {
-  radio: SourceRadio | null
+  radio: SourceRadio
   phase: "idle" | "connecting" | "reading" | "ready"
   busy: boolean
   canRead: boolean
@@ -131,55 +132,30 @@ function RadioInformationCard({
         </CardAction>
       </CardHeader>
       <CardContent>
-        {radio ? (
+        <div className="flex flex-col gap-5">
+          <p className="text-sm text-muted-foreground">
+            {t("radioInformationDescription")}
+          </p>
           <RadioDetails radio={radio} />
-        ) : (
-          <Empty className="min-h-72 border">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <RadioIcon />
-              </EmptyMedia>
-              <EmptyTitle>{t("noRadioInformation")}</EmptyTitle>
-            </EmptyHeader>
-            <EmptyContent>
-              <Button disabled={!canRead || busy} onClick={onRead}>
-                {busy ? (
-                  <LoaderCircleIcon
-                    data-icon="inline-start"
-                    className="animate-spin"
-                  />
-                ) : (
-                  <DownloadIcon data-icon="inline-start" />
-                )}
-                {busy
-                  ? t("readingRadio")
-                  : readAgain
-                    ? t("readAgain")
-                    : t("readRadio")}
-              </Button>
-            </EmptyContent>
-          </Empty>
-        )}
+        </div>
       </CardContent>
-      {radio && (
-        <CardFooter className="justify-end">
-          <Button disabled={!canRead || busy} onClick={onRead}>
-            {busy ? (
-              <LoaderCircleIcon
-                data-icon="inline-start"
-                className="animate-spin"
-              />
-            ) : (
-              <DownloadIcon data-icon="inline-start" />
-            )}
-            {busy
-              ? t("readingRadio")
-              : readAgain
-                ? t("readAgain")
-                : t("readRadio")}
-          </Button>
-        </CardFooter>
-      )}
+      <CardFooter className="justify-end">
+        <Button disabled={!canRead || busy} onClick={onRead}>
+          {busy ? (
+            <LoaderCircleIcon
+              data-icon="inline-start"
+              className="animate-spin"
+            />
+          ) : (
+            <DownloadIcon data-icon="inline-start" />
+          )}
+          {busy
+            ? t("readingRadio")
+            : readAgain
+              ? t("readAgain")
+              : t("readRadio")}
+        </Button>
+      </CardFooter>
     </Card>
   )
 }
@@ -286,90 +262,4 @@ function TechnicalDetail({ label, value }: { label: string; value: string }) {
   )
 }
 
-function WorkspaceCard({
-  phase,
-  progress,
-  completedRead,
-  changeCount,
-  onDownload,
-}: {
-  phase: "idle" | "connecting" | "reading" | "ready"
-  progress: number
-  completedRead: ReturnType<typeof useCpsWorkspace>["completedRead"]
-  changeCount: number
-  onDownload(): void
-}) {
-  const format = useFormatter()
-  const t = useTranslations()
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("workingCodeplug")}</CardTitle>
-        <CardAction>
-          <HardDriveIcon aria-hidden="true" />
-        </CardAction>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-5">
-        {phase === "reading" ? (
-          <Progress value={progress}>
-            <ProgressLabel>{t("readingCodeplug")}</ProgressLabel>
-            <ProgressValue>{() => formatPercent(progress)}</ProgressValue>
-          </Progress>
-        ) : (
-          <dl className="flex flex-col gap-4">
-            <WorkspaceDetail
-              label={t("baselineBackup")}
-              value={completedRead ? t("ready") : t("notCreated")}
-            />
-            <WorkspaceDetail
-              label={t("workingCodeplug")}
-              value={completedRead ? t("readyToInspect") : t("none")}
-            />
-            <WorkspaceDetail
-              label={t("pendingChanges")}
-              value={String(changeCount)}
-            />
-            <WorkspaceDetail
-              label={t("localPersistence")}
-              value={completedRead ? t("sessionOnly") : t("noData")}
-            />
-          </dl>
-        )}
-
-        {completedRead && (
-          <Alert>
-            <ShieldCheckIcon aria-hidden="true" />
-            <AlertTitle>{t("codeplugBackupReady")}</AlertTitle>
-            <AlertDescription>{t("codeplugBackupValidated")}</AlertDescription>
-          </Alert>
-        )}
-      </CardContent>
-      {completedRead && (
-        <CardFooter className="justify-between gap-3">
-          <span className="text-xs text-muted-foreground">
-            {format.dateTime(completedRead.baselineBackup.createdAt, {
-              dateStyle: "medium",
-              timeStyle: "short",
-            })}
-          </span>
-          <Button variant="outline" size="sm" onClick={onDownload}>
-            <DownloadIcon data-icon="inline-start" />
-            {t("rawBackup")}
-          </Button>
-        </CardFooter>
-      )}
-    </Card>
-  )
-}
-
-function WorkspaceDetail({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="text-right text-sm font-medium">{value}</dd>
-    </div>
-  )
-}
-
-export { RadioOverview }
+export { RadioWorkspace }

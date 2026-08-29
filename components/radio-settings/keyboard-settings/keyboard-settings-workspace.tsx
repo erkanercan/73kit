@@ -1,12 +1,12 @@
 "use client"
 
-import { DownloadIcon, KeyboardIcon } from "lucide-react"
+import { KeyboardIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
+import { RadioReadButton } from "@/components/radio-read-button"
 import { SettingsCategoryTabs } from "@/components/radio-settings/settings-category-tabs"
-import { Button } from "@/components/ui/button"
 import {
   Empty,
   EmptyContent,
@@ -30,7 +30,7 @@ function KeyboardSettingsWorkspace() {
 
   if (!codeplug) {
     return (
-      <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
+      <main className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-6 lg:p-8">
         <PageHeader title={t("radioSettingsTitle")} />
         <Empty className="min-h-[32rem] border">
           <EmptyHeader>
@@ -40,13 +40,11 @@ function KeyboardSettingsWorkspace() {
             <EmptyTitle>{t("keyboardSettingsReadRequiredTitle")}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
-            <Button
-              disabled={busy || capability !== "available"}
+            <RadioReadButton
+              busy={busy}
+              disabled={capability !== "available"}
               onClick={() => void readRadio()}
-            >
-              <DownloadIcon data-icon="inline-start" />
-              {t("readRadio")}
-            </Button>
+            />
           </EmptyContent>
         </Empty>
       </main>

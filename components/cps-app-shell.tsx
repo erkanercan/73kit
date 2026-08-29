@@ -1,11 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { DownloadIcon, LoaderCircleIcon, RadioIcon } from "lucide-react"
+import { RadioIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { RadioReadButton } from "@/components/radio-read-button"
 import { RadioWriteDialog } from "@/components/radio-write/radio-write-dialog"
 import {
   useCpsWorkspace,
@@ -18,7 +19,6 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
@@ -60,7 +60,27 @@ function AppHeader() {
   const { busy: updateBusy } = useUpdateCoordinator()
   const pathname = usePathname()
   const t = useTranslations()
-
+  const exactPageTitles: Record<string, string> = {
+    "/": t("navOverview"),
+    "/radio": t("navRadio"),
+    "/channels": t("navChannels"),
+    "/zones": t("navZones"),
+    "/scan-lists": t("navScanLists"),
+    "/vfo-scan-edges": t("navVfoScanEdges"),
+    "/aprs": t("navAprs"),
+    "/gps": t("navGps"),
+    "/spectrum": t("navSpectrum"),
+    "/bluetooth": t("navBluetooth"),
+    "/fm-radio": t("navFmRadio"),
+    "/signal-system": t("navSignalSystem"),
+    "/backups": t("navBackups"),
+    "/updates": t("navUpdates"),
+    "/prototype/firmware-compatibility": t("navFirmwareSimulator"),
+    "/prototype/radio-write": t("radioWriteTitle"),
+  }
+  const pageTitle = pathname.startsWith("/radio-settings")
+    ? t("navSettings")
+    : (exactPageTitles[pathname] ?? t("navOverview"))
   return (
     <header className="sticky top-0 flex h-14 shrink-0 items-center gap-2 bg-background px-3 sm:px-4">
       <SidebarTrigger className="-ml-1" />
@@ -71,56 +91,20 @@ function AppHeader() {
       <Breadcrumb className="min-w-0">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbPage>
-              {pathname === "/channels"
-                ? t("navChannels")
-                : pathname === "/zones"
-                  ? t("navZones")
-                  : pathname === "/scan-lists"
-                    ? t("navScanLists")
-                    : pathname === "/updates"
-                      ? t("navUpdates")
-                      : pathname === "/prototype/firmware-compatibility"
-                        ? t("navFirmwareSimulator")
-                        : pathname.startsWith("/radio-settings")
-                          ? t("navSettings")
-                          : t("navRadio")}
-            </BreadcrumbPage>
+            <BreadcrumbPage>{pageTitle}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
       <div className="ml-auto flex items-center gap-2">
         <LanguageSwitcher />
-        {pathname !== "/updates" && (
-          <Button
-            size="sm"
-            disabled={busy || updateBusy || capability !== "available"}
-            onClick={() => void readRadio()}
-          >
-            {busy ? (
-              <LoaderCircleIcon
-                data-icon="inline-start"
-                className="animate-spin"
-              />
-            ) : (
-              <DownloadIcon data-icon="inline-start" />
-            )}
-            <span className="hidden sm:inline">
-              {busy
-                ? t("readingRadio")
-                : completedRead
-                  ? t("readAgain")
-                  : t("readRadio")}
-            </span>
-            <span className="sr-only sm:hidden">
-              {busy
-                ? t("readingRadioPlain")
-                : completedRead
-                  ? t("readAgain")
-                  : t("readRadio")}
-            </span>
-          </Button>
-        )}
+        <RadioReadButton
+          size="sm"
+          busy={busy}
+          compact
+          disabled={updateBusy || capability !== "available"}
+          readAgain={completedRead !== null}
+          onClick={() => void readRadio()}
+        />
         <RadioWriteDialog />
       </div>
     </header>
@@ -132,7 +116,7 @@ function WorkspaceStatusBar() {
   const pathname = usePathname()
   const t = useTranslations()
 
-  if (pathname === "/updates") return null
+  if (pathname === "/" || pathname === "/updates") return null
 
   return (
     <>

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { DownloadIcon, AudioLinesIcon } from "lucide-react"
+import { AudioLinesIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
@@ -16,7 +16,7 @@ import {
   AprsTextField,
 } from "@/components/aprs/aprs-fields"
 import { PageHeader } from "@/components/page-header"
-import { Button } from "@/components/ui/button"
+import { RadioReadButton } from "@/components/radio-read-button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -70,7 +70,7 @@ function SignalSystemWorkspace() {
 
   if (!codeplug) {
     return (
-      <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
+      <main className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-6 lg:p-8">
         <PageHeader title={t("signalSystemTitle")} />
         <Empty className="min-h-[32rem] border">
           <EmptyHeader>
@@ -80,13 +80,11 @@ function SignalSystemWorkspace() {
             <EmptyTitle>{t("signalReadRequiredTitle")}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
-            <Button
-              disabled={busy || capability !== "available"}
+            <RadioReadButton
+              busy={busy}
+              disabled={capability !== "available"}
               onClick={() => void readRadio()}
-            >
-              <DownloadIcon data-icon="inline-start" />
-              {t("readRadio")}
-            </Button>
+            />
           </EmptyContent>
         </Empty>
       </main>

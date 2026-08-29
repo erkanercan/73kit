@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { DownloadIcon, RadioTowerIcon, SearchIcon } from "lucide-react"
+import { RadioTowerIcon, SearchIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import {
@@ -10,11 +10,11 @@ import {
 } from "@/components/channels/editable-channel-cells"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
+import { RadioReadButton } from "@/components/radio-read-button"
 import {
   BooleanSettingField,
   SettingLabel,
 } from "@/components/radio-settings/setting-fields"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Empty,
@@ -72,7 +72,7 @@ function FmBroadcastWorkspace() {
 
   if (!codeplug) {
     return (
-      <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
+      <main className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-6 lg:p-8">
         <PageHeader title={t("fmBroadcastTitle")} />
         <Empty className="min-h-[32rem] border">
           <EmptyHeader>
@@ -82,13 +82,11 @@ function FmBroadcastWorkspace() {
             <EmptyTitle>{t("fmBroadcastReadRequiredTitle")}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
-            <Button
-              disabled={busy || capability !== "available"}
+            <RadioReadButton
+              busy={busy}
+              disabled={capability !== "available"}
               onClick={() => void readRadio()}
-            >
-              <DownloadIcon data-icon="inline-start" />
-              {t("readRadio")}
-            </Button>
+            />
           </EmptyContent>
         </Empty>
       </main>

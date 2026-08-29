@@ -59,6 +59,7 @@ const en = {
   sidebarClose: "Close navigation",
   sidebarToggle: "Toggle navigation",
   navWorkspace: "Workspace",
+  navOverview: "Overview",
   navRadio: "Radio",
   navChannels: "Channels",
   navZones: "Zones",
@@ -900,8 +901,34 @@ const en = {
   backupReady: "Backup ready",
   localConnection: "Direct USB connection",
   readEnabled: "Radio Read available",
+  overviewTitle: "Overview",
   overviewDescription:
     "Check the Radio identity and make a complete, unchanged Codeplug Backup. Radio communication stays between this browser and your Radio.",
+  overviewStartTitle: "Start with a complete Radio Read",
+  overviewStartDescription:
+    "Connect the TYT UVL-15W by USB and read its complete Codeplug before programming. A successful read creates an unchanged Baseline Backup and a separate Working Codeplug for your edits.",
+  overviewStepReadTitle: "Read and back up",
+  overviewStepReadDescription:
+    "Read the complete Codeplug and keep an unchanged Baseline Backup.",
+  overviewStepProgramTitle: "Program the Codeplug",
+  overviewStepProgramDescription:
+    "Edit Channels, Zones, Scan Lists, APRS, and Radio Settings in the Working Codeplug.",
+  overviewStepWriteTitle: "Review and write",
+  overviewStepWriteDescription:
+    "Review the Change Set, then write the complete Codeplug back to its Source Radio.",
+  overviewLocalTitle: "Radio programming stays on this computer",
+  overviewLocalDescription:
+    "Radio Read, Codeplug editing, backups, and Radio Write run locally between this browser and the Radio.",
+  continueToChannels: "Continue to Channels",
+  continueProgramming: "Continue Programming",
+  continueProgrammingTitle: "Continue programming",
+  latestBackupTitle: "Latest Codeplug Backup",
+  latestBackupEmpty: "No persistent Codeplug Backup has been saved yet.",
+  latestBackupUnavailable: "Backup History is unavailable in this browser.",
+  openBackupHistory: "Open Backup History",
+  sourceRadio: "Source Radio",
+  viewRadioDetails: "View Radio Details",
+  workingCodeplugStorage: "Working Codeplug storage",
   webSerialUnavailable: "Web Serial is unavailable",
   webSerialHelp:
     "Open this CPS over a secure connection in Chrome, Edge, or another Chromium browser that supports Web Serial.",
@@ -909,6 +936,8 @@ const en = {
   secureContextHelp:
     "Open this CPS over HTTPS or on localhost before using Radio operations.",
   radioReadStopped: "Radio Read stopped",
+  radioTitle: "Radio",
+  radioModel: "Radio model",
   radioInformation: "Radio identity",
   radioInformationDescription:
     "Information reported directly by the Radio during the connection handshake.",

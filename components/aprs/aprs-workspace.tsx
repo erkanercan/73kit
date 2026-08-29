@@ -1,11 +1,11 @@
 "use client"
 
-import { DownloadIcon, WaypointsIcon } from "lucide-react"
+import { WaypointsIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
-import { Button } from "@/components/ui/button"
+import { RadioReadButton } from "@/components/radio-read-button"
 import {
   Empty,
   EmptyContent,
@@ -23,19 +23,14 @@ import { AprsTransmitChannelsTab } from "./aprs-transmit-channels-tab"
 import type { EditAprsSetting } from "./types"
 
 function AprsWorkspace() {
-  const {
-    busy,
-    capability,
-    completedRead,
-    editAprsSettings,
-    readRadio,
-  } = useCpsWorkspace()
+  const { busy, capability, completedRead, editAprsSettings, readRadio } =
+    useCpsWorkspace()
   const t = useTranslations()
   const codeplug = completedRead?.workingCodeplug.codeplug ?? null
 
   if (!codeplug) {
     return (
-      <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
+      <main className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-6 lg:p-8">
         <PageHeader title={t("aprsTitle")} />
         <Empty className="min-h-[32rem] border">
           <EmptyHeader>
@@ -45,13 +40,11 @@ function AprsWorkspace() {
             <EmptyTitle>{t("aprsReadRequiredTitle")}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
-            <Button
-              disabled={busy || capability !== "available"}
+            <RadioReadButton
+              busy={busy}
+              disabled={capability !== "available"}
               onClick={() => void readRadio()}
-            >
-              <DownloadIcon data-icon="inline-start" />
-              {t("readRadio")}
-            </Button>
+            />
           </EmptyContent>
         </Empty>
       </main>
@@ -68,9 +61,7 @@ function AprsWorkspace() {
 
       <Tabs defaultValue="station" className="gap-6">
         <TabsList className="grid h-auto w-full grid-cols-4">
-          <TabsTrigger value="station">
-            {t("aprsTabStationBeacon")}
-          </TabsTrigger>
+          <TabsTrigger value="station">{t("aprsTabStationBeacon")}</TabsTrigger>
           <TabsTrigger value="receive">{t("aprsTabReceive")}</TabsTrigger>
           <TabsTrigger value="tx-channels">
             {t("aprsTabTxChannels")}

@@ -1,16 +1,16 @@
 "use client"
 
-import { DownloadIcon, SatelliteIcon } from "lucide-react"
+import { SatelliteIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
+import { RadioReadButton } from "@/components/radio-read-button"
 import {
   BooleanSettingField,
   SelectSettingField,
   numberOptions,
 } from "@/components/radio-settings/setting-fields"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Empty,
@@ -53,7 +53,7 @@ function GpsWorkspace() {
 
   if (!codeplug) {
     return (
-      <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
+      <main className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-6 lg:p-8">
         <PageHeader title={t("gpsTitle")} />
         <Empty className="min-h-[32rem] border">
           <EmptyHeader>
@@ -63,13 +63,11 @@ function GpsWorkspace() {
             <EmptyTitle>{t("gpsReadRequiredTitle")}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
-            <Button
-              disabled={busy || capability !== "available"}
+            <RadioReadButton
+              busy={busy}
+              disabled={capability !== "available"}
               onClick={() => void readRadio()}
-            >
-              <DownloadIcon data-icon="inline-start" />
-              {t("readRadio")}
-            </Button>
+            />
           </EmptyContent>
         </Empty>
       </main>

@@ -1,15 +1,12 @@
 "use client"
 
 import * as React from "react"
-import {
-  ChartNoAxesColumnIncreasingIcon,
-  ChevronDownIcon,
-  DownloadIcon,
-} from "lucide-react"
+import { ChartNoAxesColumnIncreasingIcon, ChevronDownIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
+import { RadioReadButton } from "@/components/radio-read-button"
 import {
   SelectSettingField,
   SettingLabel,
@@ -85,7 +82,7 @@ function SpectrumWorkspace() {
 
   if (!codeplug || !completedRead) {
     return (
-      <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
+      <main className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-6 lg:p-8">
         <PageHeader title={t("spectrumTitle")} />
         <Empty className="min-h-[32rem] border">
           <EmptyHeader>
@@ -95,13 +92,11 @@ function SpectrumWorkspace() {
             <EmptyTitle>{t("spectrumReadRequiredTitle")}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
-            <Button
-              disabled={busy || capability !== "available"}
+            <RadioReadButton
+              busy={busy}
+              disabled={capability !== "available"}
               onClick={() => void readRadio()}
-            >
-              <DownloadIcon data-icon="inline-start" />
-              {t("readRadio")}
-            </Button>
+            />
           </EmptyContent>
         </Empty>
       </main>

@@ -16,13 +16,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
-import {
-  DownloadIcon,
-  ListChecksIcon,
-  MapIcon,
-  PlusIcon,
-  Trash2Icon,
-} from "lucide-react"
+import { ListChecksIcon, MapIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { AddCollectionChannelsDrawer } from "@/components/channel-collections/add-collection-channels-drawer"
@@ -30,6 +24,7 @@ import { CollectionMemberRow } from "@/components/channel-collections/collection
 import { ChannelEditorDrawer } from "@/components/channels/channel-editor-drawer"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
+import { RadioReadButton } from "@/components/radio-read-button"
 import { BandScanListSelectors } from "@/components/scan-lists/band-scan-list-selectors"
 import { BandZoneSelectors } from "@/components/zones/band-zone-selectors"
 import { Button } from "@/components/ui/button"
@@ -122,13 +117,11 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
             <EmptyTitle>{t(labels.readRequiredTitle)}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
-            <Button
-              disabled={busy || capability !== "available"}
+            <RadioReadButton
+              busy={busy}
+              disabled={capability !== "available"}
               onClick={() => void readRadio()}
-            >
-              <DownloadIcon data-icon="inline-start" />
-              {t("readRadio")}
-            </Button>
+            />
           </EmptyContent>
         </Empty>
       </main>

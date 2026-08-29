@@ -59,6 +59,7 @@ const tr = {
   sidebarClose: "Gezinmeyi kapat",
   sidebarToggle: "Gezinmeyi aç veya kapat",
   navWorkspace: "Çalışma Alanı",
+  navOverview: "Genel Bakış",
   navRadio: "Telsiz",
   navChannels: "Kanallar",
   navZones: "Bölgeler",
@@ -909,8 +910,34 @@ const tr = {
   backupReady: "Yedek hazır",
   localConnection: "Doğrudan USB bağlantısı",
   readEnabled: "Telsizden okuma hazır",
+  overviewTitle: "Genel Bakış",
   overviewDescription:
     "Telsizin kimliğini doğrulayın ve Codeplug'ın eksiksiz, değişmemiş bir yedeğini alın. Telsiz haberleşmesi yalnızca bu tarayıcı ile telsiziniz arasında kalır.",
+  overviewStartTitle: "Telsizden tam okuma ile başlayın",
+  overviewStartDescription:
+    "TYT UVL-15W'yi USB ile bağlayıp programlamadan önce Codeplug'ın tamamını okuyun. Başarılı okuma, değişmemiş bir Temel Yedek ve düzenlemeleriniz için ayrı bir Çalışma Codeplug'ı oluşturur.",
+  overviewStepReadTitle: "Oku ve yedekle",
+  overviewStepReadDescription:
+    "Codeplug'ın tamamını okuyun ve değişmemiş bir Temel Yedek saklayın.",
+  overviewStepProgramTitle: "Codeplug'ı programla",
+  overviewStepProgramDescription:
+    "Çalışma Codeplug'ında Kanalları, Bölgeleri, Tarama Listelerini, APRS'yi ve Telsiz Ayarlarını düzenleyin.",
+  overviewStepWriteTitle: "İncele ve yaz",
+  overviewStepWriteDescription:
+    "Değişiklik Kümesini inceleyip Codeplug'ın tamamını Kaynak Telsize yazın.",
+  overviewLocalTitle: "Telsiz programlama bu bilgisayarda kalır",
+  overviewLocalDescription:
+    "Telsizden Okuma, Codeplug düzenleme, yedekler ve Telsize Yazma işlemleri bu tarayıcı ile Telsiz arasında yerel olarak yürütülür.",
+  continueToChannels: "Kanallara Devam Et",
+  continueProgramming: "Programlamaya Devam Et",
+  continueProgrammingTitle: "Programlamaya devam edin",
+  latestBackupTitle: "Son Codeplug Yedeği",
+  latestBackupEmpty: "Henüz kalıcı bir Codeplug Yedeği kaydedilmedi.",
+  latestBackupUnavailable: "Yedek Geçmişine bu tarayıcıda erişilemiyor.",
+  openBackupHistory: "Yedek Geçmişini Aç",
+  sourceRadio: "Kaynak Telsiz",
+  viewRadioDetails: "Telsiz Ayrıntılarını Aç",
+  workingCodeplugStorage: "Çalışma Codeplug'ı saklama alanı",
   webSerialUnavailable: "Web Serial kullanılamıyor",
   webSerialHelp:
     "Bu CPS'yi güvenli bir bağlantı üzerinden; Web Serial destekleyen Chrome, Edge veya başka bir Chromium tarayıcıda açın.",
@@ -918,6 +945,8 @@ const tr = {
   secureContextHelp:
     "Telsiz işlemlerini kullanmadan önce bu CPS'yi HTTPS veya localhost üzerinden açın.",
   radioReadStopped: "Telsiz okuma durdu",
+  radioTitle: "Telsiz",
+  radioModel: "Telsiz modeli",
   radioInformation: "Telsiz kimliği",
   radioInformationDescription:
     "Bağlantı kurulurken telsizin doğrudan bildirdiği kimlik bilgileri.",

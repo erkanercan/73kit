@@ -1,5 +1,5 @@
-import { RadioOverview } from "@/components/radio-overview"
+import { OverviewWorkspace } from "@/components/overview-workspace"
 
 export default function Page() {
-  return <RadioOverview />
+  return <OverviewWorkspace />
 }

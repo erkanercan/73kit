@@ -1,13 +1,13 @@
 "use client"
 
-import { DownloadIcon, ListIcon } from "lucide-react"
+import { ListIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { MemoryChannelsCard } from "@/components/channels/memory-channels-card"
 import { SpecialChannelsCard } from "@/components/channels/special-channels-card"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
-import { Button } from "@/components/ui/button"
+import { RadioReadButton } from "@/components/radio-read-button"
 import {
   Empty,
   EmptyContent,
@@ -49,13 +49,11 @@ function ChannelsWorkspace() {
             <EmptyTitle>{t("channelsReadRequiredTitle")}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
-            <Button
-              disabled={busy || capability !== "available"}
+            <RadioReadButton
+              busy={busy}
+              disabled={capability !== "available"}
               onClick={() => void readRadio()}
-            >
-              <DownloadIcon data-icon="inline-start" />
-              {t("readRadio")}
-            </Button>
+            />
           </EmptyContent>
         </Empty>
       </main>

@@ -18,6 +18,7 @@ import {
   Settings2Icon,
   AudioLinesIcon,
   HardDriveUploadIcon,
+  HouseIcon,
   WaypointsIcon,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -48,10 +49,16 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       label: t("navWorkspace"),
       items: [
         {
-          title: t("navRadio"),
+          title: t("navOverview"),
           href: "/",
-          icon: RadioIcon,
+          icon: HouseIcon,
           active: pathname === "/",
+        },
+        {
+          title: t("navRadio"),
+          href: "/radio",
+          icon: RadioIcon,
+          active: pathname === "/radio",
         },
         {
           title: t("navChannels"),

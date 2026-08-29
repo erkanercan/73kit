@@ -1,12 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {
-  ChevronDownIcon,
-  DownloadIcon,
-  ScanLineIcon,
-  SearchIcon,
-} from "lucide-react"
+import { ChevronDownIcon, ScanLineIcon, SearchIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import {
@@ -15,6 +10,7 @@ import {
 } from "@/components/channels/editable-channel-cells"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
+import { RadioReadButton } from "@/components/radio-read-button"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -90,13 +86,11 @@ function VfoScanEdgesWorkspace() {
             <EmptyTitle>{t("vfoScanEdgesReadRequiredTitle")}</EmptyTitle>
           </EmptyHeader>
           <EmptyContent>
-            <Button
-              disabled={busy || capability !== "available"}
+            <RadioReadButton
+              busy={busy}
+              disabled={capability !== "available"}
               onClick={() => void readRadio()}
-            >
-              <DownloadIcon data-icon="inline-start" />
-              {t("readRadio")}
-            </Button>
+            />
           </EmptyContent>
         </Empty>
       </main>
