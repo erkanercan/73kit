@@ -15,7 +15,6 @@ import {
 } from "@/components/channels/editable-channel-cells"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -70,7 +69,6 @@ function VfoScanEdgesWorkspace() {
   const {
     busy,
     capability,
-    changes,
     completedRead,
     editVfoScanEdge,
     editVfoScanEdgeSelection,
@@ -134,9 +132,6 @@ function VfoScanEdgesWorkspace() {
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden p-4 sm:p-6 lg:p-8">
       <PageHeader title={t("vfoScanEdgesTitle")}>
-        {changes.length > 0 && (
-          <Badge>{t("pendingChangeCount", { count: changes.length })}</Badge>
-        )}
         <VfoScanEdgeSelectors
           edges={edges}
           selections={codeplug.getVfoScanEdgeSelections()}

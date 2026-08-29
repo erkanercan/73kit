@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
 import { SettingsCategoryTabs } from "@/components/radio-settings/settings-category-tabs"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Empty,
@@ -24,14 +23,8 @@ import { SideAndTopKeysCard } from "./side-and-top-keys-card"
 import type { EditKeyboardSetting } from "./types"
 
 function KeyboardSettingsWorkspace() {
-  const {
-    busy,
-    capability,
-    changes,
-    completedRead,
-    editKeyboardSettings,
-    readRadio,
-  } = useCpsWorkspace()
+  const { busy, capability, completedRead, editKeyboardSettings, readRadio } =
+    useCpsWorkspace()
   const t = useTranslations()
   const codeplug = completedRead?.workingCodeplug.codeplug ?? null
 
@@ -61,22 +54,13 @@ function KeyboardSettingsWorkspace() {
   }
 
   const settings = codeplug.getKeyboardSettings()
-  const keyboardChangeCount = changes.filter(
-    (change) => change.kind === "edit-keyboard-setting"
-  ).length
   const edit: EditKeyboardSetting = (field, value) => {
     editKeyboardSettings({ [field]: value } as KeyboardSettingsPatch)
   }
 
   return (
     <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
-      <PageHeader title={t("radioSettingsTitle")}>
-        {keyboardChangeCount > 0 && (
-          <Badge>
-            {t("pendingChangeCount", { count: keyboardChangeCount })}
-          </Badge>
-        )}
-      </PageHeader>
+      <PageHeader title={t("radioSettingsTitle")} />
 
       <SettingsCategoryTabs active="keyboard" />
 

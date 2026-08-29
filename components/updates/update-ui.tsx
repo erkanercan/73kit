@@ -8,12 +8,11 @@ import type {
   UpdateCoordinatorPhase,
 } from "@/components/update-coordinator-provider"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import type { UpdatePackageKind } from "@/modules/update-package/index"
 
-function PackageKindBadge({ kind }: { readonly kind: UpdatePackageKind }) {
+function PackageKindLabel({ kind }: { readonly kind: UpdatePackageKind }) {
   const t = useTranslations()
-  return <Badge variant="outline">{packageKindLabel(kind, t)}</Badge>
+  return <span>{packageKindLabel(kind, t)}</span>
 }
 
 function packageKindLabel(
@@ -126,4 +125,4 @@ function errorMessage(
   }
 }
 
-export { PackageKindBadge, UpdateErrorAlert, packageKindLabel, phaseLabel }
+export { PackageKindLabel, UpdateErrorAlert, packageKindLabel, phaseLabel }

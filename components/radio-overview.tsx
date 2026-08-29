@@ -1,7 +1,6 @@
 "use client"
 
 import {
-  AlertTriangleIcon,
   ChevronDownIcon,
   DownloadIcon,
   HardDriveIcon,
@@ -12,21 +11,15 @@ import {
 } from "lucide-react"
 import { useFormatter, useTranslations } from "next-intl"
 
-import { StatusBadge } from "@/components/cps-app-shell"
-import {
-  useCpsWorkspace,
-  type WorkspaceError,
-} from "@/components/cps-workspace-provider"
+import { StatusText } from "@/components/cps-app-shell"
+import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
-import { RadioWriteWorkflow } from "@/components/radio-write/radio-write-workflow"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -39,7 +32,6 @@ import {
 import {
   Empty,
   EmptyContent,
-  EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
@@ -50,8 +42,9 @@ import {
   ProgressValue,
 } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
+import { WorkspaceErrorAlert } from "@/components/workspace-error-alert"
+import { formatPercent } from "@/lib/format-percent"
 import type { SourceRadio } from "@/modules/uvl15w-radio/index"
-import { createRadioWriteReview } from "@/modules/cps-workspace/index"
 
 function RadioOverview() {
   const t = useTranslations()
@@ -65,38 +58,13 @@ function RadioOverview() {
     phase,
     progress,
     readRadio,
-    prepareRadioWrite,
-    confirmRadioWrite,
-    discardRadioWriteStatus,
-    downloadRadioOperationReport,
-    radioWriteReleased,
-    radioWriteReview,
-    radioWriteSnapshot,
     sourceRadio,
   } = useCpsWorkspace()
   const displayedRadio = sourceRadio ?? completedRead?.sourceRadio ?? null
-  const visibleRadioWriteReview =
-    radioWriteReview.length > 0
-      ? radioWriteReview
-      : completedRead
-        ? createRadioWriteReview(
-            completedRead.baselineBackup.codeplug,
-            completedRead.workingCodeplug.codeplug,
-            changes
-          )
-        : []
 
   return (
     <div className="flex w-full flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
-      <div className="flex flex-col gap-2">
-        <PageHeader title="UVL-15W">
-          <Badge variant="outline">{t("localConnection")}</Badge>
-          <Badge variant="secondary">{t("readEnabled")}</Badge>
-        </PageHeader>
-        <p className="max-w-2xl text-muted-foreground">
-          {t("overviewDescription")}
-        </p>
-      </div>
+      <PageHeader title="UVL-15W" />
 
       {capability === "unsupported" && (
         <Alert>
@@ -114,7 +82,7 @@ function RadioOverview() {
         </Alert>
       )}
 
-      {error && <WorkspaceErrorAlert error={error} />}
+      {error && <WorkspaceErrorAlert error={error} operation="read" />}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(18rem,0.75fr)]">
         <RadioInformationCard
@@ -133,57 +101,7 @@ function RadioOverview() {
           onDownload={downloadRawBackup}
         />
       </div>
-
-      <RadioWriteWorkflow
-        released={radioWriteReleased}
-        hasWorkingCodeplug={completedRead !== null}
-        changeCount={changes.length}
-        snapshot={radioWriteSnapshot}
-        review={visibleRadioWriteReview}
-        busy={busy}
-        onPrepare={() => void prepareRadioWrite()}
-        onConfirm={() => void confirmRadioWrite()}
-        onDiscardStatus={() => void discardRadioWriteStatus()}
-        onDownloadReport={downloadRadioOperationReport}
-      />
     </div>
-  )
-}
-
-function WorkspaceErrorAlert({ error }: { error: WorkspaceError }) {
-  const t = useTranslations()
-
-  if ("kind" in error) {
-    const values = {
-      detectedVersion: error.detectedVersion || t("notReported"),
-      validatedVersion: error.validatedVersion,
-    }
-
-    return (
-      <Alert variant="destructive">
-        <AlertTriangleIcon aria-hidden="true" />
-        <AlertTitle>{t("firmwareCompatibilityStopped")}</AlertTitle>
-        <AlertDescription>
-          {error.reason === "older"
-            ? t("firmwareTooOld", values)
-            : error.reason === "unvalidated"
-              ? t("firmwareUnvalidated", values)
-              : error.reason === "newer-unvalidated"
-                ? t("firmwareNewerUnvalidated", values)
-                : t("firmwareUnrecognized", values)}
-        </AlertDescription>
-      </Alert>
-    )
-  }
-
-  return (
-    <Alert variant="destructive">
-      <AlertTriangleIcon aria-hidden="true" />
-      <AlertTitle>{t("radioReadStopped")}</AlertTitle>
-      <AlertDescription>
-        {"key" in error ? t(error.key) : error.message}
-      </AlertDescription>
-    </Alert>
   )
 }
 
@@ -208,9 +126,8 @@ function RadioInformationCard({
     <Card>
       <CardHeader>
         <CardTitle>{t("radioInformation")}</CardTitle>
-        <CardDescription>{t("radioInformationDescription")}</CardDescription>
         <CardAction>
-          <StatusBadge phase={phase} />
+          <StatusText phase={phase} />
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -223,9 +140,6 @@ function RadioInformationCard({
                 <RadioIcon />
               </EmptyMedia>
               <EmptyTitle>{t("noRadioInformation")}</EmptyTitle>
-              <EmptyDescription>
-                {t("noRadioInformationDescription")}
-              </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Button disabled={!canRead || busy} onClick={onRead}>
@@ -309,11 +223,11 @@ function RadioDetails({ radio }: { radio: SourceRadio }) {
       </dl>
 
       <div className="flex flex-wrap items-center gap-2">
-        <ProtectionBadge
+        <ProtectionStatus
           label={t("readProtection")}
           enabled={radio.readProtected}
         />
-        <ProtectionBadge
+        <ProtectionStatus
           label={t("writeProtection")}
           enabled={radio.writeProtected}
         />
@@ -347,7 +261,7 @@ function RadioDetails({ radio }: { radio: SourceRadio }) {
   )
 }
 
-function ProtectionBadge({
+function ProtectionStatus({
   label,
   enabled,
 }: {
@@ -357,10 +271,9 @@ function ProtectionBadge({
   const t = useTranslations()
 
   return (
-    <Badge variant={enabled ? "destructive" : "outline"}>
-      <ShieldCheckIcon data-icon="inline-start" />
+    <span className="text-sm">
       {label}: {enabled ? t("on") : t("off")}
-    </Badge>
+    </span>
   )
 }
 
@@ -393,7 +306,6 @@ function WorkspaceCard({
     <Card>
       <CardHeader>
         <CardTitle>{t("workingCodeplug")}</CardTitle>
-        <CardDescription>{t("workingCodeplugDescription")}</CardDescription>
         <CardAction>
           <HardDriveIcon aria-hidden="true" />
         </CardAction>
@@ -402,7 +314,7 @@ function WorkspaceCard({
         {phase === "reading" ? (
           <Progress value={progress}>
             <ProgressLabel>{t("readingCodeplug")}</ProgressLabel>
-            <ProgressValue>{() => `${Math.floor(progress)}%`}</ProgressValue>
+            <ProgressValue>{() => formatPercent(progress)}</ProgressValue>
           </Progress>
         ) : (
           <dl className="flex flex-col gap-4">

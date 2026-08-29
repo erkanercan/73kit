@@ -11,6 +11,13 @@ const tr = {
   radioWriteUnavailableTitle: "Telsize Yazma kullanılamıyor",
   radioWriteUnavailableDescription:
     "Çalışma Codeplug'unu inceleyip düzenleyebilirsiniz ancak Telsize Yazma bu sürümde kullanılamıyor.",
+  radioWriteReadRequiredTitle: "Yazmadan önce telsizi okuyun",
+  radioWriteReadRequiredDescription:
+    "Kaynak Telsize bağlı bir Çalışma Codeplug'ı oluşturmak için önce Telsizden Okuma işlemini çalıştırın.",
+  radioWriteNoChangesTitle: "Yazılacak değişiklik yok",
+  radioWriteNoChangesDescription:
+    "Telsize Yazma işlemini başlatmadan önce Çalışma Codeplug'ını düzenleyin.",
+  radioWriteStopped: "Telsize Yazma durdu",
   radioWriteUnknownTitle: "Yazma Sonucu Bilinmiyor",
   radioWriteUnknownDescription:
     "Telsiz yazmanın tamamlandığını onaylamadı. Yeniden denemeden önce USB bağlantısını ve Telsizin gücünü kontrol edin.",
@@ -871,6 +878,7 @@ const tr = {
     "Tarayıcı depolamasının kullanılabilir olduğunu kontrol edip bu sayfayı yenileyin.",
   backupHistorySaveFailed:
     "Telsiz işlemi tamamlandı ancak Codeplug yedeği bu tarayıcıya kaydedilemedi.",
+  backupHistorySaveFailedTitle: "Codeplug Yedeği kaydedilemedi",
   navDiagnostics: "Tanılama",
   navAbout: "Hakkında",
   planned: "Planlandı",

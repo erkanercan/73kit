@@ -14,12 +14,10 @@ import { useTranslations } from "next-intl"
 
 import { useUpdateCoordinator } from "@/components/update-coordinator-provider"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -27,7 +25,6 @@ import {
 import {
   Empty,
   EmptyContent,
-  EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
@@ -39,6 +36,7 @@ import {
   ProgressValue,
 } from "@/components/ui/progress"
 import { AcknowledgementField } from "@/components/updates/preparation-checklist"
+import { formatPercent } from "@/lib/format-percent"
 import {
   UpdateErrorAlert,
   packageKindLabel,
@@ -61,7 +59,6 @@ function VerifyInstallation() {
     <Card>
       <CardHeader>
         <CardTitle>{t("updatesRestartTitle")}</CardTitle>
-        <CardDescription>{t("updatesRestartDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         <div className="grid grid-cols-3 gap-3">
@@ -84,7 +81,7 @@ function VerifyInstallation() {
         {verifying && (
           <Progress value={progress}>
             <ProgressLabel>{t("updatesReadingRadio")}</ProgressLabel>
-            <ProgressValue>{() => `${progress}%`}</ProgressValue>
+            <ProgressValue>{() => formatPercent(progress)}</ProgressValue>
           </Progress>
         )}
         {errorCode && <UpdateErrorAlert code={errorCode} />}
@@ -127,17 +124,16 @@ function Instruction({
   return (
     <Card size="sm">
       <CardHeader>
-        <Badge variant="outline" className="w-fit">
-          {number}
-        </Badge>
-        <CardDescription>{text}</CardDescription>
+        <CardTitle>
+          {number}. {text}
+        </CardTitle>
       </CardHeader>
     </Card>
   )
 }
 
 function CompletedUpdate() {
-  const { selectedPackage, startAnotherUpdate } = useUpdateCoordinator()
+  const { startAnotherUpdate } = useUpdateCoordinator()
   const t = useTranslations()
 
   return (
@@ -149,14 +145,6 @@ function CompletedUpdate() {
               <CheckCircle2Icon />
             </EmptyMedia>
             <EmptyTitle>{t("updatesCompleteTitle")}</EmptyTitle>
-            <EmptyDescription>
-              {t("updatesCompleteDescription", {
-                operation: packageKindLabel(
-                  selectedPackage?.kind ?? "firmware",
-                  t
-                ),
-              })}
-            </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Button variant="outline" onClick={startAnotherUpdate}>
@@ -196,7 +184,6 @@ function UnknownOutcome() {
           <TriangleAlertIcon />
           {t("updatesUnknownTitle")}
         </CardTitle>
-        <CardDescription>{t("updatesUnknownDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         <Alert variant="destructive">
@@ -228,7 +215,7 @@ function UnknownOutcome() {
         {checking && (
           <Progress value={progress}>
             <ProgressLabel>{t("updatesRecoveryChecking")}</ProgressLabel>
-            <ProgressValue>{() => `${progress}%`}</ProgressValue>
+            <ProgressValue>{() => formatPercent(progress)}</ProgressValue>
           </Progress>
         )}
         {recoveryInspectionComplete ? (

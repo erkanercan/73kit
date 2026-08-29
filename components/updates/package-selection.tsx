@@ -12,26 +12,23 @@ import { useLocale, useTranslations } from "next-intl"
 
 import { useUpdateCoordinator } from "@/components/update-coordinator-provider"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 import {
   Empty,
   EmptyContent,
-  EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
 import {
-  PackageKindBadge,
+  PackageKindLabel,
   UpdateErrorAlert,
 } from "@/components/updates/update-ui"
 
@@ -52,7 +49,6 @@ function PackageSelection() {
     <Card>
       <CardHeader>
         <CardTitle>{t("updatesPackageTitle")}</CardTitle>
-        <CardDescription>{t("updatesPackageDescription")}</CardDescription>
         {selectedPackage && (
           <CardAction>
             <Button
@@ -87,9 +83,6 @@ function PackageSelection() {
                 <LoaderCircleIcon className="animate-spin" />
               </EmptyMedia>
               <EmptyTitle>{t("updatesValidatingPackage")}</EmptyTitle>
-              <EmptyDescription>
-                {t("updatesValidatingPackageHint")}
-              </EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : selectedPackage ? (
@@ -103,8 +96,8 @@ function PackageSelection() {
                   {selectedPackage.fileName}
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <PackageKindBadge kind={selectedPackage.kind} />
-                  <Badge variant="secondary">{selectedPackage.version}</Badge>
+                  <PackageKindLabel kind={selectedPackage.kind} />
+                  <span>{selectedPackage.version}</span>
                   <span className="text-sm text-muted-foreground">
                     {t("updatesPackageFacts", {
                       size: new Intl.NumberFormat(locale, {
@@ -134,9 +127,6 @@ function PackageSelection() {
                 <FileArchiveIcon />
               </EmptyMedia>
               <EmptyTitle>{t("updatesSelectPackage")}</EmptyTitle>
-              <EmptyDescription>
-                {t("updatesSelectPackageHint")}
-              </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Button onClick={() => inputRef.current?.click()}>

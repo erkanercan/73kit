@@ -5,9 +5,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
-  CheckCircle2Icon,
-  CircleAlertIcon,
-  FlaskConicalIcon,
   ShieldCheckIcon,
   ShieldXIcon,
 } from "lucide-react"
@@ -16,13 +13,11 @@ import { useTranslations } from "next-intl"
 import { PageHeader } from "@/components/page-header"
 import { RadioOperationSimulator } from "@/components/prototype/radio-operation-simulator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -122,24 +117,12 @@ function VariantDecisionLab({
 
   return (
     <div className="flex w-full flex-1 flex-col gap-6 p-8 pb-24">
-      <PageHeader title={t("firmwareDemoTitle")}>
-        <Badge variant="secondary">
-          <FlaskConicalIcon data-icon="inline-start" />
-          {t("firmwareDemoLocalOnly")}
-        </Badge>
-        <Badge variant="outline">A · {t("firmwareDemoVariantA")}</Badge>
-      </PageHeader>
-      <p className="max-w-3xl text-muted-foreground">
-        {t("firmwareDemoDescription")}
-      </p>
+      <PageHeader title={t("firmwareDemoTitle")} />
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(20rem,0.8fr)_minmax(0,1.2fr)]">
         <Card>
           <CardHeader>
             <CardTitle>{t("firmwareDemoInputTitle")}</CardTitle>
-            <CardDescription>
-              {t("firmwareDemoInputDescription")}
-            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
             <VersionInput
@@ -174,20 +157,11 @@ function VariantHandshakePipeline({
 
   return (
     <div className="flex w-full flex-1 flex-col gap-6 p-8 pb-24">
-      <PageHeader title={t("firmwareDemoPipelineTitle")}>
-        <Badge variant="secondary">
-          <FlaskConicalIcon data-icon="inline-start" />
-          {t("firmwareDemoLocalOnly")}
-        </Badge>
-        <Badge variant="outline">B · {t("firmwareDemoVariantB")}</Badge>
-      </PageHeader>
+      <PageHeader title={t("firmwareDemoPipelineTitle")} />
 
       <Card>
         <CardHeader>
           <CardTitle>{t("firmwareDemoSimulatedRadio")}</CardTitle>
-          <CardDescription>
-            {t("firmwareDemoPipelineDescription")}
-          </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-[minmax(18rem,0.7fr)_minmax(0,1.3fr)] gap-6">
           <div className="flex flex-col gap-5">
@@ -248,21 +222,12 @@ function VariantVersionMatrix({
 
   return (
     <div className="flex w-full flex-1 flex-col gap-6 p-8 pb-24">
-      <PageHeader title={t("firmwareDemoMatrixTitle")}>
-        <Badge variant="secondary">
-          <FlaskConicalIcon data-icon="inline-start" />
-          {t("firmwareDemoLocalOnly")}
-        </Badge>
-        <Badge variant="outline">C · {t("firmwareDemoVariantC")}</Badge>
-      </PageHeader>
+      <PageHeader title={t("firmwareDemoMatrixTitle")} />
 
       <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(19rem,0.6fr)] items-start gap-6">
         <Card>
           <CardHeader>
             <CardTitle>{t("firmwareDemoMatrixTitle")}</CardTitle>
-            <CardDescription>
-              {t("firmwareDemoMatrixDescription")}
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -288,7 +253,7 @@ function VariantVersionMatrix({
                         {result.normalizedVersion ?? "—"}
                       </TableCell>
                       <TableCell>
-                        <CompatibilityBadge compatibility={result} />
+                        <CompatibilityStatus compatibility={result} />
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -311,9 +276,6 @@ function VariantVersionMatrix({
           <Card>
             <CardHeader>
               <CardTitle>{t("firmwareDemoCustomVersion")}</CardTitle>
-              <CardDescription>
-                {t("firmwareDemoInputDescription")}
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <VersionInput
@@ -438,9 +400,8 @@ function CompatibilityState({
     <Card size={compact ? "sm" : "default"}>
       <CardHeader>
         <CardTitle>{t("firmwareDemoStateSnapshot")}</CardTitle>
-        <CardDescription>{t("firmwareDemoStateDescription")}</CardDescription>
         <CardAction>
-          <CompatibilityBadge compatibility={compatibility} />
+          <CompatibilityStatus compatibility={compatibility} />
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -452,23 +413,27 @@ function CompatibilityState({
   )
 }
 
-function CompatibilityBadge({
+function CompatibilityStatus({
   compatibility,
 }: {
   readonly compatibility: FirmwareCompatibility
 }) {
   const t = useTranslations()
 
-  return compatibility.status === "supported" ? (
-    <Badge>
-      <CheckCircle2Icon data-icon="inline-start" />
-      {t("firmwareDemoSupported")}
-    </Badge>
-  ) : (
-    <Badge variant="destructive">
-      <CircleAlertIcon data-icon="inline-start" />
-      <CompatibilityReason reason={compatibility.reason} />
-    </Badge>
+  return (
+    <span
+      className={
+        compatibility.status === "supported"
+          ? "text-sm font-medium"
+          : "text-sm font-medium text-destructive"
+      }
+    >
+      {compatibility.status === "supported" ? (
+        t("firmwareDemoSupported")
+      ) : (
+        <CompatibilityReason reason={compatibility.reason} />
+      )}
+    </span>
   )
 }
 
@@ -513,16 +478,24 @@ function PipelineStage({
         <CardTitle>
           {number}. {title}
         </CardTitle>
-        <CardDescription>{description}</CardDescription>
       </CardHeader>
+      <CardContent>
+        <p className="text-sm">{description}</p>
+      </CardContent>
       <CardFooter>
-        <Badge variant={status === "blocked" ? "destructive" : "secondary"}>
+        <span
+          className={
+            status === "blocked"
+              ? "text-xs font-medium text-destructive"
+              : "text-xs font-medium"
+          }
+        >
           {status === "complete"
             ? t("firmwareDemoStageComplete")
             : status === "ready"
               ? t("firmwareDemoStageReady")
               : t("firmwareDemoStageBlocked")}
-        </Badge>
+        </span>
       </CardFooter>
     </Card>
   )
@@ -593,9 +566,9 @@ function PrototypeSwitcher({
       >
         <ArrowLeftIcon />
       </Button>
-      <Badge variant="secondary">
+      <span className="px-2 text-sm font-medium">
         {current.toUpperCase()} · {labels[current]}
-      </Badge>
+      </span>
       <Button
         size="icon-sm"
         variant="outline"

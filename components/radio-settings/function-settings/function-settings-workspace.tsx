@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
 import { SettingsCategoryTabs } from "@/components/radio-settings/settings-category-tabs"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Empty,
@@ -27,14 +26,8 @@ import type { EditFunctionSetting } from "./types"
 import { WeatherSettingsCard } from "./weather-settings-card"
 
 function FunctionSettingsWorkspace() {
-  const {
-    busy,
-    capability,
-    changes,
-    completedRead,
-    editFunctionSettings,
-    readRadio,
-  } = useCpsWorkspace()
+  const { busy, capability, completedRead, editFunctionSettings, readRadio } =
+    useCpsWorkspace()
   const t = useTranslations()
   const codeplug = completedRead?.workingCodeplug.codeplug ?? null
 
@@ -64,23 +57,13 @@ function FunctionSettingsWorkspace() {
   }
 
   const settings = codeplug.getFunctionSettings()
-  const functionChangeCount = changes.filter(
-    (change) => change.kind === "edit-function-setting"
-  ).length
-
   const edit: EditFunctionSetting = (field, value) => {
     editFunctionSettings({ [field]: value } as FunctionSettingsPatch)
   }
 
   return (
     <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
-      <PageHeader title={t("radioSettingsTitle")}>
-        {functionChangeCount > 0 && (
-          <Badge>
-            {t("pendingChangeCount", { count: functionChangeCount })}
-          </Badge>
-        )}
-      </PageHeader>
+      <PageHeader title={t("radioSettingsTitle")} />
 
       <SettingsCategoryTabs active="functions" />
 

@@ -30,7 +30,6 @@ function NavSecondary({
     readonly planned: boolean
     readonly href?: string
     readonly active?: boolean
-    readonly badge?: string
   }[]
   plannedLabel: string
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
@@ -51,14 +50,6 @@ function NavSecondary({
                 >
                   <item.icon />
                   <span>{item.title}</span>
-                  {item.badge && (
-                    <Badge
-                      variant="warning"
-                      className="ml-auto group-data-[collapsible=icon]:hidden"
-                    >
-                      {item.badge}
-                    </Badge>
-                  )}
                 </SidebarMenuButton>
               ) : (
                 <Tooltip>

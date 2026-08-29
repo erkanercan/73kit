@@ -19,13 +19,7 @@ import {
   VerifyInstallation,
 } from "@/components/updates/verification"
 import { PageHeader } from "@/components/page-header"
-import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { getUpdateStepState } from "@/modules/update-presentation/index"
 
 function UpdateWorkspace() {
@@ -72,10 +66,10 @@ function UpdateSteps({ phase }: { readonly phase: UpdateCoordinatorPhase }) {
   return (
     <div aria-label={t("updatesStepsLabel")} className="grid grid-cols-3 gap-3">
       {[
-        [t("updatesStepPackage"), t("updatesStepPackageHint")],
-        [t("updatesStepTransfer"), t("updatesStepTransferHint")],
-        [t("updatesStepVerify"), t("updatesStepVerifyHint")],
-      ].map(([title, description], index) => {
+        t("updatesStepPackage"),
+        t("updatesStepTransfer"),
+        t("updatesStepVerify"),
+      ].map((title, index) => {
         const number = index + 1
         const state = getUpdateStepState(phase, number)
         return (
@@ -86,15 +80,7 @@ function UpdateSteps({ phase }: { readonly phase: UpdateCoordinatorPhase }) {
           >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Badge
-                  variant={
-                    state === "active"
-                      ? "default"
-                      : state === "complete"
-                        ? "secondary"
-                        : "outline"
-                  }
-                >
+                <span className="inline-flex min-w-4 justify-center">
                   {state === "complete" ? (
                     <>
                       <CheckIcon aria-hidden="true" />
@@ -105,10 +91,9 @@ function UpdateSteps({ phase }: { readonly phase: UpdateCoordinatorPhase }) {
                   ) : (
                     number
                   )}
-                </Badge>
+                </span>
                 {title}
               </CardTitle>
-              <CardDescription>{description}</CardDescription>
             </CardHeader>
           </Card>
         )

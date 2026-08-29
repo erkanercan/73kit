@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
 import { SettingsCategoryTabs } from "@/components/radio-settings/settings-category-tabs"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Empty,
@@ -19,14 +18,8 @@ import {
 import { MenuVisibilityCard } from "./menu-visibility-card"
 
 function MenuVisibilityWorkspace() {
-  const {
-    busy,
-    capability,
-    changes,
-    completedRead,
-    readRadio,
-    setMenuVisibility,
-  } = useCpsWorkspace()
+  const { busy, capability, completedRead, readRadio, setMenuVisibility } =
+    useCpsWorkspace()
   const t = useTranslations()
   const codeplug = completedRead?.workingCodeplug.codeplug ?? null
 
@@ -55,17 +48,9 @@ function MenuVisibilityWorkspace() {
     )
   }
 
-  const menuChangeCount = changes.filter(
-    (change) => change.kind === "edit-menu-visibility"
-  ).length
-
   return (
     <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
-      <PageHeader title={t("radioSettingsTitle")}>
-        {menuChangeCount > 0 && (
-          <Badge>{t("pendingChangeCount", { count: menuChangeCount })}</Badge>
-        )}
-      </PageHeader>
+      <PageHeader title={t("radioSettingsTitle")} />
 
       <SettingsCategoryTabs active="menu" />
       <MenuVisibilityCard

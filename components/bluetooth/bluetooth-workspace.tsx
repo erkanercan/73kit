@@ -11,7 +11,6 @@ import {
   SettingLabel,
   numberOptions,
 } from "@/components/radio-settings/setting-fields"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -36,14 +35,8 @@ import {
 } from "@/modules/codeplug/index"
 
 function BluetoothWorkspace() {
-  const {
-    busy,
-    capability,
-    changes,
-    completedRead,
-    editBluetoothSettings,
-    readRadio,
-  } = useCpsWorkspace()
+  const { busy, capability, completedRead, editBluetoothSettings, readRadio } =
+    useCpsWorkspace()
   const t = useTranslations()
   const codeplug = completedRead?.workingCodeplug.codeplug ?? null
 
@@ -73,19 +66,9 @@ function BluetoothWorkspace() {
   }
 
   const settings = codeplug.getBluetoothSettings()
-  const bluetoothChangeCount = changes.filter(
-    (change) => change.kind === "edit-bluetooth-setting"
-  ).length
-
   return (
     <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
-      <PageHeader title={t("bluetoothTitle")}>
-        {bluetoothChangeCount > 0 && (
-          <Badge>
-            {t("pendingChangeCount", { count: bluetoothChangeCount })}
-          </Badge>
-        )}
-      </PageHeader>
+      <PageHeader title={t("bluetoothTitle")} />
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
         <Card>

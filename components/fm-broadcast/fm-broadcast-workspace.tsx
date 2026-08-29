@@ -14,7 +14,6 @@ import {
   BooleanSettingField,
   SettingLabel,
 } from "@/components/radio-settings/setting-fields"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -63,7 +62,6 @@ function FmBroadcastWorkspace() {
   const {
     busy,
     capability,
-    changes,
     completedRead,
     editFmBroadcastChannel,
     editFmBroadcastSettings,
@@ -99,25 +97,10 @@ function FmBroadcastWorkspace() {
 
   const channels = codeplug.getFmBroadcastChannels()
   const settings = codeplug.getFmBroadcastSettings()
-  const fmChangeCount = changes.filter(
-    (change) =>
-      change.kind === "edit-fm-broadcast-channel" ||
-      change.kind === "edit-fm-broadcast-setting"
-  ).length
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-hidden p-4 sm:p-6 lg:p-8">
-      <PageHeader title={t("fmBroadcastTitle")}>
-        <Badge variant="secondary">
-          {t("fmBroadcastUsedCount", {
-            used: channels.filter((channel) => channel.valid).length,
-            total: channels.length,
-          })}
-        </Badge>
-        {fmChangeCount > 0 && (
-          <Badge>{t("pendingChangeCount", { count: fmChangeCount })}</Badge>
-        )}
-      </PageHeader>
+      <PageHeader title={t("fmBroadcastTitle")} />
 
       <FmBroadcastSettingsCard
         settings={settings}

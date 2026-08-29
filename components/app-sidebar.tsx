@@ -26,7 +26,6 @@ import { NavMain, type NavigationSection } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { useUpdateCoordinator } from "@/components/update-coordinator-provider"
-import { Badge } from "@/components/ui/badge"
 import {
   Sidebar,
   SidebarContent,
@@ -165,7 +164,6 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: HardDriveUploadIcon,
       active: pathname === "/updates",
       planned: false,
-      badge: t("updatesBetaBadge"),
     },
     { title: t("navDiagnostics"), icon: CircleGaugeIcon, planned: true },
     { title: t("navAbout"), icon: BookOpenIcon, planned: true },
@@ -227,9 +225,6 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     : t("sessionStorage")}
                 </span>
               </div>
-              <Badge variant={completedRead ? "secondary" : "outline"}>
-                {completedRead ? t("ready") : t("empty")}
-              </Badge>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

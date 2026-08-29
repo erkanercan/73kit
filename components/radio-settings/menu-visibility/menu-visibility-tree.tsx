@@ -4,7 +4,6 @@ import * as React from "react"
 import { ChevronDownIcon, CircleHelpIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -155,12 +154,12 @@ function MenuVisibilityBranch({
           </FieldLabel>
           <MenuVisibilityHelp label={label} group />
         </div>
-        <Badge variant="outline">
+        <span className="text-xs text-muted-foreground">
           {t("menuVisibilityGroupCount", {
             visible: visibleCount,
             total: descendants.length,
           })}
-        </Badge>
+        </span>
         <CollapsibleTrigger
           render={
             <Button

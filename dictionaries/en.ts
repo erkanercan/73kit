@@ -10,6 +10,13 @@ const en = {
   radioWriteUnavailableTitle: "Radio Write unavailable",
   radioWriteUnavailableDescription:
     "You can inspect and edit the Working Codeplug, but writing those changes to the Radio is not available in this version.",
+  radioWriteReadRequiredTitle: "Read a Radio before writing",
+  radioWriteReadRequiredDescription:
+    "Run Radio Read first to create a Working Codeplug bound to its Source Radio.",
+  radioWriteNoChangesTitle: "No changes to write",
+  radioWriteNoChangesDescription:
+    "Edit the Working Codeplug before starting Radio Write.",
+  radioWriteStopped: "Radio Write stopped",
   radioWriteUnknownTitle: "Write Outcome Unknown",
   radioWriteUnknownDescription:
     "The Radio did not confirm that writing finished. Check the USB connection and Radio power before trying again.",
@@ -862,6 +869,7 @@ const en = {
     "Check that browser storage is available, then reload this page.",
   backupHistorySaveFailed:
     "The Radio operation completed, but its Codeplug backup could not be saved in this browser.",
+  backupHistorySaveFailedTitle: "Codeplug Backup was not saved",
   navDiagnostics: "Diagnostics",
   navAbout: "About",
   planned: "Planned",

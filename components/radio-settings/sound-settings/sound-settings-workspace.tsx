@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
 import { SettingsCategoryTabs } from "@/components/radio-settings/settings-category-tabs"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Empty,
@@ -25,14 +24,8 @@ import { RxGainCard } from "./rx-gain-card"
 import type { EditSoundSetting } from "./types"
 
 function SoundSettingsWorkspace() {
-  const {
-    busy,
-    capability,
-    changes,
-    completedRead,
-    editSoundSettings,
-    readRadio,
-  } = useCpsWorkspace()
+  const { busy, capability, completedRead, editSoundSettings, readRadio } =
+    useCpsWorkspace()
   const t = useTranslations()
   const codeplug = completedRead?.workingCodeplug.codeplug ?? null
 
@@ -62,20 +55,13 @@ function SoundSettingsWorkspace() {
   }
 
   const settings = codeplug.getSoundSettings()
-  const soundChangeCount = changes.filter(
-    (change) => change.kind === "edit-sound-setting"
-  ).length
   const edit: EditSoundSetting = (field, value) => {
     editSoundSettings({ [field]: value } as SoundSettingsPatch)
   }
 
   return (
     <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
-      <PageHeader title={t("radioSettingsTitle")}>
-        {soundChangeCount > 0 && (
-          <Badge>{t("pendingChangeCount", { count: soundChangeCount })}</Badge>
-        )}
-      </PageHeader>
+      <PageHeader title={t("radioSettingsTitle")} />
 
       <SettingsCategoryTabs active="sounds" />
 

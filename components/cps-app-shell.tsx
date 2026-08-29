@@ -1,22 +1,17 @@
 "use client"
 
 import * as React from "react"
-import {
-  DownloadIcon,
-  LoaderCircleIcon,
-  RadioIcon,
-  UploadIcon,
-} from "lucide-react"
+import { DownloadIcon, LoaderCircleIcon, RadioIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { RadioWriteDialog } from "@/components/radio-write/radio-write-dialog"
 import {
   useCpsWorkspace,
   type WorkspacePhase,
 } from "@/components/cps-workspace-provider"
 import { useUpdateCoordinator } from "@/components/update-coordinator-provider"
-import { Badge } from "@/components/ui/badge"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -97,47 +92,36 @@ function AppHeader() {
       <div className="ml-auto flex items-center gap-2">
         <LanguageSwitcher />
         {pathname !== "/updates" && (
-          <>
-            <Button
-              size="sm"
-              disabled={busy || updateBusy || capability !== "available"}
-              onClick={() => void readRadio()}
-            >
-              {busy ? (
-                <LoaderCircleIcon
-                  data-icon="inline-start"
-                  className="animate-spin"
-                />
-              ) : (
-                <DownloadIcon data-icon="inline-start" />
-              )}
-              <span className="hidden sm:inline">
-                {busy
-                  ? t("readingRadio")
-                  : completedRead
-                    ? t("readAgain")
-                    : t("readRadio")}
-              </span>
-              <span className="sr-only sm:hidden">
-                {busy
-                  ? t("readingRadioPlain")
-                  : completedRead
-                    ? t("readAgain")
-                    : t("readRadio")}
-              </span>
-            </Button>
-            <Button size="sm" variant="outline" disabled>
-              <UploadIcon data-icon="inline-start" />
-              <span className="hidden sm:inline">{t("writeRadio")}</span>
-              <span className="sr-only sm:hidden">
-                {t("writeRadioPlanned")}
-              </span>
-            </Button>
-            <Badge variant="outline" className="hidden lg:inline-flex">
-              {t("planned")}
-            </Badge>
-          </>
+          <Button
+            size="sm"
+            disabled={busy || updateBusy || capability !== "available"}
+            onClick={() => void readRadio()}
+          >
+            {busy ? (
+              <LoaderCircleIcon
+                data-icon="inline-start"
+                className="animate-spin"
+              />
+            ) : (
+              <DownloadIcon data-icon="inline-start" />
+            )}
+            <span className="hidden sm:inline">
+              {busy
+                ? t("readingRadio")
+                : completedRead
+                  ? t("readAgain")
+                  : t("readRadio")}
+            </span>
+            <span className="sr-only sm:hidden">
+              {busy
+                ? t("readingRadioPlain")
+                : completedRead
+                  ? t("readAgain")
+                  : t("readRadio")}
+            </span>
+          </Button>
         )}
+        <RadioWriteDialog />
       </div>
     </header>
   )
@@ -160,7 +144,7 @@ function WorkspaceStatusBar() {
         <div className="flex items-center gap-1.5">
           <RadioIcon aria-hidden="true" />
           <span>{sourceRadio?.model ?? t("noRadio")}</span>
-          <StatusBadge phase={phase} />
+          <StatusText phase={phase} />
         </div>
         <span>
           {t("workingCodeplug")}: {completedRead ? t("ready") : t("none")}
@@ -176,7 +160,7 @@ function WorkspaceStatusBar() {
   )
 }
 
-function StatusBadge({ phase }: { phase: WorkspacePhase }) {
+function StatusText({ phase }: { phase: WorkspacePhase }) {
   const t = useTranslations()
   const labels: Record<WorkspacePhase, string> = {
     idle: t("idle"),
@@ -185,11 +169,7 @@ function StatusBadge({ phase }: { phase: WorkspacePhase }) {
     ready: t("backupReady"),
   }
 
-  return (
-    <Badge variant={phase === "idle" ? "outline" : "secondary"}>
-      {labels[phase]}
-    </Badge>
-  )
+  return <span className="font-medium">{labels[phase]}</span>
 }
 
-export { CpsAppShell, StatusBadge }
+export { CpsAppShell, StatusText }

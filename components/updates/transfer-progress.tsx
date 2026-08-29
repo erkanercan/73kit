@@ -8,32 +8,18 @@ import {
   type UpdateCoordinatorPhase,
 } from "@/components/update-coordinator-provider"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Progress,
   ProgressLabel,
   ProgressValue,
 } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
+import { formatPercent } from "@/lib/format-percent"
 import { UpdateErrorAlert, phaseLabel } from "@/components/updates/update-ui"
 
 function ActiveTransfer() {
-  const {
-    completedBlocks,
-    errorCode,
-    phase,
-    progress,
-    selectedPackage,
-    totalBlocks,
-  } = useUpdateCoordinator()
+  const { errorCode, phase, progress } = useUpdateCoordinator()
   const t = useTranslations()
 
   return (
@@ -43,12 +29,6 @@ function ActiveTransfer() {
           <LoaderCircleIcon className="animate-spin" />
           {phaseLabel(phase, t)}
         </CardTitle>
-        <CardDescription>
-          {selectedPackage?.fileName ?? t("updatesPackageTitle")}
-        </CardDescription>
-        <CardAction>
-          <Badge variant="secondary">{progress}%</Badge>
-        </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         <Alert>
@@ -58,14 +38,7 @@ function ActiveTransfer() {
         </Alert>
         <Progress value={progress}>
           <ProgressLabel>{phaseLabel(phase, t)}</ProgressLabel>
-          <ProgressValue>
-            {() =>
-              t("updatesProgressValue", {
-                completed: completedBlocks,
-                total: totalBlocks,
-              })
-            }
-          </ProgressValue>
+          <ProgressValue>{() => formatPercent(progress)}</ProgressValue>
         </Progress>
         <TransferPhases active={phase} />
         {errorCode && <UpdateErrorAlert code={errorCode} />}
@@ -94,18 +67,7 @@ function TransferPhases({
       {phases.map(([phase, label], index) => (
         <div key={phase} className="flex min-w-0 flex-col gap-2">
           <Separator />
-          <Badge
-            variant={
-              index === activeIndex
-                ? "default"
-                : index < activeIndex
-                  ? "secondary"
-                  : "outline"
-            }
-            className="w-fit"
-          >
-            {index + 1}
-          </Badge>
+          <span className="text-xs font-medium">{index + 1}</span>
           <span
             className={
               index === activeIndex

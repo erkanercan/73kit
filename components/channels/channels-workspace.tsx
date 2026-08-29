@@ -7,7 +7,6 @@ import { MemoryChannelsCard } from "@/components/channels/memory-channels-card"
 import { SpecialChannelsCard } from "@/components/channels/special-channels-card"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Empty,
@@ -64,21 +63,9 @@ function ChannelsWorkspace() {
   }
 
   const channels = codeplug.getChannels()
-  const usedCount = channels.filter((channel) => channel.valid).length
-
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden p-4 sm:p-6 lg:p-8">
-      <PageHeader title={t("channelsTitle")}>
-        <Badge variant="secondary">
-          {t("channelsUsedCount", {
-            used: usedCount,
-            total: channels.length,
-          })}
-        </Badge>
-        {changes.length > 0 && (
-          <Badge>{t("pendingChangeCount", { count: changes.length })}</Badge>
-        )}
-      </PageHeader>
+      <PageHeader title={t("channelsTitle")} />
 
       <Tabs defaultValue="memory" className="min-h-0 flex-1">
         <TabsList>

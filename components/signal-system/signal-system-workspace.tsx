@@ -17,13 +17,7 @@ import {
 } from "@/components/aprs/aprs-fields"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Empty,
@@ -300,6 +294,7 @@ function DurationRows({
   edit(patch: DtmfSettingsPatch): void
 }) {
   const t = useTranslations()
+
   return (
     <>
       <NumberSelect
@@ -799,12 +794,10 @@ function RecordCard({
   headers: readonly string[]
   children: React.ReactNode
 }) {
-  const t = useTranslations()
   return (
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
-        <CardDescription>{t("signalTableHint")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Table containerClassName="max-h-[38rem] rounded-lg border">

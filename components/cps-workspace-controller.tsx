@@ -345,11 +345,11 @@ function useCpsWorkspaceController() {
   }, [busy, radioWriteSnapshot])
 
   const discardRadioWriteStatus = React.useCallback(async () => {
+    setRadioWriteSnapshot(null)
+    setRadioWriteReview([])
+    setError(null)
     try {
       await workspace.current?.discardRadioWriteOperation()
-      setRadioWriteSnapshot(null)
-      setRadioWriteReview([])
-      setError(null)
     } catch (cause) {
       setError(workspaceError(cause))
     }

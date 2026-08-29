@@ -10,7 +10,6 @@ import {
   SelectSettingField,
   numberOptions,
 } from "@/components/radio-settings/setting-fields"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -47,14 +46,8 @@ const constellationHint = {
 } as const
 
 function GpsWorkspace() {
-  const {
-    busy,
-    capability,
-    changes,
-    completedRead,
-    editGpsSettings,
-    readRadio,
-  } = useCpsWorkspace()
+  const { busy, capability, completedRead, editGpsSettings, readRadio } =
+    useCpsWorkspace()
   const t = useTranslations()
   const codeplug = completedRead?.workingCodeplug.codeplug ?? null
 
@@ -84,9 +77,6 @@ function GpsWorkspace() {
   }
 
   const settings = codeplug.getGpsSettings()
-  const gpsChangeCount = changes.filter(
-    (change) => change.kind === "edit-gps-setting"
-  ).length
   const selectedConstellations = isUnknownSettingValue(settings.constellations)
     ? null
     : settings.constellations
@@ -105,11 +95,7 @@ function GpsWorkspace() {
 
   return (
     <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
-      <PageHeader title={t("gpsTitle")}>
-        {gpsChangeCount > 0 && (
-          <Badge>{t("pendingChangeCount", { count: gpsChangeCount })}</Badge>
-        )}
-      </PageHeader>
+      <PageHeader title={t("gpsTitle")} />
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
         <Card>

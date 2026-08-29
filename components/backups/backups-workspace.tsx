@@ -22,7 +22,6 @@ import {
   AlertDialogMedia,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -33,7 +32,6 @@ import {
 } from "@/components/ui/card"
 import {
   Empty,
-  EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
@@ -131,9 +129,6 @@ function BackupsWorkspace() {
                   <TriangleAlertIcon />
                 </EmptyMedia>
                 <EmptyTitle>{t("backupsStorageErrorTitle")}</EmptyTitle>
-                <EmptyDescription>
-                  {t("backupsStorageErrorDescription")}
-                </EmptyDescription>
               </EmptyHeader>
             </Empty>
           ) : loading ? (
@@ -149,9 +144,6 @@ function BackupsWorkspace() {
                   <ArchiveIcon />
                 </EmptyMedia>
                 <EmptyTitle>{t("backupsEmptyTitle")}</EmptyTitle>
-                <EmptyDescription>
-                  {t("backupsEmptyDescription")}
-                </EmptyDescription>
               </EmptyHeader>
             </Empty>
           ) : (
@@ -178,17 +170,9 @@ function BackupsWorkspace() {
                       }).format(new Date(entry.createdAt))}
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          entry.origin === "radio-read"
-                            ? "secondary"
-                            : "default"
-                        }
-                      >
-                        {entry.origin === "radio-read"
-                          ? t("backupsRadioRead")
-                          : t("backupsRadioWrite")}
-                      </Badge>
+                      {entry.origin === "radio-read"
+                        ? t("backupsRadioRead")
+                        : t("backupsRadioWrite")}
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">
@@ -246,7 +230,7 @@ function BackupsWorkspace() {
               <Trash2Icon />
             </AlertDialogMedia>
             <AlertDialogTitle>{t("backupsDeleteTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="sr-only">
               {t("backupsDeleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -266,7 +250,7 @@ function BackupsWorkspace() {
               <Trash2Icon />
             </AlertDialogMedia>
             <AlertDialogTitle>{t("backupsDeleteAllTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="sr-only">
               {t("backupsDeleteAllDescription", { count: entries.length })}
             </AlertDialogDescription>
           </AlertDialogHeader>

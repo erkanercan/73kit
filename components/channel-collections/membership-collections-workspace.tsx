@@ -32,7 +32,6 @@ import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
 import { BandScanListSelectors } from "@/components/scan-lists/band-scan-list-selectors"
 import { BandZoneSelectors } from "@/components/zones/band-zone-selectors"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -92,7 +91,6 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
   const {
     busy,
     capability,
-    changes,
     completedRead,
     editBandScanListSelection,
     editBandZoneSelection,
@@ -169,9 +167,6 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden p-4 sm:p-6 lg:p-8">
       <PageHeader title={t(labels.title)}>
-        {changes.length > 0 && (
-          <Badge>{t("pendingChangeCount", { count: changes.length })}</Badge>
-        )}
         {kind === "zone" && (
           <BandZoneSelectors
             zones={codeplug.getZones()}
@@ -218,9 +213,9 @@ function MembershipCollectionsWorkspace({ kind }: { kind: CollectionKind }) {
                     <span className="min-w-0 flex-1 truncate">
                       {collection.name || t("unused")}
                     </span>
-                    <Badge variant="outline">
+                    <span className="shrink-0 text-xs text-muted-foreground">
                       {collection.channelNumbers.length}
-                    </Badge>
+                    </span>
                   </Button>
                 ))}
               </div>
@@ -337,9 +332,9 @@ function CollectionEditor({
               >
                 {t(labels.number, { number: collection.number - 1 })}
               </FieldLabel>
-              <Badge variant="secondary">
+              <span className="text-xs text-muted-foreground">
                 {t(labels.memberCount, { count: members.length })}
-              </Badge>
+              </span>
             </div>
             <Input
               id={inputId}

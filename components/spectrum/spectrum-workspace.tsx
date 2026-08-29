@@ -17,7 +17,6 @@ import {
   textOptions,
 } from "@/components/radio-settings/setting-fields"
 import { SettingsCard } from "@/components/radio-settings/settings-card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
 import {
@@ -79,14 +78,8 @@ const modulationLabel = {
 } as const
 
 function SpectrumWorkspace() {
-  const {
-    busy,
-    capability,
-    changes,
-    completedRead,
-    editSpectrumSettings,
-    readRadio,
-  } = useCpsWorkspace()
+  const { busy, capability, completedRead, editSpectrumSettings, readRadio } =
+    useCpsWorkspace()
   const t = useTranslations()
   const codeplug = completedRead?.workingCodeplug.codeplug ?? null
 
@@ -118,10 +111,6 @@ function SpectrumWorkspace() {
   const settings = codeplug.getSpectrumSettings()
   const baselineSettings =
     completedRead.baselineBackup.codeplug.getSpectrumSettings()
-  const spectrumChangeCount = changes.filter(
-    (change) => change.kind === "edit-spectrum-setting"
-  ).length
-
   function setMode(mode: SpectrumMode) {
     editSpectrumSettings(
       createSpectrumModeChangePatch(settings, baselineSettings, mode)
@@ -130,13 +119,7 @@ function SpectrumWorkspace() {
 
   return (
     <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
-      <PageHeader title={t("spectrumTitle")}>
-        {spectrumChangeCount > 0 && (
-          <Badge>
-            {t("pendingChangeCount", { count: spectrumChangeCount })}
-          </Badge>
-        )}
-      </PageHeader>
+      <PageHeader title={t("spectrumTitle")} />
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
         <SettingsCard id="spectrum-general" title={t("spectrumGeneralTitle")}>

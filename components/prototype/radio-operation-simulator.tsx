@@ -12,13 +12,11 @@ import { useTranslations } from "next-intl"
 import { PageHeader } from "@/components/page-header"
 import { RadioWriteWorkflow } from "@/components/radio-write/radio-write-workflow"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -47,6 +45,7 @@ import type {
 import { CODEPLUG_LAYOUT_3_07_23 } from "@/modules/codeplug/index"
 import type { FirmwareCompatibility } from "@/modules/uvl15w-radio/index"
 import type { Messages } from "@/dictionaries/en"
+import { formatPercent } from "@/lib/format-percent"
 
 type MessageKey = keyof Messages
 type ReadStage = "idle" | "handshake" | "reading" | "completed" | "failed"
@@ -554,13 +553,7 @@ function RadioOperationSimulator({
 
   return (
     <div className="flex w-full flex-1 flex-col gap-6 p-8 pb-24">
-      <PageHeader title={t("firmwareDemoOperationsTitle")}>
-        <Badge variant="secondary">
-          <FlaskConicalIcon data-icon="inline-start" />
-          {t("firmwareDemoLocalOnly")}
-        </Badge>
-        <Badge variant="outline">D · {t("firmwareDemoVariantD")}</Badge>
-      </PageHeader>
+      <PageHeader title={t("firmwareDemoOperationsTitle")} />
 
       <Alert>
         <FlaskConicalIcon aria-hidden="true" />
@@ -572,9 +565,6 @@ function RadioOperationSimulator({
         <Card>
           <CardHeader>
             <CardTitle>{t("firmwareDemoInputTitle")}</CardTitle>
-            <CardDescription>
-              {t("firmwareDemoOperationsFirmware")}
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <Field>
@@ -600,9 +590,6 @@ function RadioOperationSimulator({
         <Card>
           <CardHeader>
             <CardTitle>{t("firmwareDemoOperationState")}</CardTitle>
-            <CardDescription>
-              {t("firmwareDemoOperationStateDescription")}
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <pre className="max-h-52 overflow-auto rounded-lg bg-muted p-3 font-mono text-xs leading-relaxed">
@@ -615,13 +602,12 @@ function RadioOperationSimulator({
       <Card>
         <CardHeader>
           <CardTitle>{t("firmwareDemoReadTitle")}</CardTitle>
-          <CardDescription>{t("firmwareDemoReadDescription")}</CardDescription>
           <CardAction>
-            <Badge variant={hasWorkingCodeplug ? "secondary" : "outline"}>
+            <span className="text-sm font-medium">
               {hasWorkingCodeplug
                 ? t("workingCodeplugReady")
                 : t("noWorkingCodeplug")}
-            </Badge>
+            </span>
           </CardAction>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
@@ -636,7 +622,7 @@ function RadioOperationSimulator({
 
           <Progress value={readProgress}>
             <ProgressLabel>{readStageLabel(readStage, t)}</ProgressLabel>
-            <ProgressValue />
+            <ProgressValue>{() => formatPercent(readProgress)}</ProgressValue>
           </Progress>
 
           {readError && (
@@ -674,9 +660,6 @@ function RadioOperationSimulator({
       <Card>
         <CardHeader>
           <CardTitle>{t("firmwareDemoWriteScenarioTitle")}</CardTitle>
-          <CardDescription>
-            {t("firmwareDemoWriteScenarioDescription")}
-          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
           <ScenarioSelect

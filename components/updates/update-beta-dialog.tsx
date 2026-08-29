@@ -33,7 +33,7 @@ function UpdateBetaDialog({
             <TriangleAlertIcon aria-hidden="true" />
           </AlertDialogMedia>
           <AlertDialogTitle>{t("updatesBetaTitle")}</AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogDescription className="sr-only">
             {t("updatesBetaDialogDescription")}
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -41,21 +41,12 @@ function UpdateBetaDialog({
         <ul className="flex list-disc flex-col gap-3 pl-5 text-sm">
           <li>
             <strong>{t("updatesBetaRiskInterruptTitle")}</strong>
-            <p className="text-muted-foreground">
-              {t("updatesBetaRiskInterruptDescription")}
-            </p>
           </li>
           <li>
             <strong>{t("updatesBetaRiskRecoveryTitle")}</strong>
-            <p className="text-muted-foreground">
-              {t("updatesBetaRiskRecoveryDescription")}
-            </p>
           </li>
           <li>
             <strong>{t("updatesBetaRiskPackageTitle")}</strong>
-            <p className="text-muted-foreground">
-              {t("updatesBetaRiskPackageDescription")}
-            </p>
           </li>
         </ul>
 

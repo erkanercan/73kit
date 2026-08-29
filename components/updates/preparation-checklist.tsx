@@ -14,7 +14,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -72,7 +71,6 @@ function PreparationChecklist({
     <Card>
       <CardHeader>
         <CardTitle>{t("updatesPrepareTitle")}</CardTitle>
-        <CardDescription>{t("updatesPrepareDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         {readiness.state === "checking" && (

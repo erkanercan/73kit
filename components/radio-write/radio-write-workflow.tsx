@@ -23,13 +23,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -41,6 +38,7 @@ import {
 } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
+import { formatPercent } from "@/lib/format-percent"
 import {
   RADIO_WRITE_STAGES,
   radioWritePresentation,
@@ -97,12 +95,6 @@ function RadioWriteWorkflow({
     <Card>
       <CardHeader>
         <CardTitle>{t("radioWriteTitle")}</CardTitle>
-        <CardDescription>{t("radioWriteDescription")}</CardDescription>
-        <CardAction>
-          <Badge variant={released ? "secondary" : "outline"}>
-            {released ? t("radioWriteControlled") : t("radioWriteUnavailable")}
-          </Badge>
-        </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         {!released && !outcomeUnknown && (
@@ -114,6 +106,30 @@ function RadioWriteWorkflow({
             </AlertDescription>
           </Alert>
         )}
+
+        {released && !hasWorkingCodeplug && !outcomeUnknown && (
+          <Alert>
+            <RadioTowerIcon aria-hidden="true" />
+            <AlertTitle>{t("radioWriteReadRequiredTitle")}</AlertTitle>
+            <AlertDescription>
+              {t("radioWriteReadRequiredDescription")}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {released &&
+          hasWorkingCodeplug &&
+          changeCount === 0 &&
+          !outcomeUnknown &&
+          !completed && (
+            <Alert>
+              <CheckCircle2Icon aria-hidden="true" />
+              <AlertTitle>{t("radioWriteNoChangesTitle")}</AlertTitle>
+              <AlertDescription>
+                {t("radioWriteNoChangesDescription")}
+              </AlertDescription>
+            </Alert>
+          )}
 
         {outcomeUnknown && (
           <Alert variant="destructive">
@@ -204,7 +220,7 @@ function RadioWriteWorkflow({
               <AlertTriangleIcon aria-hidden="true" />
             </AlertDialogMedia>
             <AlertDialogTitle>{t("radioWriteConfirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="sr-only">
               {t("radioWriteConfirmDescription", { count: review.length })}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -243,17 +259,12 @@ function ChangeSetReview({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <h3 className="font-heading text-sm font-medium">
-            {t("radioWriteChangeSet")}
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            {t("radioWriteChangeSetDescription")}
-          </p>
-        </div>
-        <Badge variant="secondary">
+        <h3 className="font-heading text-sm font-medium">
+          {t("radioWriteChangeSet")}
+        </h3>
+        <span className="text-xs text-muted-foreground">
           {t("radioWriteChangeCount", { count: changeCount })}
-        </Badge>
+        </span>
       </div>
       <ScrollArea className="h-64 rounded-lg border">
         <div className="flex flex-col p-4">
@@ -308,12 +319,7 @@ function WriteStages({ snapshot }: { snapshot: RadioWriteOperationSnapshot }) {
         <Progress value={presentation.progress.percent}>
           <ProgressLabel>{t("radioWriteStageWrite")}</ProgressLabel>
           <ProgressValue>
-            {() =>
-              t("radioWriteBlockProgress", {
-                completed: presentation.progress.completedBlocks,
-                total: presentation.progress.totalBlocks,
-              })
-            }
+            {() => formatPercent(presentation.progress.percent)}
           </ProgressValue>
         </Progress>
       )}
@@ -321,18 +327,7 @@ function WriteStages({ snapshot }: { snapshot: RadioWriteOperationSnapshot }) {
         {RADIO_WRITE_STAGES.map((stage, index) => (
           <div key={stage} className="flex min-w-0 flex-col gap-2">
             <Separator />
-            <Badge
-              variant={
-                index === presentation.activeStage
-                  ? "default"
-                  : index < presentation.activeStage
-                    ? "secondary"
-                    : "outline"
-              }
-              className="w-fit"
-            >
-              {index + 1}
-            </Badge>
+            <span className="text-xs font-medium">{index + 1}</span>
             <span
               className={
                 index === presentation.activeStage
