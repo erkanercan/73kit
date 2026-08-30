@@ -93,11 +93,11 @@ A `.uvl15cps` package containing an immutable Baseline Backup, an editable Worki
 _Avoid_: Project file, Raw Backup Export, firmware backup
 
 **Radio Restore**:
-The deliberate application of a saved CPS File's desired Codeplug to its verified Source Radio after a fresh Radio Read creates a recovery backup and a Restore Plan.
+The deliberate application of a desired Codeplug from a saved CPS File or Backup History entry to its verified Source Radio after a fresh Radio Read creates a recovery backup and a Restore Plan.
 _Avoid_: Import, Radio Write, rollback
 
 **Restore Plan**:
-The reviewable difference from the freshly read Radio Codeplug to the desired Codeplug in a compatible CPS File. It is prepared only after Source Radio and layout verification.
+The reviewable difference from the freshly read Radio Codeplug to a compatible desired Codeplug from a CPS File or Backup History entry. It is prepared only after Source Radio and layout verification.
 _Avoid_: Change Set, file diff
 
 **Codeplug Migration**:

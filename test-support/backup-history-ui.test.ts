@@ -56,3 +56,22 @@ test("shows a completed no-op restore instead of silently removing the result", 
     /disabled=\{busy \|\| capability !== "available"\}/
   )
 })
+
+test("shows the no-op restore result title only once", () => {
+  assert.equal(
+    backupsSource.match(/t\("cpsFileAlreadyCurrentTitle"\)/g)?.length,
+    1
+  )
+})
+
+test("shows direct Backup History restore failures without an imported file", () => {
+  assert.match(
+    backupsSource,
+    /importedCpsFile \|\| importedRestoreResult \|\| fileError \|\| error/
+  )
+  assert.match(backupsSource, /: error\s+\? t\("cpsFileRestoreFailedTitle"\)/)
+  assert.match(
+    backupsSource,
+    /error \? \([\s\S]*<WorkspaceErrorAlert error=\{error\} operation="read" \/>/
+  )
+})

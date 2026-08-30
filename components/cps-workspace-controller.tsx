@@ -26,11 +26,11 @@ import {
   type CpsFileManifest,
 } from "@/modules/cps-workspace/cps-file"
 import { isRadioWriteReleased } from "@/modules/cps-workspace/radio-write-release"
-import { compareSourceRadios } from "@/modules/cps-workspace/radio-write-policy"
 import {
-  evaluateRestorePlan,
-  materializeRestoreTarget,
-} from "@/modules/cps-workspace/restore-plan"
+  prepareRestoreDocument,
+  restoreTargetFromBackup,
+  type RestoreSource,
+} from "@/modules/cps-workspace/restore-workflow"
 import {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
@@ -480,10 +480,7 @@ function useCpsWorkspaceController() {
 
   const prepareRestore = React.useCallback(
     async (
-      restoreSource: Pick<
-        CpsFileManifest,
-        "createdAt" | "sourceRadio" | "working"
-      >,
+      restoreSource: RestoreSource,
       target: ReturnType<typeof createCodeplug>
     ) => {
       if (capability !== "available" || busy || operationInProgress.current)
@@ -516,54 +513,17 @@ function useCpsWorkspaceController() {
         const freshRead = await nextWorkspace.read({
           onProgress: ({ percent }) => mounted.current && setProgress(percent),
         })
-        if (
-          compareSourceRadios(restoreSource.sourceRadio, freshRead.sourceRadio)
-            .status !== "same"
-        ) {
-          throw new Error(
-            "Restore blocked: the selected Radio is not the Source Radio recorded with this saved Codeplug."
-          )
-        }
-        const currentRadioBytes = freshRead.baselineBackup.codeplug.toBytes()
-        const restoreTargetBytes = materializeRestoreTarget(
-          currentRadioBytes,
-          target.toBytes()
+        const prepared = prepareRestoreDocument(
+          restoreSource,
+          target,
+          freshRead
         )
-        const restorePlan = evaluateRestorePlan(
-          currentRadioBytes,
-          restoreTargetBytes
-        )
-        const restoredDocument: CompletedRadioRead = Object.freeze({
-          ...freshRead,
-          workingCodeplug: Object.freeze({
-            sourceRadio: freshRead.sourceRadio,
-            baselineBackup: freshRead.baselineBackup,
-            codeplug: createCodeplug(restoreTargetBytes),
-          }),
-        })
         importedCpsFileRef.current = null
         setImportedCpsFile(null)
-        setImportedRestoreResult(
-          restorePlan.status === "already-current"
-            ? Object.freeze({ status: "already-current" })
-            : Object.freeze({
-                status: "restore-ready",
-                changedByteCount: restorePlan.changedByteCount,
-              })
-        )
+        setImportedRestoreResult(prepared.result)
         setDocumentState({
-          completedRead: restoredDocument,
-          changes:
-            restorePlan.status === "already-current"
-              ? []
-              : [
-                  Object.freeze({
-                    kind: "restore-imported-codeplug" as const,
-                    fileCreatedAt: restoreSource.createdAt,
-                    workingSha256: restoreSource.working.sha256,
-                    changedByteCount: restorePlan.changedByteCount,
-                  }),
-                ],
+          completedRead: prepared.completedRead,
+          changes: prepared.changes,
         })
         setProgress(100)
         setPhase("ready")
@@ -587,7 +547,14 @@ function useCpsWorkspaceController() {
     const manifest = importedCpsFileRef.current
     const target = completedRead?.workingCodeplug.codeplug
     if (!manifest || !target) return
-    await prepareRestore(manifest, target)
+    await prepareRestore(
+      {
+        createdAt: manifest.createdAt,
+        sourceRadio: manifest.sourceRadio,
+        workingSha256: manifest.working.sha256,
+      },
+      target
+    )
   }, [completedRead, prepareRestore])
 
   const prepareBackupRestore = React.useCallback(
@@ -595,20 +562,8 @@ function useCpsWorkspaceController() {
       if (busy || operationInProgress.current) return
       setError(null)
       try {
-        const codeplug = createCodeplug(entry.bytes)
-        const archive = await createCpsFile({
-          sourceRadio: entry.sourceRadio,
-          baseline: codeplug,
-          working: codeplug,
-          createdAt: new Date(entry.createdAt),
-        })
-        const parsed = await parseCpsFile(archive)
-        if (parsed.manifest.working.sha256 !== entry.sha256) {
-          throw new Error(
-            "Restore blocked: the saved backup failed its integrity check."
-          )
-        }
-        await prepareRestore(parsed.manifest, parsed.working)
+        const restoreTarget = await restoreTargetFromBackup(entry)
+        await prepareRestore(restoreTarget.source, restoreTarget.target)
       } catch (cause) {
         setError({
           message:

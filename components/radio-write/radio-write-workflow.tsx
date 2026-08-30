@@ -354,6 +354,8 @@ function WriteStages({ snapshot }: { snapshot: RadioWriteOperationSnapshot }) {
 type Translator = ReturnType<typeof useTranslations>
 
 const REVIEW_SUBJECT_KEYS = {
+  "Imported CPS File": "radioWriteSubjectImportedCpsFile",
+  "Saved Codeplug": "radioWriteSubjectSavedCodeplug",
   "Memory channel order": "radioWriteSubjectMemoryChannelOrder",
   "Function settings": "radioWriteSubjectFunctionSettings",
   "Display settings": "radioWriteSubjectDisplaySettings",
@@ -372,6 +374,8 @@ const REVIEW_SUBJECT_KEYS = {
 } as const
 
 const REVIEW_FIELD_KEYS = {
+  "Working Codeplug": "radioWriteFieldWorkingCodeplug",
+  "Other Codeplug data": "radioWriteFieldOtherCodeplugData",
   Position: "position",
   Channel: "radioWriteFieldChannel",
   Name: "channelName",
@@ -460,11 +464,20 @@ function formatReviewValue(value: unknown, t: Translator): string {
   if (typeof value !== "string") return String(value)
 
   const exactKeys = {
+    "Baseline Backup": "radioWriteValueBaselineBackup",
+    "Fresh Radio Read": "radioWriteValueFreshRadioRead",
     "Working Codeplug": "radioWriteValueWorkingCodeplug",
     "Applied to write image": "radioWriteValueAppliedToWriteImage",
   } as const
   const exactKey = exactKeys[value as keyof typeof exactKeys]
   if (exactKey) return t(exactKey)
+
+  const changedBytes = /^(\d+) changed bytes?$/.exec(value)
+  if (changedBytes) {
+    return t("radioWriteValueChangedBytes", {
+      count: Number(changedBytes[1]),
+    })
+  }
 
   const valueKey = `value${messageSuffix(value)}`
   return t.has(valueKey as never) ? t(valueKey as never) : value

@@ -84,8 +84,8 @@ test("presents imported work and prepared restore as distinct review items", () 
       },
       {
         id: `restore-imported-codeplug:2026-08-30T12:00:00.000Z:${"a".repeat(64)}:1`,
-        subject: "Imported CPS File",
-        field: "Restore Codeplug",
+        subject: "Saved Codeplug",
+        field: "Other Codeplug data",
         before: "Fresh Radio Read",
         after: "1 changed byte",
       },

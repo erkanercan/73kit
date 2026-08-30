@@ -50,8 +50,8 @@ function reviewChange(
   if (change.kind === "restore-imported-codeplug") {
     return item(
       change,
-      "Imported CPS File",
-      "Restore Codeplug",
+      "Saved Codeplug",
+      "Other Codeplug data",
       "Fresh Radio Read",
       changedBytesLabel(change.changedByteCount)
     )

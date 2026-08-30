@@ -256,6 +256,7 @@ export {
   CPS_FILE_SCHEMA_VERSION,
   CpsFileError,
   createCpsFile,
+  digestBytes,
   evaluateCpsFileCompatibility,
   parseCpsFile,
 }

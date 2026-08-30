@@ -1,6 +1,6 @@
 # Production readiness
 
-Last reviewed: 2026-08-30
+Last reviewed: 2026-08-31
 
 ## Decision
 
@@ -18,6 +18,7 @@ firmware version, transport, or firmware/resource update scenario.
 - a complete Working Codeplug created by this CPS from the Source Radio;
 - `.uvl15cps` export, verified offline import/reopen/edit/re-export, and
   same-layout restore preparation after a fresh Source Radio read;
+- direct verified restore preparation from a browser-local Backup History entry;
 - complete 102,400-byte writes only;
 - Radios with write protection disabled;
 - permanent Source Radio identity containing model, sub-model, CPU ID, and
@@ -50,15 +51,31 @@ Any interruption after writing may have begun remains durable
 - complete physical Radio Read proven;
 - complete physical Radio Write proven with 200 acknowledgements and reboot;
 - reversible display-setting change applied and restored on the dedicated Radio;
+- direct restore from the newest Backup History entry physically verified as a
+  no-op after a fresh Source Radio read on 2026-08-31;
+- controlled backlight-level write from 9 to 8 completed with every Codeplug
+  block acknowledged and the reboot command accepted on 2026-08-31;
+- the post-write Radio Read completed with zero pending changes and created a
+  distinct Backup History entry on 2026-08-31;
+- direct restore from the older pre-change Backup History entry completed its
+  fresh Radio Read and prepared exactly one changed byte on 2026-08-31;
+- that prepared restore was reviewed semantically as backlight level 8 to 9,
+  with no generic import marker or unrelated change, on 2026-08-31;
+- the older-backup restore write completed with every Codeplug block
+  acknowledged and the reboot command accepted on 2026-08-31;
+- the final Radio Read decoded backlight level 9, confirming the older Backup
+  History entry was restored successfully on 2026-08-31;
 - scripted coverage for protocol framing, acknowledgements, corruption,
   disconnects, timeouts, identity mismatch, durable recovery, and completion;
 - production DTMF, 2-Tone, and 5-Tone Codeplug storage coverage for exact
   offsets, encodings, indexes, round trips, and unrelated-byte preservation;
 - local Web Audio Tone Preview for DTMF, 2-Tone, and all 15 supported 5-Tone
   plans; preview never opens Web Serial or mutates the Codeplug;
-- source verification: 242 tests, typecheck, lint, and production build passed
-  on 2026-08-30;
-- production-mode browser smoke test passed with no console warnings or errors.
+- source verification: 252 tests, typecheck, lint, and production build passed
+  on 2026-08-31;
+- production-mode browser smoke test passed with no console warnings or errors;
+- automated production-mode Chromium smoke coverage verifies both locales, the
+  updater beta gate, and visible direct-restore failure handling.
 
 ## Remaining planned product work
 
@@ -94,8 +111,9 @@ This updater status is separate from normal Codeplug Radio Write.
 Before publishing a build:
 
 1. Run `pnpm test`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`.
-2. Smoke-test `/en`, `/tr`, CPS File export/import, Radio Write availability
-   after a Radio Read, and the Updates beta acknowledgement in production mode.
+2. Smoke-test `/en`, `/tr`, CPS File export/import, direct Backup History
+   restore preparation, Radio Write availability after a Radio Read, and the
+   Updates beta acknowledgement in production mode.
 3. Verify the deployed origin is HTTPS and Web Serial capability guidance is
    correct in desktop Chromium.
 4. Retain the official TYT CPS and a known-good Raw Backup as the recovery path.

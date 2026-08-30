@@ -170,17 +170,19 @@ function BackupsWorkspace() {
         </div>
       </PageHeader>
 
-      {(importedCpsFile || importedRestoreResult || fileError) && (
+      {(importedCpsFile || importedRestoreResult || fileError || error) && (
         <Card>
           <CardHeader>
             <CardTitle>
               {fileError
                 ? t("cpsFileOpenFailed")
-                : importedRestoreResult?.status === "already-current"
-                  ? t("cpsFileAlreadyCurrentTitle")
-                  : importedRestoreResult?.status === "restore-ready"
-                    ? t("cpsFileRestoreReadyTitle")
-                    : t("cpsFileOpenReady")}
+                : error
+                  ? t("cpsFileRestoreFailedTitle")
+                  : importedRestoreResult?.status === "already-current"
+                    ? t("cpsFileAlreadyCurrentTitle")
+                    : importedRestoreResult?.status === "restore-ready"
+                      ? t("cpsFileRestoreReadyTitle")
+                      : t("cpsFileOpenReady")}
             </CardTitle>
             {importedCpsFile && (
               <CardAction>
@@ -200,10 +202,11 @@ function BackupsWorkspace() {
           <CardContent>
             {fileError ? (
               <p className="text-sm text-destructive">{fileError}</p>
+            ) : error ? (
+              <WorkspaceErrorAlert error={error} operation="read" />
             ) : importedRestoreResult?.status === "already-current" ? (
               <Alert>
                 <CircleCheckIcon aria-hidden="true" />
-                <AlertTitle>{t("cpsFileAlreadyCurrentTitle")}</AlertTitle>
                 <AlertDescription>
                   {t("cpsFileAlreadyCurrentDescription")}
                 </AlertDescription>
@@ -211,7 +214,6 @@ function BackupsWorkspace() {
             ) : importedRestoreResult?.status === "restore-ready" ? (
               <Alert>
                 <CircleCheckIcon aria-hidden="true" />
-                <AlertTitle>{t("cpsFileRestoreReadyTitle")}</AlertTitle>
                 <AlertDescription>
                   {t("cpsFileRestoreReadyDescription", {
                     count: importedRestoreResult.changedByteCount,
@@ -235,9 +237,6 @@ function BackupsWorkspace() {
                       {t("secureContextHelp")}
                     </AlertDescription>
                   </Alert>
-                )}
-                {error && (
-                  <WorkspaceErrorAlert error={error} operation="read" />
                 )}
                 <div className="grid gap-3 text-sm sm:grid-cols-3">
                   <div>

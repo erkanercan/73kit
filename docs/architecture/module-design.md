@@ -202,7 +202,7 @@ Tests use the same module interfaces as production callers:
 
 - UVL-15W Radio tests exercise complete protocol scenarios through its interface using the scripted Transport adapter.
 - Codeplug tests exercise decoding, editing, preservation, validation, and encoding through the Codeplug interface using known binary fixtures.
-- CPS Workspace tests exercise lifecycle, Source Radio binding, Change Sets, imports, exports, Backup History, and write recovery through the workspace interface.
+- CPS Workspace and Restore Workflow tests exercise lifecycle, Source Radio binding, Change Sets, imports, exports, Backup History, restore preparation, Radio-managed-byte preservation, and write recovery through their owning interfaces.
 - Update Package tests run without a Radio and verify official package hashes,
   malformed-file rejection, integrity tags, DAT continuity, and address policy.
 - UVL-15W Updater tests replay complete sanitized protocol fixtures through the

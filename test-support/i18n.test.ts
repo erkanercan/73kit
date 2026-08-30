@@ -69,3 +69,22 @@ test("keeps Radio Write development notes out of operator copy", () => {
     /canary|kanarya|physical validation|fiziksel doğrulama|release gate|step 6|3\.07\.23/i
   )
 })
+
+test("describes no-op restore results for files and Backup History", () => {
+  assert.equal(
+    en.cpsFileAlreadyCurrentTitle,
+    "Radio already matches the saved Codeplug"
+  )
+  assert.equal(
+    en.cpsFileAlreadyCurrentDescription,
+    "The fresh Radio Read and restore target are identical. No Radio Write is needed."
+  )
+  assert.equal(
+    tr.cpsFileAlreadyCurrentTitle,
+    "Telsiz kayıtlı Codeplug ile zaten aynı"
+  )
+  assert.equal(
+    tr.cpsFileAlreadyCurrentDescription,
+    "Yeni Telsizden Okuma ile geri yükleme hedefi tamamen aynı. Telsize Yazma gerekmiyor."
+  )
+})
