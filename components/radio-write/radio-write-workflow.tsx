@@ -259,9 +259,14 @@ function ChangeSetReview({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="font-heading text-sm font-medium">
-          {t("radioWriteChangeSet")}
-        </h3>
+        <div className="flex min-w-0 flex-col gap-1">
+          <h3 className="font-heading text-sm font-medium">
+            {t("radioWriteChangeSet")}
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            {t("radioWriteChangeSetDescription")}
+          </p>
+        </div>
         <span className="text-xs text-muted-foreground">
           {t("radioWriteChangeCount", { count: changeCount })}
         </span>
@@ -273,9 +278,11 @@ function ChangeSetReview({
               {index > 0 && <Separator className="my-4" />}
               <div className="grid grid-cols-[minmax(9rem,0.8fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4">
                 <div className="flex min-w-0 flex-col gap-1">
-                  <span className="text-sm font-medium">{entry.subject}</span>
+                  <span className="text-sm font-medium">
+                    {formatReviewSubject(entry.subject, t)}
+                  </span>
                   <span className="text-xs text-muted-foreground">
-                    {entry.field}
+                    {formatReviewField(entry.field, t)}
                   </span>
                 </div>
                 <ReviewValue label={t("before")} value={entry.before} />
@@ -297,7 +304,7 @@ function ReviewValue({ label, value }: { label: string; value: unknown }) {
       <span className="text-sm break-words">
         {typeof value === "boolean"
           ? t(value ? "on" : "off")
-          : formatReviewValue(value)}
+          : formatReviewValue(value, t)}
       </span>
     </div>
   )
@@ -344,11 +351,131 @@ function WriteStages({ snapshot }: { snapshot: RadioWriteOperationSnapshot }) {
   )
 }
 
-function formatReviewValue(value: unknown): string {
+type Translator = ReturnType<typeof useTranslations>
+
+const REVIEW_SUBJECT_KEYS = {
+  "Memory channel order": "radioWriteSubjectMemoryChannelOrder",
+  "Function settings": "radioWriteSubjectFunctionSettings",
+  "Display settings": "radioWriteSubjectDisplaySettings",
+  "Sound settings": "radioWriteSubjectSoundSettings",
+  "Keyboard settings": "radioWriteSubjectKeyboardSettings",
+  "Menu visibility": "radioWriteSubjectMenuVisibility",
+  "APRS settings": "radioWriteSubjectAprsSettings",
+  "GPS settings": "radioWriteSubjectGpsSettings",
+  "Bluetooth settings": "radioWriteSubjectBluetoothSettings",
+  "Spectrum settings": "radioWriteSubjectSpectrumSettings",
+  "DTMF settings": "radioWriteSubjectDtmfSettings",
+  "2-Tone settings": "radioWriteSubjectTwoToneSettings",
+  "5-Tone settings": "radioWriteSubjectFiveToneSettings",
+  "FM broadcast settings": "radioWriteSubjectFmBroadcastSettings",
+  "Write image preparation": "radioWriteSubjectWriteImagePreparation",
+} as const
+
+const REVIEW_FIELD_KEYS = {
+  Position: "position",
+  Channel: "radioWriteFieldChannel",
+  Name: "channelName",
+  "Receive frequency hz": "rxFrequency",
+  "Transmit frequency hz": "txFrequency",
+  "Selected zones": "zonesTitle",
+  "Selected scan lists": "scanListsTitle",
+  "Selected scan edges": "vfoScanEdgesTitle",
+  "Mirror vfo temporary channels": "radioWriteFieldMirrorVfoChannels",
+  "Restore fixed weather channels": "radioWriteFieldRestoreWeatherChannels",
+} as const
+
+function formatReviewSubject(subject: string, t: Translator): string {
+  const exactKey =
+    REVIEW_SUBJECT_KEYS[subject as keyof typeof REVIEW_SUBJECT_KEYS]
+  if (exactKey) return t(exactKey)
+
+  const patterns: readonly [RegExp, string, string][] = [
+    [/^Memory channel (\d+)$/, "channelDetailsTitle", "number"],
+    [/^VFO ([AB])$/, "vfoSlot", "slot"],
+    [/^Call channel (\d+)$/, "callSlot", "slot"],
+    [/^Zone (\d+)$/, "zoneNumber", "number"],
+    [/^Scan list (\d+)$/, "scanListNumber", "number"],
+    [/^VFO scan edge (\d+)$/, "radioWriteSubjectVfoScanEdge", "number"],
+    [/^FM broadcast channel (\d+)$/, "radioWriteSubjectFmChannel", "number"],
+    [/^Band ([AB]) zone selection$/, "radioWriteSubjectBandZones", "band"],
+    [
+      /^Band ([AB]) scan list selection$/,
+      "radioWriteSubjectBandScanLists",
+      "band",
+    ],
+    [/^Band ([AB]) VFO scan edges$/, "radioWriteSubjectBandScanEdges", "band"],
+  ]
+
+  for (const [pattern, key, argument] of patterns) {
+    const match = pattern.exec(subject)
+    if (!match) continue
+    const value = argument === "number" ? Number(match[1]) : match[1]
+    return t(key as never, { [argument]: value } as never)
+  }
+
+  return subject
+}
+
+function formatReviewField(field: string, t: Translator): string {
+  const exactKey = REVIEW_FIELD_KEYS[field as keyof typeof REVIEW_FIELD_KEYS]
+  if (exactKey) return t(exactKey)
+
+  const suffix = messageSuffix(field)
+  const shortenedSuffixes = [
+    suffix.replace(/Seconds$/, ""),
+    suffix.replace(/Minutes$/, ""),
+    suffix.replace(/Ms$/, ""),
+    suffix.replace(/K?Hz$/, ""),
+    suffix.replace(/Index$/, ""),
+  ]
+  const candidates = [
+    `setting${suffix}`,
+    `aprs${suffix}`,
+    `gps${suffix}`,
+    `bluetooth${suffix}`,
+    `spectrum${suffix}`,
+    `signal${suffix}`,
+    `fmBroadcast${suffix}`,
+    ...shortenedSuffixes.flatMap((shortened) => [
+      `setting${shortened}`,
+      `aprs${shortened}`,
+      `gps${shortened}`,
+      `bluetooth${shortened}`,
+      `spectrum${shortened}`,
+      `signal${shortened}`,
+      `fmBroadcast${shortened}`,
+    ]),
+  ]
+  const key = candidates.find((candidate) => t.has(candidate as never))
+  return key ? t(key as never) : field
+}
+
+function formatReviewValue(value: unknown, t: Translator): string {
   if (value === null || value === undefined) return "—"
-  if (Array.isArray(value)) return value.length > 0 ? value.join(", ") : "—"
+  if (Array.isArray(value))
+    return value.length > 0
+      ? value.map((entry) => formatReviewValue(entry, t)).join(", ")
+      : "—"
   if (typeof value === "object") return JSON.stringify(value)
-  return String(value)
+  if (typeof value !== "string") return String(value)
+
+  const exactKeys = {
+    "Working Codeplug": "radioWriteValueWorkingCodeplug",
+    "Applied to write image": "radioWriteValueAppliedToWriteImage",
+  } as const
+  const exactKey = exactKeys[value as keyof typeof exactKeys]
+  if (exactKey) return t(exactKey)
+
+  const valueKey = `value${messageSuffix(value)}`
+  return t.has(valueKey as never) ? t(valueKey as never) : value
+}
+
+function messageSuffix(value: string): string {
+  return value
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("")
 }
 
 export { RadioWriteWorkflow }

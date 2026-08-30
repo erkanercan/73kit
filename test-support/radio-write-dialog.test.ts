@@ -46,6 +46,14 @@ test("keeps an active Radio Write visible and explains unavailable inputs", () =
   assert.match(workflowSource, /radioWriteNoChangesTitle/)
 })
 
+test("localizes the semantic Change Set at the Radio Write UI boundary", () => {
+  assert.match(workflowSource, /formatReviewSubject\(entry\.subject, t\)/)
+  assert.match(workflowSource, /formatReviewField\(entry\.field, t\)/)
+  assert.match(workflowSource, /formatReviewValue\(value, t\)/)
+  assert.match(workflowSource, /radioWriteChangeSetDescription/)
+  assert.doesNotMatch(workflowSource, /\{entry\.subject\}|\{entry\.field\}/)
+})
+
 test("clears the Radio Write workflow whenever the dialog closes", () => {
   assert.match(
     dialogSource,
