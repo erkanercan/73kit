@@ -86,6 +86,22 @@ test("maps every operator route to the correct breadcrumb", () => {
   }
 })
 
+test("keeps the workspace status bar mounted on every route", () => {
+  const statusBarSource = shellSource.slice(
+    shellSource.indexOf("function WorkspaceStatusBar()"),
+    shellSource.indexOf("function StatusText(")
+  )
+
+  assert.match(shellSource, /\{children\}[\s\S]*<WorkspaceStatusBar \/>/)
+  assert.doesNotMatch(statusBarSource, /usePathname|return null/)
+  assert.match(statusBarSource, /formatPercent\(progress\)/)
+  assert.match(statusBarSource, /changes\.length === 0/)
+  assert.match(statusBarSource, /completedRead &&/)
+  assert.match(statusBarSource, /href="https:\/\/erkan\.dev"/)
+  assert.match(statusBarSource, /target="_blank"/)
+  assert.match(statusBarSource, /rel="noopener noreferrer"/)
+})
+
 test("keeps the Overview focused on the Codeplug workflow", () => {
   assert.match(overviewSource, /overviewStepReadTitle/)
   assert.match(overviewSource, /overviewStepProgramTitle/)

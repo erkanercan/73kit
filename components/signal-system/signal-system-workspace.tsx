@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { AudioLinesIcon } from "lucide-react"
+import { AudioLinesIcon, CircleAlertIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
@@ -17,6 +17,12 @@ import {
 } from "@/components/aprs/aprs-fields"
 import { PageHeader } from "@/components/page-header"
 import { RadioReadButton } from "@/components/radio-read-button"
+import {
+  TonePreviewButton,
+  useTonePreview,
+  type TonePreviewControls,
+} from "@/components/signal-system/tone-preview"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -52,6 +58,11 @@ import {
   type TwoToneSettingsPatch,
   type UnknownSettingValue,
 } from "@/modules/codeplug/index"
+import {
+  createDtmfPreview,
+  createFiveTonePreview,
+  createTwoTonePreview,
+} from "@/modules/tone-preview"
 
 type Primitive = string | number | boolean | null
 
@@ -67,6 +78,7 @@ function SignalSystemWorkspace() {
   } = useCpsWorkspace()
   const t = useTranslations()
   const codeplug = completedRead?.workingCodeplug.codeplug ?? null
+  const preview = useTonePreview()
 
   if (!codeplug) {
     return (
@@ -94,6 +106,19 @@ function SignalSystemWorkspace() {
   return (
     <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
       <PageHeader title={t("signalSystemTitle")} />
+      {preview.error && (
+        <Alert variant="destructive">
+          <CircleAlertIcon aria-hidden="true" />
+          <AlertTitle>{t("signalPreviewErrorTitle")}</AlertTitle>
+          <AlertDescription>
+            {t(
+              preview.error === "unsupported"
+                ? "signalPreviewUnsupported"
+                : "signalPreviewPlaybackError"
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
       <Tabs defaultValue="dtmf" className="gap-6">
         <TabsList className="grid h-auto w-full grid-cols-3">
           <TabsTrigger value="dtmf">DTMF</TabsTrigger>
@@ -104,18 +129,21 @@ function SignalSystemWorkspace() {
           <DtmfTab
             settings={codeplug.getDtmfSettings()}
             edit={editDtmfSettings}
+            preview={preview}
           />
         </TabsContent>
         <TabsContent value="two-tone">
           <TwoToneTab
             settings={codeplug.getTwoToneSettings()}
             edit={editTwoToneSettings}
+            preview={preview}
           />
         </TabsContent>
         <TabsContent value="five-tone">
           <FiveToneTab
             settings={codeplug.getFiveToneSettings()}
             edit={editFiveToneSettings}
+            preview={preview}
           />
         </TabsContent>
       </Tabs>
@@ -126,9 +154,11 @@ function SignalSystemWorkspace() {
 function DtmfTab({
   settings,
   edit,
+  preview,
 }: {
   settings: DtmfSettings
   edit(patch: DtmfSettingsPatch): void
+  preview: TonePreviewControls
 }) {
   const t = useTranslations()
   const updateMemory = (index: number, value: string) =>
@@ -228,7 +258,11 @@ function DtmfTab({
       <div className="grid content-start gap-6">
         <RecordCard
           title={t("signalDtmfMemory")}
-          headers={[t("signalEntry"), t("signalCodeString")]}
+          headers={[
+            t("signalEntry"),
+            t("signalCodeString"),
+            t("signalPreviewAction"),
+          ]}
         >
           {settings.encodeMemories.map((code, index) => (
             <TableRow key={index}>
@@ -241,6 +275,30 @@ function DtmfTab({
                   maxLength={24}
                   symbols="dtmf"
                   onCommit={(value) => updateMemory(index, value)}
+                />
+              </TableCell>
+              <TableCell>
+                <TonePreviewButton
+                  id={`dtmf-${index}`}
+                  disabled={
+                    !code ||
+                    isUnknownSettingValue(settings.digitDurationMs) ||
+                    isUnknownSettingValue(settings.firstDigitDurationMs) ||
+                    isUnknownSettingValue(settings.dCodeDelaySeconds)
+                  }
+                  preview={preview}
+                  createSegments={() =>
+                    createDtmfPreview({
+                      code,
+                      digitDurationMs: knownNumber(settings.digitDurationMs),
+                      firstDigitDurationMs: knownNumber(
+                        settings.firstDigitDurationMs
+                      ),
+                      dCodeDelaySeconds: knownNullableNumber(
+                        settings.dCodeDelaySeconds
+                      ),
+                    })
+                  }
                 />
               </TableCell>
             </TableRow>
@@ -344,9 +402,11 @@ function DurationRows({
 function TwoToneTab({
   settings,
   edit,
+  preview,
 }: {
   settings: TwoToneSettings
   edit(patch: TwoToneSettingsPatch): void
+  preview: TonePreviewControls
 }) {
   const t = useTranslations()
   const updateEncode = (
@@ -414,7 +474,13 @@ function TwoToneTab({
       <div className="grid content-start gap-6 2xl:grid-cols-2">
         <RecordCard
           title={t("signalEncoderList")}
-          headers={["#", t("signalTone1"), t("signalTone2"), t("signalName")]}
+          headers={[
+            "#",
+            t("signalTone1"),
+            t("signalTone2"),
+            t("signalName"),
+            t("signalPreviewAction"),
+          ]}
         >
           {settings.encodeRecords.map((row, index) => (
             <TableRow key={row.number}>
@@ -436,6 +502,31 @@ function TwoToneTab({
                   value={row.name}
                   maxLength={8}
                   onCommit={(name) => updateEncode(index, { name })}
+                />
+              </TableCell>
+              <TableCell>
+                <TonePreviewButton
+                  id={`two-tone-${index}`}
+                  disabled={
+                    (row.tone1Hz === null && row.tone2Hz === null) ||
+                    isUnknownSettingValue(settings.tone1DurationMs) ||
+                    isUnknownSettingValue(settings.tone2DurationMs) ||
+                    isUnknownSettingValue(settings.longToneDurationMs) ||
+                    isUnknownSettingValue(settings.toneGapMs)
+                  }
+                  preview={preview}
+                  createSegments={() =>
+                    createTwoTonePreview({
+                      tone1Hz: row.tone1Hz,
+                      tone2Hz: row.tone2Hz,
+                      tone1DurationMs: knownNumber(settings.tone1DurationMs),
+                      tone2DurationMs: knownNumber(settings.tone2DurationMs),
+                      longToneDurationMs: knownNumber(
+                        settings.longToneDurationMs
+                      ),
+                      toneGapMs: knownNumber(settings.toneGapMs),
+                    })
+                  }
                 />
               </TableCell>
             </TableRow>
@@ -491,9 +582,11 @@ function TwoToneTab({
 function FiveToneTab({
   settings,
   edit,
+  preview,
 }: {
   settings: FiveToneSettings
   edit(patch: FiveToneSettingsPatch): void
+  preview: TonePreviewControls
 }) {
   const t = useTranslations()
   const updateEncode = (
@@ -658,6 +751,7 @@ function FiveToneTab({
               t("signalStandard"),
               t("signalCode"),
               t("signalName"),
+              t("signalPreviewAction"),
             ]}
           >
             {settings.encodeRecords.map((row, index) => (
@@ -683,6 +777,34 @@ function FiveToneTab({
                     value={row.name}
                     maxLength={8}
                     onCommit={(name) => updateEncode(index, { name })}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TonePreviewButton
+                    id={`five-tone-${index}`}
+                    disabled={
+                      !row.code ||
+                      isUnknownSettingValue(row.standard) ||
+                      isUnknownSettingValue(settings.firstDigitDurationMs) ||
+                      isUnknownSettingValue(settings.pauseCode) ||
+                      isUnknownSettingValue(settings.pauseDurationMs) ||
+                      isUnknownSettingValue(settings.firstToneAfterPauseMs)
+                    }
+                    preview={preview}
+                    createSegments={() =>
+                      createFiveTonePreview({
+                        standard: knownValue(row.standard),
+                        code: row.code,
+                        firstDigitDurationMs: knownNumber(
+                          settings.firstDigitDurationMs
+                        ),
+                        pauseCode: knownValue(settings.pauseCode),
+                        pauseDurationMs: knownNumber(settings.pauseDurationMs),
+                        firstToneAfterPauseMs: knownNumber(
+                          settings.firstToneAfterPauseMs
+                        ),
+                      })
+                    }
                   />
                 </TableCell>
               </TableRow>
@@ -1024,6 +1146,23 @@ function FrequencyInput({
       }}
     />
   )
+}
+
+function knownNumber(value: number | UnknownSettingValue) {
+  if (isUnknownSettingValue(value)) throw new Error("Unknown tone duration")
+  return value
+}
+
+function knownNullableNumber(
+  value: number | null | UnknownSettingValue
+): number | null {
+  if (isUnknownSettingValue(value)) throw new Error("Unknown tone duration")
+  return value
+}
+
+function knownValue<T>(value: T | UnknownSettingValue): T {
+  if (isUnknownSettingValue(value)) throw new Error("Unknown tone setting")
+  return value
 }
 
 function encodeOption(value: Primitive) {

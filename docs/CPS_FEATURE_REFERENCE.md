@@ -216,17 +216,17 @@ Do not use `Promise.race(reader.read(), timeout)` because the losing `reader.rea
 
 ## 5. Normal CPS Commands
 
-| Command | Purpose                                                        | Project status                          |
-| ------- | -------------------------------------------------------------- | --------------------------------------- |
-| `E0`    | Request radio information / handshake                          | **PROVEN**                              |
-| `E1`    | Radio information response                                     | **PROVEN**                              |
-| `E2`    | Start read session                                             | **PROVEN**                              |
-| `E3`    | Start write session                                            | **INTERNAL WRITER TESTED; UI DISABLED** |
-| `E4`    | Host→radio write block / radio→host read response by direction | **READ PROVEN; INTERNAL WRITER TESTED** |
-| `E5`    | Complete read/write session and reboot                         | **READ PROVEN; INTERNAL WRITER TESTED** |
-| `E6`    | Host read request / radio write ACK by direction               | **READ PROVEN; INTERNAL ACK TESTED**    |
-| `E7`    | Read/write password validation                                 | **DOCUMENTED**                          |
-| `EE`    | Error response                                                 | **DOCUMENTED**                          |
+| Command | Purpose                                                        | Project status                                |
+| ------- | -------------------------------------------------------------- | --------------------------------------------- |
+| `E0`    | Request radio information / handshake                          | **PROVEN**                                    |
+| `E1`    | Radio information response                                     | **PROVEN**                                    |
+| `E2`    | Start read session                                             | **PROVEN**                                    |
+| `E3`    | Start write session                                            | **WRITE IMPLEMENTED; PHYSICALLY PROVEN**      |
+| `E4`    | Host→radio write block / radio→host read response by direction | **READ/WRITE IMPLEMENTED; PHYSICALLY PROVEN** |
+| `E5`    | Complete read/write session and reboot                         | **READ/WRITE IMPLEMENTED; PHYSICALLY PROVEN** |
+| `E6`    | Host read request / radio write ACK by direction               | **READ/WRITE IMPLEMENTED; PHYSICALLY PROVEN** |
+| `E7`    | Read/write password validation                                 | **DOCUMENTED**                                |
+| `EE`    | Error response                                                 | **DOCUMENTED**                                |
 
 ---
 
@@ -311,7 +311,7 @@ distinguishes reads from writes, and lets the operator download or delete one
 Raw Backup or delete all saved backups. Clearing Backup History does not clear
 the separate active Radio Write recovery record.
 
-### Change Set review — P1 / REQUIRED FOR RADIO WRITE
+### Change Set review — P1 / IMPLEMENTED; REQUIRED FOR RADIO WRITE
 
 Show the complete intended differences between a Baseline Backup and its Working Codeplug. Values outside the Change Set remain unchanged, and an empty Change Set cannot be written.
 
@@ -934,6 +934,7 @@ Features:
 - remote inhibit/kill/stun/wake codes — P3
 - 16 DTMF encode memories — P2
 - 8 PTT ID definitions — P2
+- local browser Tone Preview for every non-empty encode memory — P2
 
 ---
 
@@ -951,6 +952,7 @@ empty-record representation.
 - 16 decode records — P3
 - Tone1/Tone2 values — P3
 - response and names — P3
+- local browser Tone Preview for single-long-tone and two-tone encode records — P3
 
 ---
 
@@ -972,6 +974,7 @@ records and 16 information-code records.
 - 16 encode records — P3
 - 8 PTT ID records — P3
 - 16 information-code records — P3
+- local browser Tone Preview for every supported encode record — P3
 
 Documented standards include ZVEI1/2/3, PZVEI, DZVEI, PDZVEI, CCIR1/2, PCCIR, EEA, EURO SIGNAL, NATEL, MODAT, CCITT and EIA.
 
@@ -981,17 +984,35 @@ CCIR1=`0x06`, CCIR2=`0x07`, PCCIR=`0x08`, EEA=`0x09`, EURO SIGNAL=`0x0A`,
 NATEL=`0x0B`, MODAT=`0x0C`, CCITT=`0x0D`, EIA=`0x0E`. The same mapping is used
 for the decoder, encode-list records and PTT ID records.
 
-Automated verification currently covers exact offsets, standard indexes,
-2-Tone frequency encoding, validation, round trips and reserved-byte
-preservation. Controlled TYT CPS export diffs and physical on-Radio application
-verification are deliberately deferred; this status is
-kept here rather than displayed in the editor.
+Production verification covers the documented storage regions, exact offsets,
+standard indexes, 2-Tone frequency encoding, validation, round trips,
+read-modify-write behavior and reserved-byte preservation. DTMF, 2-Tone and
+5-Tone are complete production Codeplug features. Functional over-the-air
+signalling behavior is a Radio operation concern rather than an unfinished CPS
+storage implementation.
+
+Tone Preview is a separate browser-only aid. It synthesizes the current DTMF,
+2-Tone or 5-Tone encode row through Web Audio after an explicit **Listen**
+action. It does not open Web Serial, transmit RF, access the Radio, or edit the
+Codeplug. DTMF preview applies the configured first-digit duration and optional
+D-code silence. 2-Tone preview distinguishes a single long tone from a two-tone
+sequence and applies the configured gap. 5-Tone preview applies the selected
+standard's nominal frequency plan and timing, repeat-tone substitution, pause
+code, first-digit duration, and first-tone-after-pause duration. `*` and `#`
+use the Radio keypad aliases for `E` and `F`.
+
+The nominal 5-Tone plans and timings are cross-checked against the
+[VIAVI 3900 Series Operation Manual](https://www.viavisolutions.com/en-us/literature/3900-series-digital-radio-test-set-operation-manual-discontinued-manuals-user-guides-en.pdf),
+Appendix H. The CCITT plan is cross-checked against the
+[UDXF DigiFAQ reference](https://www.udxf.nl/Digifaq53.pdf), Table 5-I. Browser
+output is an audible configuration preview, not calibrated test equipment and
+not proof of over-the-air interoperability.
 
 ---
 
 # 8. Product Features Beyond the Vendor CPS
 
-## 8.1 Change Set review — REQUIRED FOR RADIO WRITE
+## 8.1 Change Set review — IMPLEMENTED; REQUIRED FOR RADIO WRITE
 
 Before writing, show user-facing changes such as:
 
@@ -1136,7 +1157,8 @@ Spectrum
 Bluetooth
 FM Radio
 Signal System
-Backups (planned)
+Backups
+Updates (beta)
 ```
 
 ---
@@ -1193,10 +1215,12 @@ Backups (planned)
 - [x] Zone and Scan List membership editing
 - [x] VFO/Call Channel editing
 - [x] semantic Change Set tracking against the Baseline Backup
-- [ ] Change Set review
+- [x] Change Set review
 - [ ] undo/redo
 
-**No radio writes yet.**
+Radio Write is implemented and released for the firmware-`3.07.23`, USB CDC,
+Source-Radio-bound, unprotected-Radio production scope. It always writes the
+complete materialized Codeplug and ends at the validated reboot response.
 
 ## Epic 6 — Zones & scan lists
 
@@ -1258,8 +1282,8 @@ Partial or changed-block writes are excluded until hardware-verified.
 - [x] Typed codecs and persisted editors for DTMF, 2-Tone and 5-Tone
 - [x] Semantic Working Codeplug change tracking
 - [x] Channel signaling-record selection
-- [ ] Controlled TYT CPS export-diff verification
-- [ ] Physical on-Radio application verification
+- [x] Documented storage regions, offsets, encodings and indexes verified
+- [x] Read-modify-write and unrelated-byte preservation verified
 
 ## Epic 13 — FM radio / advanced settings
 
@@ -1349,7 +1373,7 @@ firmware update commands
 
 - [x] channel editing
 - [ ] bulk edit
-- [ ] Change Set review
+- [x] Change Set review
 - [ ] undo/redo
 - [ ] saved Working Codeplugs
 - [x] zone editor
@@ -1361,7 +1385,7 @@ firmware update commands
 - [x] programmable keys
 - [x] APRS
 - [x] complete Radio Write through validated reboot response
-- [ ] interrupted-write recovery
+- [x] durable interrupted-write `Write Outcome Unknown` handling
 - [ ] import binding and Unbound Codeplug enforcement
 
 ## P2 — Extended Codeplug Settings

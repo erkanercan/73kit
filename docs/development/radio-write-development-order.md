@@ -1,8 +1,9 @@
 # Radio Write development order
 
-Status: steps 1-5 implemented in source. The step 6 canary harness is ready,
-but the controlled physical write/restore cycle has not been run yet. Radio
-Write remains unavailable in normal product builds.
+Status: steps 1-6 are complete. The controlled physical write and inverse
+restore cycle passed on the dedicated Radio, and Radio Write is released in
+normal product builds for the exact scope below. Broader firmware, password,
+transport, and hardware support remains separate validation work.
 
 ## Firmware-scoped rule
 
@@ -138,20 +139,19 @@ wrong-Radio selection before E3, and interrupted-transfer handling.
 - A development-only Radio Write prototype exposes locked, review, writing,
   completed, and outcome-unknown states without
   opening a serial port.
-- The production control is hard-disabled until step 6 passes.
+- The production control is available within the firmware, Source Radio,
+  write-protection, Change Set, and durable-preparation gates described here.
 
-Automated workspace, presentation, review, and Web Serial tests pass. The
-production build passes. Required Chrome visual validation is pending because
-the ChatGPT browser extension is not installed/enabled in the available Chrome
-profile; do not treat step 6 as started until that validation is completed.
+Automated workspace, presentation, review, Web Serial, typecheck, lint, and
+production-build validation pass. Production-mode browser validation confirms
+that Radio Write is available only after a complete Radio Read creates a bound
+Working Codeplug.
 
-## 6. Run a controlled physical canary — harness ready, physical run pending
+## 6. Run a controlled physical canary — complete
 
 The canary harness now provides:
 
-- a fail-closed gate that can enable Radio Write only in a development build
-  started with `NEXT_PUBLIC_ENABLE_RADIO_WRITE_CANARY=1`; production builds
-  cannot enable it through this flag;
+- the production release gate, with an emergency build-time disable switch;
 - a sanitized downloadable operation report containing command direction,
   command number, payload length, address, data length, attempt, and sequence,
   but no Source Radio identity or Codeplug bytes;
@@ -171,8 +171,9 @@ The first physical execution completed with the dedicated Radio.
 
 The report captured all 200 E6 block acknowledgements and the final E5 `Reboot`
 response. It also exposed the now-removed post-write reconnect attempt. Radio
-Write remains limited to the controlled development gate while additional
-physical runs accumulate.
+Write is released for the exact validated scope. Additional physical runs
+expand confidence and compatibility; they are not permission to broaden the
+current firmware, transport, identity, or write-protection policy.
 
 ## Later expansion
 

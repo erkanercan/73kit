@@ -1,23 +1,49 @@
-# Next.js template
+# TYT UVL-15W Browser CPS
 
-This is a Next.js template with shadcn/ui.
+A local-first Customer Programming Software application for the TYT UVL-15W.
+It reads, backs up, edits, reviews, and writes the Radio's complete Codeplug
+directly through Web Serial. Firmware and resource updates are a separate,
+catalog-gated workflow.
 
-## Adding components
+## Supported production scope
 
-To add components to your app, run the following command:
+- desktop Chrome, Edge, or another Chromium browser with Web Serial;
+- secure HTTPS deployment or localhost;
+- USB CDC transport;
+- TYT UVL-15W firmware `3.07.23`;
+- complete Source-Radio-bound Codeplugs created by a successful Radio Read;
+- complete full-range Radio Write to an unprotected Source Radio;
+- four exact catalogued firmware/resource packages released as beta.
+
+Radio Write verifies Source Radio identity, firmware compatibility, write
+protection, a non-empty reviewed Change Set, durable recovery artifacts, every
+block acknowledgement, and the final reboot response. Interrupted destructive
+operations remain `Write Outcome Unknown` and are never blindly resumed.
+
+See [`docs/production-readiness.md`](docs/production-readiness.md) for current
+release status and [`docs/CPS_FEATURE_REFERENCE.md`](docs/CPS_FEATURE_REFERENCE.md)
+for the complete capability roadmap.
+
+## Development
 
 ```bash
-npx shadcn@latest add button
+pnpm install
+pnpm dev
 ```
 
-This will place the ui components in the `components` directory.
+Required verification:
 
-## Using components
+```bash
+pnpm test
+pnpm typecheck
+pnpm lint
+pnpm build
+```
 
-To use the components in your app, import them as follows:
+Official update packages can be checked against the catalog with:
 
-```tsx
-import { Button } from "@/components/ui/button";
+```bash
+pnpm updates:verify-packages -- '<firmware.Fir>' '<resource.DAT>'
 ```
 
 ## Third-party assets

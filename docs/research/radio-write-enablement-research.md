@@ -17,7 +17,7 @@ research history and are not the current product contract.
 
 ## Answer
 
-**Radio Write is available through the controlled development gate.** The
+**Radio Write is available in production for the validated scope.** The
 desktop workflow, full-range writer, durable operation state, and downloadable
 report are implemented. The first physical report confirmed 200 acknowledged
 512-byte blocks followed by the E5 `Reboot` response; the selected display
@@ -99,7 +99,7 @@ requires a separate E7 password feature.
   blocks, strict E6 acknowledgement validation, E5 completion, bounded retry
   only for explicit `Frame Lrc Error`, and destructive-boundary error details.
   It is covered through the scripted Transport, invoked only through the CPS
-  Workspace orchestration, and exposed through the controlled development gate
+  Workspace orchestration, and exposed through the production release gate
   ([Radio module](../../modules/uvl15w-radio/index.ts),
   [writer tests](../../test-support/uvl15w-radio.test.ts)). E7 remains
   unimplemented.
@@ -112,7 +112,7 @@ requires a separate E7 password feature.
   [scripted tests](../../test-support/cps-workspace-radio-write.test.ts)).
 - Semantic Change Set tracking now has a user-facing before/after review and a
   confirmation gate after explicit port selection. The action is available
-  through the controlled development gate
+  through the production release gate
   ([workspace controller](../../components/cps-workspace-controller.tsx),
   [Radio Write workflow](../../components/radio-write/radio-write-workflow.tsx)).
 - The current Working Codeplug and Change Set still live only in React/module
@@ -172,9 +172,9 @@ remain outside that one successful run:
   supported firmware's real save behavior;
 - a disrupted write can leave incomplete data; the protocol does not promise
   atomicity or a resumable transaction;
-- every currently editable semantic mapping is safe to expose in a production
-  write. In particular, DTMF, 2-Tone, and 5-Tone still lack the documented
-  controlled TYT CPS export-diff and physical on-Radio application verification
+- every currently editable semantic mapping is included in the production
+  full-Codeplug write. DTMF, 2-Tone, and 5-Tone have documented storage regions,
+  exact typed codecs, round-trip coverage, and unrelated-byte preservation
   ([feature roadmap](../CPS_FEATURE_REFERENCE.md#epic-12--dtmf--2-tone--5-tone)).
 
 ## Historical pre-canary proposal — superseded
@@ -358,9 +358,8 @@ shows `Write Outcome Unknown`, never success or an ordinary harmless failure.
 ### Phase 6 — Expand the supported matrix
 
 - Validate each additional firmware/hardware profile separately.
-- Complete controlled vendor-CPS export diffs for lower-confidence editors,
-  especially DTMF, 2-Tone, 5-Tone, and any remaining settings called out by the
-  feature reference.
+- Add optional functional over-the-air test fixtures when broader Radio
+  signalling interoperability claims are needed.
 - Add E7 write-password support if required by target users.
 - Consider Bluetooth only after a read-only Bluetooth CPS session is proven;
   it is a separate transport-validation project, not part of USB write release.

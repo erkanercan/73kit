@@ -19,7 +19,7 @@ import {
   type RadioWriteOperationSnapshot,
   type RadioWriteReviewItem,
 } from "@/modules/cps-workspace/index"
-import { canEnableRadioWriteCanary } from "@/modules/cps-workspace/radio-write-canary"
+import { isRadioWriteReleased } from "@/modules/cps-workspace/radio-write-release"
 import {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
@@ -81,9 +81,8 @@ import {
 
 type WorkspacePhase = "idle" | "connecting" | "reading" | "ready"
 
-const RADIO_WRITE_RELEASED = canEnableRadioWriteCanary({
-  development: process.env.NODE_ENV === "development",
-  requested: process.env.NEXT_PUBLIC_ENABLE_RADIO_WRITE_CANARY === "1",
+const RADIO_WRITE_RELEASED = isRadioWriteReleased({
+  emergencyDisabled: process.env.NEXT_PUBLIC_DISABLE_RADIO_WRITE === "1",
 })
 
 interface CpsWorkspaceContextValue {

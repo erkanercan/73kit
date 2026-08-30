@@ -242,10 +242,10 @@ fi
 BASELINE_SHA256=$(shasum -a 256 "$BASELINE_BACKUP_PATH" | awk '{print $1}')
 note "Baseline SHA-256: $BASELINE_SHA256"
 
-stage "Open the local canary build"
-say "Stop the normal development server, then start the explicit local canary."
+stage "Open the production release build"
+say "Build and start the same release artifact intended for production."
 step "Run in a separate terminal:"
-say "NEXT_PUBLIC_ENABLE_RADIO_WRITE_CANARY=1 pnpm dev"
+say "pnpm build && pnpm start"
 step "Open the printed localhost URL in desktop Chrome."
 step "Perform a fresh complete Radio Read and confirm firmware 3.07.23."
 if ! confirm "Is the fresh Radio Read complete and is Radio Write available?"; then
