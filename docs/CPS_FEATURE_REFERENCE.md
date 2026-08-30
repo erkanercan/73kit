@@ -286,19 +286,37 @@ Read `0x8000 → 0x21000` into a complete 102,400-byte Codeplug. A successful Ra
 The Radio workspace downloads the immutable Baseline Backup as an exact
 102,400-byte `.bin` file. It does not export the edited Working Codeplug. A Raw
 Backup Export contains no Source Radio identity or interpretation metadata.
-Import remains planned; when implemented, importing a Raw Backup Export creates
-an Unbound Codeplug that may be inspected and edited but cannot be used for a
-Radio Write.
+Raw `.bin` import remains planned. When implemented, it creates an Unbound
+Codeplug that may be inspected and edited but cannot be used for a Radio Write.
 
 Metadata such as model, firmware, date/time and SHA-256 belongs in a CPS Export or a separate sidecar, never inside the Raw Backup Export.
 
-### CPS Export — P0 / PLANNED
+### CPS File export and import — P0 / IMPLEMENTED PRODUCT
 
-Export a portable package that preserves Source Radio identity and the information needed to interpret the Codeplug. Importing it preserves the Source Radio binding.
+Export a `.uvl15cps` ZIP package containing `manifest.json`, `baseline.bin`, and
+`working.bin`. The manifest preserves Source Radio identity, layout and firmware
+metadata, creation time, byte lengths, and SHA-256 hashes. Import verifies every
+member before opening the Baseline Backup and Working Codeplug for offline
+inspection, editing, and re-export.
 
-### Import for offline inspection/editing — P0 / PLANNED
+An imported file is not live proof of its Source Radio. “Read Radio & Prepare
+Restore” performs a fresh complete Radio Read, saves the current Radio backup,
+verifies permanent Source Radio identity and the validated layout, and creates a
+Restore Plan from the fresh read to the imported Working Codeplug. Radio Write
+remains blocked until that preparation succeeds. See
+[`codeplug-file-lifecycle.md`](codeplug-file-lifecycle.md).
 
-Support Raw Backup Exports and CPS Exports using the binding rules above. CSV and other future imports also create Unbound Codeplugs unless Source Radio identity can be proven.
+Restore materialization preserves the fresh Radio's observed opaque,
+Radio-managed tail at `0x20BC0–0x20FFF`. Its 8-byte internal records can be
+populated between complete reads without a user edit; the entire tail is
+therefore excluded from the user-facing Restore Plan and is never restored from
+an older CPS File.
+
+### Raw import for offline inspection/editing — P1 / PLANNED
+
+Support Raw Backup Exports using the Unbound Codeplug rules above. CSV and other
+future imports also create Unbound Codeplugs unless Source Radio identity can be
+proven.
 
 ### Backup History — P0 / IMPLEMENTED
 
@@ -307,9 +325,10 @@ successful Radio Read and completed Radio Write. A completed write stores the
 accepted intended Codeplug image; it does not perform a post-reboot Radio Read.
 Failed, cancelled, interrupted and unknown-outcome operations are not history
 entries. The desktop Backup History page lists the Source Radio and firmware,
-distinguishes reads from writes, and lets the operator download or delete one
-Raw Backup or delete all saved backups. Clearing Backup History does not clear
-the separate active Radio Write recovery record.
+distinguishes reads from writes, and lets the operator start a verified restore,
+download one as a CPS File, delete one backup, or delete all saved backups.
+Clearing Backup History does not clear the separate active Radio Write recovery
+record.
 
 ### Change Set review — P1 / IMPLEMENTED; REQUIRED FOR RADIO WRITE
 
@@ -1125,7 +1144,7 @@ and write protection before E3. A mismatch stops before the first write block.
 Potential formats and binding rules:
 
 - raw `.bin`: Raw Backup Export; exact Codeplug bytes only; imports as an Unbound Codeplug
-- CPS package: preserves Source Radio identity and interpretation metadata
+- `.uvl15cps`: implemented; preserves baseline and working bytes, Source Radio identity, layout metadata, and integrity hashes
 - CSV: imports as an Unbound Codeplug
 - CHIRP-compatible CSV: imports as an Unbound Codeplug
 
@@ -1295,7 +1314,7 @@ Partial or changed-block writes are excluded until hardware-verified.
 
 - [x] exact immutable Baseline Backup Raw Backup Export
 - [ ] Raw Backup import as an Unbound Codeplug
-- [ ] identity-bound CPS Export and import
+- [x] identity-bound CPS File export, verified import, offline reopen/edit/re-export, direct Backup History restore, and same-layout restore preparation
 - [x] durable Backup History
 - [ ] saved Working Codeplugs
 - [ ] PWA/offline packaging
@@ -1361,7 +1380,7 @@ firmware update commands
 - [x] radio-information UI
 - [x] Codeplug core
 - [x] Raw Backup Export
-- [ ] CPS Export and import handling
+- [x] CPS File export, verified import, offline reopen/edit/re-export, and same-layout restore preparation
 - [x] Backup History
 - [x] Channel parser
 - [x] virtualized 1000-channel table
@@ -1386,7 +1405,8 @@ firmware update commands
 - [x] APRS
 - [x] complete Radio Write through validated reboot response
 - [x] durable interrupted-write `Write Outcome Unknown` handling
-- [ ] import binding and Unbound Codeplug enforcement
+- [x] imported CPS File binding requires a fresh same-Source-Radio read before restore
+- [ ] Raw Backup import and Unbound Codeplug enforcement
 
 ## P2 — Extended Codeplug Settings
 

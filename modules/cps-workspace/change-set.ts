@@ -41,6 +41,18 @@ import type {
 
 type WorkspaceChange =
   | {
+      readonly kind: "imported-working-codeplug"
+      readonly fileCreatedAt: string
+      readonly workingSha256: string
+      readonly changedByteCount: number
+    }
+  | {
+      readonly kind: "restore-imported-codeplug"
+      readonly fileCreatedAt: string
+      readonly workingSha256: string
+      readonly changedByteCount: number
+    }
+  | {
       readonly kind: "move-memory-channel"
       readonly fromNumber: number
       readonly toNumber: number

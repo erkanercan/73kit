@@ -65,6 +65,25 @@ recovery so schema upgrades remain compatible. Backup persistence errors are
 reported independently and never change a completed Radio operation into a
 failed one.
 
+Portable Codeplug lifecycle is also owned here. A CPS File packages a manifest,
+immutable baseline bytes, and working bytes; import verifies its schema, layout,
+lengths, and hashes before constructing an offline working document. File
+identity is never treated as live Source Radio proof. Restore preparation first
+performs a complete Radio Read, saves the current Radio Codeplug as recovery,
+verifies exact Source Radio identity, and produces a Restore Plan against the
+imported working bytes. Cross-layout transfer is available only through an
+explicit pairwise migration adapter; the adapter copies understood settings
+onto the freshly read Codeplug so its opaque bytes remain authoritative. See
+[Codeplug file lifecycle](../codeplug-file-lifecycle.md) and
+[ADR 0004](../adr/0004-verify-imported-codeplugs-before-restore.md).
+
+Same-layout restore materialization also overlays known Radio-managed regions
+from the fresh read before comparison. The current layout preserves the opaque
+tail at flash `0x20BC0–0x20FFF`, whose 8-byte internal records controlled
+repeated reads showed can be populated independently of user Codeplug edits.
+Those bytes cannot create a Restore Plan item or be rolled back from an older
+file.
+
 Deleting this module would force lifecycle and safety rules into routes, UI state, import/export code, and Radio Write callers, so it provides leverage and locality rather than acting as a pass-through.
 
 ## UVL-15W Radio

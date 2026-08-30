@@ -14,12 +14,23 @@ import { createIndexedDbRadioWriteStore } from "@/adapters/indexed-db-radio-writ
 import { createIndexedDbBackupHistoryStore } from "@/adapters/indexed-db-backup-history-store/index"
 import {
   createCpsWorkspace,
+  type BackupHistoryEntry,
   type CompletedRadioRead,
   type CpsWorkspace,
   type RadioWriteOperationSnapshot,
   type RadioWriteReviewItem,
 } from "@/modules/cps-workspace/index"
+import {
+  createCpsFile,
+  parseCpsFile,
+  type CpsFileManifest,
+} from "@/modules/cps-workspace/cps-file"
 import { isRadioWriteReleased } from "@/modules/cps-workspace/radio-write-release"
+import { compareSourceRadios } from "@/modules/cps-workspace/radio-write-policy"
+import {
+  evaluateRestorePlan,
+  materializeRestoreTarget,
+} from "@/modules/cps-workspace/restore-plan"
 import {
   reconcileBandScanListSelectionChange,
   reconcileBandZoneSelectionChange,
@@ -47,6 +58,7 @@ import {
   reconcileVfoScanEdgeSelectionChange,
   type WorkspaceChange,
 } from "@/modules/cps-workspace/change-set"
+import { createCodeplug } from "@/modules/codeplug/index"
 import type {
   CallChannelPatch,
   AprsSettingsPatch,
@@ -97,6 +109,8 @@ interface CpsWorkspaceContextValue {
   readonly radioWriteReleased: boolean
   readonly radioWriteSnapshot: RadioWriteOperationSnapshot | null
   readonly radioWriteReview: readonly RadioWriteReviewItem[]
+  readonly importedCpsFile: CpsFileManifest | null
+  readonly importedRestoreResult: ImportedRestoreResult | null
   claimExternalRadioOperation(): boolean
   releaseExternalRadioOperation(): void
   readRadio(): Promise<void>
@@ -105,6 +119,10 @@ interface CpsWorkspaceContextValue {
   discardRadioWriteStatus(): Promise<void>
   downloadRadioOperationReport(): void
   downloadRawBackup(): void
+  downloadCpsFile(): Promise<void>
+  openCpsFile(file: File): Promise<void>
+  prepareImportedRestore(): Promise<void>
+  prepareBackupRestore(entry: BackupHistoryEntry): Promise<void>
   addMemoryChannel(): void
   duplicateMemoryChannel(number: number): void
   deleteMemoryChannel(number: number): void
@@ -138,6 +156,10 @@ interface CpsWorkspaceContextValue {
   moveMemoryChannel(fromNumber: number, toNumber: number): void
   resetWorkingCodeplug(): void
 }
+
+type ImportedRestoreResult =
+  | { readonly status: "already-current" }
+  | { readonly status: "restore-ready"; readonly changedByteCount: number }
 
 type WorkspaceError =
   | { readonly key: WorkspaceErrorKey }
@@ -176,6 +198,7 @@ function useCpsWorkspaceController() {
   const mounted = React.useRef(true)
   const operationInProgress = React.useRef(false)
   const radioDebugEvents = React.useRef<RadioDebugEvent[]>([])
+  const importedCpsFileRef = React.useRef<CpsFileManifest | null>(null)
   const [capability, setCapability] = React.useState<
     RadioCapability | "checking"
   >("checking")
@@ -192,6 +215,10 @@ function useCpsWorkspaceController() {
   const [radioWriteReview, setRadioWriteReview] = React.useState<
     readonly RadioWriteReviewItem[]
   >([])
+  const [importedCpsFile, setImportedCpsFile] =
+    React.useState<CpsFileManifest | null>(null)
+  const [importedRestoreResult, setImportedRestoreResult] =
+    React.useState<ImportedRestoreResult | null>(null)
   const [externalOperationBusy, setExternalOperationBusy] =
     React.useState(false)
   const { completedRead, changes } = documentState
@@ -270,6 +297,9 @@ function useCpsWorkspaceController() {
       if (!mounted.current) {
         return
       }
+      importedCpsFileRef.current = null
+      setImportedCpsFile(null)
+      setImportedRestoreResult(null)
       setDocumentState({ completedRead: result, changes: [] })
       setProgress(100)
       setPhase("ready")
@@ -293,7 +323,8 @@ function useCpsWorkspaceController() {
       !completedRead ||
       changes.length === 0 ||
       !workspace.current ||
-      !radioTransport.current
+      !radioTransport.current ||
+      importedCpsFileRef.current !== null
     ) {
       return
     }
@@ -370,6 +401,226 @@ function useCpsWorkspaceController() {
     anchor.click()
     setTimeout(() => URL.revokeObjectURL(url), 0)
   }, [completedRead])
+
+  const downloadCpsFile = React.useCallback(async () => {
+    if (!completedRead) return
+    const bytes = await createCpsFile({
+      sourceRadio: completedRead.sourceRadio,
+      baseline: completedRead.baselineBackup.codeplug,
+      working: completedRead.workingCodeplug.codeplug,
+    })
+    downloadBytes(
+      `${safeFilename(completedRead.sourceRadio.serialNumber || completedRead.sourceRadio.model)}-${new Date().toISOString().slice(0, 10)}.uvl15cps`,
+      bytes,
+      "application/vnd.tyt.uvl15-cps+zip"
+    )
+  }, [completedRead])
+
+  const openCpsFile = React.useCallback(
+    async (file: File) => {
+      if (busy || operationInProgress.current) return
+      operationInProgress.current = true
+      setError(null)
+      try {
+        const parsed = await parseCpsFile(
+          new Uint8Array(await file.arrayBuffer())
+        )
+        const baselineBackup = Object.freeze({
+          id: `cps-import-${parsed.manifest.baseline.sha256.slice(0, 16)}`,
+          sha256: parsed.manifest.baseline.sha256,
+          sourceRadio: parsed.manifest.sourceRadio,
+          codeplug: parsed.baseline,
+          createdAt: new Date(parsed.manifest.createdAt),
+        })
+        const nextRead: CompletedRadioRead = Object.freeze({
+          sourceRadio: parsed.manifest.sourceRadio,
+          baselineBackup,
+          workingCodeplug: Object.freeze({
+            sourceRadio: parsed.manifest.sourceRadio,
+            baselineBackup,
+            codeplug: parsed.working,
+          }),
+          backupHistory: Object.freeze([baselineBackup]),
+        })
+        importedCpsFileRef.current = parsed.manifest
+        setImportedCpsFile(parsed.manifest)
+        setImportedRestoreResult(null)
+        setDocumentState({
+          completedRead: nextRead,
+          changes: parsed.edited
+            ? [
+                Object.freeze({
+                  kind: "imported-working-codeplug" as const,
+                  fileCreatedAt: parsed.manifest.createdAt,
+                  workingSha256: parsed.manifest.working.sha256,
+                  changedByteCount: countChangedBytes(
+                    parsed.baseline.toBytes(),
+                    parsed.working.toBytes()
+                  ),
+                }),
+              ]
+            : [],
+        })
+        setSourceRadio(null)
+        setPhase("ready")
+      } catch (cause) {
+        setError({
+          message:
+            cause instanceof Error
+              ? cause.message
+              : "The CPS File could not be opened",
+        })
+        throw cause
+      } finally {
+        operationInProgress.current = false
+      }
+    },
+    [busy]
+  )
+
+  const prepareRestore = React.useCallback(
+    async (
+      restoreSource: Pick<
+        CpsFileManifest,
+        "createdAt" | "sourceRadio" | "working"
+      >,
+      target: ReturnType<typeof createCodeplug>
+    ) => {
+      if (capability !== "available" || busy || operationInProgress.current)
+        return
+
+      operationInProgress.current = true
+      setError(null)
+      setProgress(0)
+      setPhase("connecting")
+      try {
+        await workspace.current?.disconnect().catch(() => undefined)
+        const nextTransport = createWebSerialTransport({
+          baudRate: POC_VERIFIED_BAUD_RATE,
+        })
+        const nextWorkspace = createCpsWorkspace(nextTransport, {
+          radioWriteStore: createIndexedDbRadioWriteStore(),
+          backupHistoryStore: createIndexedDbBackupHistoryStore(),
+          onBackupHistoryError: () => {
+            if (mounted.current) setError({ key: "backupHistorySaveFailed" })
+          },
+          onDebugEvent: RADIO_WRITE_RELEASED
+            ? recordRadioDebugEvent
+            : undefined,
+        })
+        radioTransport.current = nextTransport
+        workspace.current = nextWorkspace
+        const radio = await nextWorkspace.connect()
+        setSourceRadio(radio)
+        setPhase("reading")
+        const freshRead = await nextWorkspace.read({
+          onProgress: ({ percent }) => mounted.current && setProgress(percent),
+        })
+        if (
+          compareSourceRadios(restoreSource.sourceRadio, freshRead.sourceRadio)
+            .status !== "same"
+        ) {
+          throw new Error(
+            "Restore blocked: the selected Radio is not the Source Radio recorded with this saved Codeplug."
+          )
+        }
+        const currentRadioBytes = freshRead.baselineBackup.codeplug.toBytes()
+        const restoreTargetBytes = materializeRestoreTarget(
+          currentRadioBytes,
+          target.toBytes()
+        )
+        const restorePlan = evaluateRestorePlan(
+          currentRadioBytes,
+          restoreTargetBytes
+        )
+        const restoredDocument: CompletedRadioRead = Object.freeze({
+          ...freshRead,
+          workingCodeplug: Object.freeze({
+            sourceRadio: freshRead.sourceRadio,
+            baselineBackup: freshRead.baselineBackup,
+            codeplug: createCodeplug(restoreTargetBytes),
+          }),
+        })
+        importedCpsFileRef.current = null
+        setImportedCpsFile(null)
+        setImportedRestoreResult(
+          restorePlan.status === "already-current"
+            ? Object.freeze({ status: "already-current" })
+            : Object.freeze({
+                status: "restore-ready",
+                changedByteCount: restorePlan.changedByteCount,
+              })
+        )
+        setDocumentState({
+          completedRead: restoredDocument,
+          changes:
+            restorePlan.status === "already-current"
+              ? []
+              : [
+                  Object.freeze({
+                    kind: "restore-imported-codeplug" as const,
+                    fileCreatedAt: restoreSource.createdAt,
+                    workingSha256: restoreSource.working.sha256,
+                    changedByteCount: restorePlan.changedByteCount,
+                  }),
+                ],
+        })
+        setProgress(100)
+        setPhase("ready")
+      } catch (cause) {
+        setError({
+          message:
+            cause instanceof Error
+              ? cause.message
+              : "Restore preparation failed",
+        })
+        setPhase("ready")
+        throw cause
+      } finally {
+        operationInProgress.current = false
+      }
+    },
+    [busy, capability, recordRadioDebugEvent]
+  )
+
+  const prepareImportedRestore = React.useCallback(async () => {
+    const manifest = importedCpsFileRef.current
+    const target = completedRead?.workingCodeplug.codeplug
+    if (!manifest || !target) return
+    await prepareRestore(manifest, target)
+  }, [completedRead, prepareRestore])
+
+  const prepareBackupRestore = React.useCallback(
+    async (entry: BackupHistoryEntry) => {
+      if (busy || operationInProgress.current) return
+      setError(null)
+      try {
+        const codeplug = createCodeplug(entry.bytes)
+        const archive = await createCpsFile({
+          sourceRadio: entry.sourceRadio,
+          baseline: codeplug,
+          working: codeplug,
+          createdAt: new Date(entry.createdAt),
+        })
+        const parsed = await parseCpsFile(archive)
+        if (parsed.manifest.working.sha256 !== entry.sha256) {
+          throw new Error(
+            "Restore blocked: the saved backup failed its integrity check."
+          )
+        }
+        await prepareRestore(parsed.manifest, parsed.working)
+      } catch (cause) {
+        setError({
+          message:
+            cause instanceof Error
+              ? cause.message
+              : "Restore preparation failed",
+        })
+        throw cause
+      }
+    },
+    [busy, prepareRestore]
+  )
 
   const downloadRadioOperationReport = React.useCallback(() => {
     if (!RADIO_WRITE_RELEASED || radioDebugEvents.current.length === 0) return
@@ -1390,6 +1641,8 @@ function useCpsWorkspaceController() {
       radioWriteReleased: RADIO_WRITE_RELEASED,
       radioWriteSnapshot,
       radioWriteReview,
+      importedCpsFile,
+      importedRestoreResult,
       claimExternalRadioOperation,
       releaseExternalRadioOperation,
       readRadio,
@@ -1398,6 +1651,10 @@ function useCpsWorkspaceController() {
       discardRadioWriteStatus,
       downloadRadioOperationReport,
       downloadRawBackup,
+      downloadCpsFile,
+      openCpsFile,
+      prepareImportedRestore,
+      prepareBackupRestore,
       addMemoryChannel,
       duplicateMemoryChannel,
       deleteMemoryChannel,
@@ -1439,6 +1696,8 @@ function useCpsWorkspaceController() {
       changes,
       radioWriteSnapshot,
       radioWriteReview,
+      importedCpsFile,
+      importedRestoreResult,
       claimExternalRadioOperation,
       releaseExternalRadioOperation,
       readRadio,
@@ -1447,6 +1706,10 @@ function useCpsWorkspaceController() {
       discardRadioWriteStatus,
       downloadRadioOperationReport,
       downloadRawBackup,
+      downloadCpsFile,
+      openCpsFile,
+      prepareImportedRestore,
+      prepareBackupRestore,
       addMemoryChannel,
       duplicateMemoryChannel,
       deleteMemoryChannel,
@@ -1561,6 +1824,27 @@ function downloadJson(filename: string, value: unknown) {
   anchor.download = filename
   anchor.click()
   setTimeout(() => URL.revokeObjectURL(url), 0)
+}
+
+function downloadBytes(filename: string, bytes: Uint8Array, type: string) {
+  const blob = new Blob([bytes.slice().buffer], { type })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement("a")
+  anchor.href = url
+  anchor.download = filename
+  anchor.click()
+  setTimeout(() => URL.revokeObjectURL(url), 0)
+}
+
+function countChangedBytes(left: Uint8Array, right: Uint8Array) {
+  if (left.byteLength !== right.byteLength) {
+    return Math.max(left.byteLength, right.byteLength)
+  }
+  let count = 0
+  for (let index = 0; index < left.byteLength; index += 1) {
+    if (left[index] !== right[index]) count += 1
+  }
+  return count
 }
 
 function getRadioCapability(): RadioCapability {

@@ -896,6 +896,7 @@ const tr = {
   backupsRadioWrite: "Telsize Yazma",
   backupsChangeCount: "{count} değişiklik",
   backupsDownload: "Yedeği indir",
+  backupsRestore: "Yedeği geri yükle",
   backupsDelete: "Sil",
   backupsDeleteAll: "Tümünü sil",
   backupsEmptyTitle: "Henüz kayıtlı Codeplug yok",
@@ -910,6 +911,20 @@ const tr = {
   backupsStorageErrorTitle: "Yedek Geçmişi açılamadı",
   backupsStorageErrorDescription:
     "Tarayıcı depolamasının kullanılabilir olduğunu kontrol edip bu sayfayı yenileyin.",
+  cpsFileOpen: "CPS Dosyası Aç",
+  cpsFileExport: "CPS Dosyası Dışa Aktar",
+  cpsFileOpenReady: "CPS Dosyası açık",
+  cpsFileOpenFailed: "CPS Dosyası açılamadı",
+  cpsFilePrepareRestore: "Telsizi Oku ve Geri Yüklemeyi Hazırla",
+  cpsFileCreated: "Dosya oluşturma tarihi",
+  cpsFileRestoreReadFirst:
+    "Geri yüklemeden önce yeni bir Telsizden Okuma kaynak telsizi doğrular ve kurtarma yedeği oluşturur.",
+  cpsFileAlreadyCurrentTitle: "Telsiz bu CPS Dosyasıyla zaten aynı",
+  cpsFileAlreadyCurrentDescription:
+    "Yeni Telsizden Okuma ile içe aktarılan Çalışma Codeplug'ı tamamen aynı. Telsize Yazma gerekmiyor.",
+  cpsFileRestoreReadyTitle: "Geri Yükleme Planı hazır",
+  cpsFileRestoreReadyDescription:
+    "Yeni Telsizden Okuma ile kayıtlı Codeplug arasında {count} bayt fark var. Değişiklikleri inceleyip kayıtlı Codeplug'ı uygulamak için Telsize Yaz'ı kullanın.",
   backupHistorySaveFailed:
     "Telsiz işlemi tamamlandı ancak Codeplug yedeği bu tarayıcıya kaydedilemedi.",
   backupHistorySaveFailedTitle: "Codeplug Yedeği kaydedilemedi",

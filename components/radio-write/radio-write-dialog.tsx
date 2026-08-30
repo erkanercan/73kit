@@ -37,6 +37,7 @@ function RadioWriteDialog() {
     discardRadioWriteStatus,
     downloadRadioOperationReport,
     error,
+    importedCpsFile,
     prepareRadioWrite,
     radioWriteReleased,
     radioWriteReview,
@@ -108,7 +109,9 @@ function RadioWriteDialog() {
 
         <RadioWriteWorkflow
           released={radioWriteReleased}
-          hasWorkingCodeplug={completedRead !== null}
+          hasWorkingCodeplug={
+            completedRead !== null && importedCpsFile === null
+          }
           changeCount={changes.length}
           snapshot={radioWriteSnapshot}
           review={visibleReview}

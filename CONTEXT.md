@@ -88,6 +88,22 @@ _Avoid_: CPS Export, project file
 A portable Codeplug package that preserves its Source Radio identity and the information needed to interpret it. Importing it preserves the Source Radio binding.
 _Avoid_: Raw Backup Export, config file
 
+**CPS File**:
+A `.uvl15cps` package containing an immutable Baseline Backup, an editable Working Codeplug, Source Radio identity, Codeplug layout metadata, and integrity hashes. It may be reopened without a Radio, but its Source Radio binding must be verified by a fresh Radio Read before restore.
+_Avoid_: Project file, Raw Backup Export, firmware backup
+
+**Radio Restore**:
+The deliberate application of a saved CPS File's desired Codeplug to its verified Source Radio after a fresh Radio Read creates a recovery backup and a Restore Plan.
+_Avoid_: Import, Radio Write, rollback
+
+**Restore Plan**:
+The reviewable difference from the freshly read Radio Codeplug to the desired Codeplug in a compatible CPS File. It is prepared only after Source Radio and layout verification.
+_Avoid_: Change Set, file diff
+
+**Codeplug Migration**:
+The transfer of understood settings from a CPS File onto a freshly read Codeplug with a different validated layout. Opaque and reserved values come from the current Radio, and migration is available only through an explicit adapter between the two layouts.
+_Avoid_: Restore, conversion, automatic upgrade
+
 **Unbound Codeplug**:
 A Codeplug whose Source Radio cannot be proven, such as one imported from a Raw Backup Export. It may be inspected and edited but cannot be used for a Radio Write.
 _Avoid_: Anonymous Codeplug, generic Codeplug

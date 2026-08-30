@@ -38,6 +38,24 @@ function reviewChange(
   working: Codeplug,
   change: WorkspaceChange
 ): RadioWriteReviewItem {
+  if (change.kind === "imported-working-codeplug") {
+    return item(
+      change,
+      "Imported CPS File",
+      "Working Codeplug",
+      "Baseline Backup",
+      changedBytesLabel(change.changedByteCount)
+    )
+  }
+  if (change.kind === "restore-imported-codeplug") {
+    return item(
+      change,
+      "Imported CPS File",
+      "Restore Codeplug",
+      "Fresh Radio Read",
+      changedBytesLabel(change.changedByteCount)
+    )
+  }
   if (change.kind === "move-memory-channel") {
     return item(
       change,
@@ -81,6 +99,8 @@ function semanticValues(
   working: Codeplug,
   change: Exclude<
     WorkspaceChange,
+    | { readonly kind: "imported-working-codeplug" }
+    | { readonly kind: "restore-imported-codeplug" }
     | { readonly kind: "move-memory-channel" }
     | { readonly kind: "add-memory-channel" }
     | { readonly kind: "delete-memory-channel" }
@@ -306,6 +326,10 @@ function humanize(value: string) {
     .replace(/[-_]+/g, " ")
     .toLowerCase()
   return words.charAt(0).toUpperCase() + words.slice(1)
+}
+
+function changedBytesLabel(count: number) {
+  return `${count} changed ${count === 1 ? "byte" : "bytes"}`
 }
 
 export { createRadioWriteReview }

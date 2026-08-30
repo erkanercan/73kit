@@ -887,6 +887,7 @@ const en = {
   backupsRadioWrite: "Radio Write",
   backupsChangeCount: "{count, plural, one {# change} other {# changes}}",
   backupsDownload: "Download backup",
+  backupsRestore: "Restore backup",
   backupsDelete: "Delete",
   backupsDeleteAll: "Delete all",
   backupsEmptyTitle: "No saved Codeplugs yet",
@@ -901,6 +902,20 @@ const en = {
   backupsStorageErrorTitle: "Backup History could not be opened",
   backupsStorageErrorDescription:
     "Check that browser storage is available, then reload this page.",
+  cpsFileOpen: "Open CPS File",
+  cpsFileExport: "Export CPS File",
+  cpsFileOpenReady: "CPS File open",
+  cpsFileOpenFailed: "CPS File could not be opened",
+  cpsFilePrepareRestore: "Read Radio & Prepare Restore",
+  cpsFileCreated: "File created",
+  cpsFileRestoreReadFirst:
+    "A fresh Radio Read verifies the source and creates a recovery backup before restore.",
+  cpsFileAlreadyCurrentTitle: "Radio already matches this CPS File",
+  cpsFileAlreadyCurrentDescription:
+    "The fresh Radio Read and imported Working Codeplug are identical. No Radio Write is needed.",
+  cpsFileRestoreReadyTitle: "Restore Plan ready",
+  cpsFileRestoreReadyDescription:
+    "The fresh Radio Read differs by {count, plural, one {# byte} other {# bytes}}. Review the changes, then use Radio Write to apply the saved Codeplug.",
   backupHistorySaveFailed:
     "The Radio operation completed, but its Codeplug backup could not be saved in this browser.",
   backupHistorySaveFailedTitle: "Codeplug Backup was not saved",

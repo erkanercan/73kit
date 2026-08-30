@@ -19,6 +19,11 @@ test("exposes Backup History row actions like the Channels table", () => {
   )
   assert.match(
     backupsSource,
+    /variant="ghost"[\s\S]*size="icon-sm"[\s\S]*backupsRestore/
+  )
+  assert.match(backupsSource, /prepareBackupRestore\(entry\)/)
+  assert.match(
+    backupsSource,
     /variant="ghost"[\s\S]*size="icon-sm"[\s\S]*backupsDelete/
   )
 })
@@ -36,5 +41,18 @@ test("places Backups directly above Updates in secondary navigation", () => {
   assert.ok(
     secondaryNavigation.indexOf('t("navBackups")') <
       secondaryNavigation.indexOf('t("navUpdates")')
+  )
+})
+
+test("shows a completed no-op restore instead of silently removing the result", () => {
+  assert.match(
+    backupsSource,
+    /importedRestoreResult\?\.status === "already-current"/
+  )
+  assert.match(backupsSource, /cpsFileAlreadyCurrentTitle/)
+  assert.match(backupsSource, /cpsFileAlreadyCurrentDescription/)
+  assert.match(
+    backupsSource,
+    /disabled=\{busy \|\| capability !== "available"\}/
   )
 })

@@ -52,3 +52,43 @@ test("discloses write-image normalization as semantic review items", () => {
     ]
   )
 })
+
+test("presents imported work and prepared restore as distinct review items", () => {
+  const baseline = createCodeplug(new Uint8Array(CODEPLUG_SIZE))
+  const workingBytes = baseline.toBytes()
+  workingBytes[100] = 1
+  const working = createCodeplug(workingBytes)
+
+  assert.deepEqual(
+    createRadioWriteReview(baseline, working, [
+      {
+        kind: "imported-working-codeplug",
+        fileCreatedAt: "2026-08-30T12:00:00.000Z",
+        workingSha256: "a".repeat(64),
+        changedByteCount: 1,
+      },
+      {
+        kind: "restore-imported-codeplug",
+        fileCreatedAt: "2026-08-30T12:00:00.000Z",
+        workingSha256: "a".repeat(64),
+        changedByteCount: 1,
+      },
+    ]),
+    [
+      {
+        id: `imported-working-codeplug:2026-08-30T12:00:00.000Z:${"a".repeat(64)}:1`,
+        subject: "Imported CPS File",
+        field: "Working Codeplug",
+        before: "Baseline Backup",
+        after: "1 changed byte",
+      },
+      {
+        id: `restore-imported-codeplug:2026-08-30T12:00:00.000Z:${"a".repeat(64)}:1`,
+        subject: "Imported CPS File",
+        field: "Restore Codeplug",
+        before: "Fresh Radio Read",
+        after: "1 changed byte",
+      },
+    ]
+  )
+})

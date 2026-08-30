@@ -16,6 +16,8 @@ firmware version, transport, or firmware/resource update scenario.
 - USB CDC only;
 - TYT UVL-15W firmware `3.07.23` only;
 - a complete Working Codeplug created by this CPS from the Source Radio;
+- `.uvl15cps` export, verified offline import/reopen/edit/re-export, and
+  same-layout restore preparation after a fresh Source Radio read;
 - complete 102,400-byte writes only;
 - Radios with write protection disabled;
 - permanent Source Radio identity containing model, sub-model, CPU ID, and
@@ -54,15 +56,14 @@ Any interruption after writing may have begun remains durable
   offsets, encodings, indexes, round trips, and unrelated-byte preservation;
 - local Web Audio Tone Preview for DTMF, 2-Tone, and all 15 supported 5-Tone
   plans; preview never opens Web Serial or mutates the Codeplug;
-- source verification: 230 tests, typecheck, lint, and production build passed
+- source verification: 242 tests, typecheck, lint, and production build passed
   on 2026-08-30;
 - production-mode browser smoke test passed with no console warnings or errors.
 
 ## Remaining planned product work
 
 - Raw Backup import as an Unbound Codeplug;
-- identity-bound CPS Export and import;
-- saved Working Codeplugs;
+- browser-managed named Working Codeplugs without an external CPS File;
 - selection-wide bulk editing;
 - search by tone, Zone, Scan List, and mode;
 - dedicated undo/redo;
@@ -93,8 +94,8 @@ This updater status is separate from normal Codeplug Radio Write.
 Before publishing a build:
 
 1. Run `pnpm test`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`.
-2. Smoke-test `/en`, `/tr`, Radio Write availability after a Radio Read, and
-   the Updates beta acknowledgement in production mode.
+2. Smoke-test `/en`, `/tr`, CPS File export/import, Radio Write availability
+   after a Radio Read, and the Updates beta acknowledgement in production mode.
 3. Verify the deployed origin is HTTPS and Web Serial capability guidance is
    correct in desktop Chromium.
 4. Retain the official TYT CPS and a known-good Raw Backup as the recovery path.
