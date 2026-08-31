@@ -15,7 +15,6 @@ import { createIndexedDbBackupHistoryStore } from "@/adapters/indexed-db-backup-
 import {
   createCpsWorkspace,
   type BackupHistoryEntry,
-  type CompletedRadioRead,
   type CpsWorkspace,
   type RadioWriteOperationSnapshot,
   type RadioWriteReviewItem,
@@ -25,6 +24,16 @@ import {
   parseCpsFile,
   type CpsFileManifest,
 } from "@/modules/cps-workspace/cps-file"
+import {
+  bindCpsFile,
+  bindRadioRead,
+  canExportCpsFile,
+  canPrepareImportedRestore,
+  canPrepareRadioWrite as canPrepareDocumentRadioWrite,
+  importRawCodeplugFile,
+  isUnboundCodeplug,
+  type ActiveCodeplugDocument,
+} from "@/modules/cps-workspace/codeplug-document"
 import { isRadioWriteReleased } from "@/modules/cps-workspace/radio-write-release"
 import {
   MAX_RADIO_DIAGNOSTIC_EVENTS,
@@ -104,7 +113,7 @@ const RADIO_WRITE_RELEASED = isRadioWriteReleased({
 interface CpsWorkspaceContextValue {
   readonly phase: WorkspacePhase
   readonly sourceRadio: SourceRadio | null
-  readonly completedRead: CompletedRadioRead | null
+  readonly completedRead: ActiveCodeplugDocument | null
   readonly progress: number
   readonly error: WorkspaceError | null
   readonly capability: RadioCapability | "checking"
@@ -125,6 +134,7 @@ interface CpsWorkspaceContextValue {
   downloadRawBackup(): void
   downloadCpsFile(): Promise<void>
   openCpsFile(file: File): Promise<void>
+  openRawCodeplug(file: File): Promise<void>
   prepareImportedRestore(): Promise<void>
   prepareBackupRestore(entry: BackupHistoryEntry): Promise<void>
   addMemoryChannel(): void
@@ -209,7 +219,7 @@ function useCpsWorkspaceController() {
   const [phase, setPhase] = React.useState<WorkspacePhase>("idle")
   const [sourceRadio, setSourceRadio] = React.useState<SourceRadio | null>(null)
   const [documentState, setDocumentState] = React.useState<{
-    readonly completedRead: CompletedRadioRead | null
+    readonly completedRead: ActiveCodeplugDocument | null
     readonly changes: readonly WorkspaceChange[]
   }>({ completedRead: null, changes: [] })
   const [progress, setProgress] = React.useState(0)
@@ -306,7 +316,7 @@ function useCpsWorkspaceController() {
       importedCpsFileRef.current = null
       setImportedCpsFile(null)
       setImportedRestoreResult(null)
-      setDocumentState({ completedRead: result, changes: [] })
+      setDocumentState({ completedRead: bindRadioRead(result), changes: [] })
       setProgress(100)
       setPhase("ready")
     } catch (cause) {
@@ -330,7 +340,7 @@ function useCpsWorkspaceController() {
       changes.length === 0 ||
       !workspace.current ||
       !radioTransport.current ||
-      importedCpsFileRef.current !== null
+      !canPrepareDocumentRadioWrite(completedRead)
     ) {
       return
     }
@@ -369,7 +379,7 @@ function useCpsWorkspaceController() {
       const result = await workspace.current.executePreparedRadioWrite({
         onProgress: (snapshot) => setRadioWriteSnapshot(snapshot),
       })
-      setDocumentState({ completedRead: result, changes: [] })
+      setDocumentState({ completedRead: bindRadioRead(result), changes: [] })
       setSourceRadio(result.sourceRadio)
       setRadioWriteReview([])
     } catch (cause) {
@@ -396,20 +406,24 @@ function useCpsWorkspaceController() {
       return
     }
 
-    const bytes = completedRead.baselineBackup.codeplug.toBytes()
+    const bytes = isUnboundCodeplug(completedRead)
+      ? completedRead.workingCodeplug.codeplug.toBytes()
+      : completedRead.baselineBackup.codeplug.toBytes()
     const blob = new Blob([bytes.slice().buffer], {
       type: "application/octet-stream",
     })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement("a")
     anchor.href = url
-    anchor.download = `${safeFilename(completedRead.sourceRadio.serialNumber)}-codeplug-backup.bin`
+    anchor.download = isUnboundCodeplug(completedRead)
+      ? editedRawFilename(completedRead.rawImport.fileName)
+      : `${safeFilename(completedRead.sourceRadio?.serialNumber || "codeplug")}-codeplug-backup.bin`
     anchor.click()
     setTimeout(() => URL.revokeObjectURL(url), 0)
   }, [completedRead])
 
   const downloadCpsFile = React.useCallback(async () => {
-    if (!completedRead) return
+    if (!canExportCpsFile(completedRead)) return
     const bytes = await createCpsFile({
       sourceRadio: completedRead.sourceRadio,
       baseline: completedRead.baselineBackup.codeplug,
@@ -431,23 +445,7 @@ function useCpsWorkspaceController() {
         const parsed = await parseCpsFile(
           new Uint8Array(await file.arrayBuffer())
         )
-        const baselineBackup = Object.freeze({
-          id: `cps-import-${parsed.manifest.baseline.sha256.slice(0, 16)}`,
-          sha256: parsed.manifest.baseline.sha256,
-          sourceRadio: parsed.manifest.sourceRadio,
-          codeplug: parsed.baseline,
-          createdAt: new Date(parsed.manifest.createdAt),
-        })
-        const nextRead: CompletedRadioRead = Object.freeze({
-          sourceRadio: parsed.manifest.sourceRadio,
-          baselineBackup,
-          workingCodeplug: Object.freeze({
-            sourceRadio: parsed.manifest.sourceRadio,
-            baselineBackup,
-            codeplug: parsed.working,
-          }),
-          backupHistory: Object.freeze([baselineBackup]),
-        })
+        const nextRead = bindCpsFile(parsed)
         importedCpsFileRef.current = parsed.manifest
         setImportedCpsFile(parsed.manifest)
         setImportedRestoreResult(null)
@@ -475,6 +473,34 @@ function useCpsWorkspaceController() {
             cause instanceof Error
               ? cause.message
               : "The CPS File could not be opened",
+        })
+        throw cause
+      } finally {
+        operationInProgress.current = false
+      }
+    },
+    [busy]
+  )
+
+  const openRawCodeplug = React.useCallback(
+    async (file: File) => {
+      if (busy || operationInProgress.current) return
+      operationInProgress.current = true
+      setError(null)
+      try {
+        const nextDocument = await importRawCodeplugFile(file)
+        importedCpsFileRef.current = null
+        setImportedCpsFile(null)
+        setImportedRestoreResult(null)
+        setDocumentState({ completedRead: nextDocument, changes: [] })
+        setSourceRadio(null)
+        setPhase("ready")
+      } catch (cause) {
+        setError({
+          message:
+            cause instanceof Error
+              ? cause.message
+              : "The raw Codeplug file could not be opened",
         })
         throw cause
       } finally {
@@ -526,7 +552,7 @@ function useCpsWorkspaceController() {
         setImportedCpsFile(null)
         setImportedRestoreResult(prepared.result)
         setDocumentState({
-          completedRead: prepared.completedRead,
+          completedRead: bindRadioRead(prepared.completedRead),
           changes: prepared.changes,
         })
         setProgress(100)
@@ -550,7 +576,8 @@ function useCpsWorkspaceController() {
   const prepareImportedRestore = React.useCallback(async () => {
     const manifest = importedCpsFileRef.current
     const target = completedRead?.workingCodeplug.codeplug
-    if (!manifest || !target) return
+    if (!manifest || !target || !canPrepareImportedRestore(completedRead))
+      return
     await prepareRestore(
       {
         createdAt: manifest.createdAt,
@@ -1621,6 +1648,7 @@ function useCpsWorkspaceController() {
       downloadRawBackup,
       downloadCpsFile,
       openCpsFile,
+      openRawCodeplug,
       prepareImportedRestore,
       prepareBackupRestore,
       addMemoryChannel,
@@ -1676,6 +1704,7 @@ function useCpsWorkspaceController() {
       downloadRawBackup,
       downloadCpsFile,
       openCpsFile,
+      openRawCodeplug,
       prepareImportedRestore,
       prepareBackupRestore,
       addMemoryChannel,
@@ -1780,6 +1809,11 @@ function workspaceError(error: unknown): WorkspaceError {
 function safeFilename(value: string) {
   const safeValue = value.trim().replace(/[^a-z0-9._-]+/gi, "-")
   return safeValue || "uvl15w"
+}
+
+function editedRawFilename(fileName: string) {
+  const stem = fileName.replace(/\.bin$/i, "")
+  return `${safeFilename(stem)}-edited.bin`
 }
 
 function downloadText(filename: string, content: string, type: string) {

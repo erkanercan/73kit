@@ -1,8 +1,11 @@
-const CACHE_VERSION = "uvl15w-shell-v1"
+const CACHE_VERSION = "uvl15w-shell-v2"
 const SHELL_URLS = [
   "/tr",
   "/en",
   "/icons/app-icon.svg",
+  "/icons/app-icon-192.png",
+  "/icons/app-icon-512.png",
+  "/icons/app-icon-maskable-512.png",
   "/aprs-symbols/primary@2x.png",
   "/aprs-symbols/secondary@2x.png",
 ]

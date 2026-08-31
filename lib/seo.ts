@@ -41,11 +41,20 @@ function createPageMetadata({
       description,
       locale: locale === "tr" ? "tr_TR" : "en_US",
       alternateLocale: locale === "tr" ? ["en_US"] : ["tr_TR"],
+      images: [
+        {
+          url: "/opengraph-image",
+          width: 1200,
+          height: 630,
+          alt: "73Kit — TYT UVL-15W browser radio programming",
+        },
+      ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title,
       description,
+      images: ["/opengraph-image"],
     },
     robots: {
       index,

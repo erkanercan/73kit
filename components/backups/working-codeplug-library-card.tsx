@@ -54,6 +54,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { createCpsFile, parseCpsFile } from "@/modules/cps-workspace/cps-file"
+import { canExportCpsFile } from "@/modules/cps-workspace/codeplug-document"
 import {
   WORKING_CODEPLUG_NAME_MAX_LENGTH,
   createSavedWorkingCodeplug,
@@ -109,7 +110,7 @@ function WorkingCodeplugLibraryCard() {
   }, [])
 
   async function saveCopy() {
-    if (!completedRead || working) return
+    if (!canExportCpsFile(completedRead) || working) return
     setWorking(true)
     setError(null)
     try {
@@ -211,7 +212,7 @@ function WorkingCodeplugLibraryCard() {
           <CardAction>
             <Button
               size="sm"
-              disabled={busy || working || completedRead === null}
+              disabled={busy || working || !canExportCpsFile(completedRead)}
               onClick={() => {
                 setName("")
                 setSaveOpen(true)

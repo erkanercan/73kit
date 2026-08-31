@@ -946,6 +946,24 @@ const tr = {
   savedWorkingNotFound: "Kayıtlı Çalışma Codeplug'ı artık mevcut değil.",
   loading: "Yükleniyor…",
   cpsFileOpen: "CPS Dosyası Aç",
+  rawImportAction: "Ham Yedeği İçe Aktar",
+  rawImportReviewTitle: "Ham Yedek içe aktarımını incele",
+  rawImportReviewDescription:
+    "Bu içe aktarıcı şimdilik yalnızca doğrulanmış firmware 3.07.23 düzenini kabul eder: tam olarak 102.400 bayt içeren bir .bin dosyası.",
+  rawImportReviewSafety:
+    "Dosya, Kaynak Telsiz kimliği olmadan Bağsız Codeplug olarak açılır. Telsize Yazma, geri yükleme hazırlığı, CPS Dosyası dışa aktarma ve adlandırılmış tarayıcı anlık görüntüleri kullanılamaz.",
+  rawImportConfirm: "Bağsız Codeplug'ı Aç",
+  rawImportFailed: "Ham Yedek içe aktarılamadı",
+  rawImportReady: "Ham Yedek açık",
+  rawImportUnboundTitle: "Bağsız Codeplug",
+  rawImportUnboundDescription:
+    "Bu Codeplug bir Kaynak Telsize bağlı değil. İnceleyip düzenleyebilir ve düzenlenen ham .bin dosyasını indirebilirsiniz; Telsize Yazma veya geri yükleme için kullanılamaz.",
+  rawImportNoRadioTitle: "Kaynak Telsiz kimliği yok",
+  rawImportFile: "İçe aktarılan dosya",
+  rawImportLayout: "Doğrulanmış düzen",
+  rawImportSize: "Dosya boyutu",
+  rawWorkingExport: "Düzenlenmiş Ham Codeplug'ı İndir",
+  bytes: "bayt",
   cpsFileExport: "CPS Dosyası Dışa Aktar",
   cpsFileOpenReady: "CPS Dosyası açık",
   cpsFileOpenFailed: "CPS Dosyası açılamadı",
@@ -965,7 +983,7 @@ const tr = {
   backupHistorySaveFailedTitle: "Codeplug Yedeği kaydedilemedi",
   navDiagnostics: "Tanılama",
   navAbout: "Hakkında",
-  aboutTitle: "UVL-15W CPS Hakkında",
+  aboutTitle: "73Kit Hakkında",
   aboutScopeTitle: "Doğrulanmış Telsiz kapsamı",
   aboutScopeDescription:
     "Üretim Codeplug desteği; TYT UVL-15W, firmware 3.07.23, masaüstü Chromium, USB CDC üzerinden Web Serial ve Kaynak Telsize bağlı tam yazma işlemlerini hedefler.",

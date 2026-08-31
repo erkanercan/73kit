@@ -937,6 +937,24 @@ const en = {
   savedWorkingNotFound: "The saved Working Codeplug no longer exists.",
   loading: "Loading…",
   cpsFileOpen: "Open CPS File",
+  rawImportAction: "Import Raw Backup",
+  rawImportReviewTitle: "Review Raw Backup import",
+  rawImportReviewDescription:
+    "This importer currently accepts only the validated firmware 3.07.23 layout: a .bin file containing exactly 102,400 bytes.",
+  rawImportReviewSafety:
+    "The file will open as an Unbound Codeplug with no Source Radio identity. Radio Write, restore preparation, CPS File export, and named browser snapshots stay unavailable.",
+  rawImportConfirm: "Open Unbound Codeplug",
+  rawImportFailed: "Raw Backup could not be imported",
+  rawImportReady: "Raw Backup open",
+  rawImportUnboundTitle: "Unbound Codeplug",
+  rawImportUnboundDescription:
+    "This Codeplug is not bound to a Source Radio. You can inspect and edit it, then download the edited raw .bin; it cannot be used for Radio Write or restore.",
+  rawImportNoRadioTitle: "No Source Radio identity",
+  rawImportFile: "Imported file",
+  rawImportLayout: "Validated layout",
+  rawImportSize: "File size",
+  rawWorkingExport: "Download Edited Raw Codeplug",
+  bytes: "bytes",
   cpsFileExport: "Export CPS File",
   cpsFileOpenReady: "CPS File open",
   cpsFileOpenFailed: "CPS File could not be opened",
@@ -956,7 +974,7 @@ const en = {
   backupHistorySaveFailedTitle: "Codeplug Backup was not saved",
   navDiagnostics: "Diagnostics",
   navAbout: "About",
-  aboutTitle: "About UVL-15W CPS",
+  aboutTitle: "About 73Kit",
   aboutScopeTitle: "Validated Radio scope",
   aboutScopeDescription:
     "Production Codeplug support targets the TYT UVL-15W, firmware 3.07.23, desktop Chromium, Web Serial over USB CDC, and complete Source-Radio-bound writes.",

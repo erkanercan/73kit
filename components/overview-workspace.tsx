@@ -203,7 +203,7 @@ function ReadyOverview({
   completedRead: NonNullable<
     ReturnType<typeof useCpsWorkspace>["completedRead"]
   >
-  sourceRadio: NonNullable<ReturnType<typeof useCpsWorkspace>["sourceRadio"]>
+  sourceRadio: ReturnType<typeof useCpsWorkspace>["sourceRadio"]
   latestBackup: LatestBackupState
   onDownload(): void
 }) {
@@ -254,7 +254,9 @@ function ReadyOverview({
         <CardFooter className="justify-between gap-3">
           <Button variant="outline" size="sm" onClick={onDownload}>
             <DownloadIcon data-icon="inline-start" />
-            {t("rawBackup")}
+            {completedRead.binding === "unbound"
+              ? t("rawWorkingExport")
+              : t("rawBackup")}
           </Button>
           <Link href="/channels" className={buttonVariants({ size: "sm" })}>
             {changeCount === 0
@@ -267,34 +269,51 @@ function ReadyOverview({
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("sourceRadio")}</CardTitle>
+          <CardTitle>
+            {sourceRadio ? t("sourceRadio") : t("rawImportUnboundTitle")}
+          </CardTitle>
           <CardAction>
             <RadioIcon aria-hidden="true" />
           </CardAction>
         </CardHeader>
         <CardContent>
-          <dl className="flex flex-col gap-4">
-            <OverviewDetail label={t("radioModel")} value={sourceRadio.model} />
-            <OverviewDetail
-              label={t("serialNumber")}
-              value={sourceRadio.serialNumber || t("notReported")}
-              mono
-            />
-            <OverviewDetail
-              label={t("firmware")}
-              value={sourceRadio.firmwareVersion || t("notReported")}
-            />
-          </dl>
+          {sourceRadio ? (
+            <dl className="flex flex-col gap-4">
+              <OverviewDetail
+                label={t("radioModel")}
+                value={sourceRadio.model}
+              />
+              <OverviewDetail
+                label={t("serialNumber")}
+                value={sourceRadio.serialNumber || t("notReported")}
+                mono
+              />
+              <OverviewDetail
+                label={t("firmware")}
+                value={sourceRadio.firmwareVersion || t("notReported")}
+              />
+            </dl>
+          ) : (
+            <Alert>
+              <InfoIcon aria-hidden="true" />
+              <AlertTitle>{t("rawImportNoRadioTitle")}</AlertTitle>
+              <AlertDescription>
+                {t("rawImportUnboundDescription")}
+              </AlertDescription>
+            </Alert>
+          )}
         </CardContent>
-        <CardFooter className="justify-end">
-          <Link
-            href="/radio"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            {t("viewRadioDetails")}
-            <ArrowRightIcon data-icon="inline-end" />
-          </Link>
-        </CardFooter>
+        {sourceRadio && (
+          <CardFooter className="justify-end">
+            <Link
+              href="/radio"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              {t("viewRadioDetails")}
+              <ArrowRightIcon data-icon="inline-end" />
+            </Link>
+          </CardFooter>
+        )}
       </Card>
 
       <ProgrammingDestinationsCard />

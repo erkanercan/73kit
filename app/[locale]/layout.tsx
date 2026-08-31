@@ -30,7 +30,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale })
 
   return {
-    title: "UVL-15W CPS",
+    title: "73Kit",
     description: t("metadataDescription"),
   }
 }

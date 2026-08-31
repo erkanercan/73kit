@@ -11,6 +11,9 @@ test("manifest declares a localized standalone application", async () => {
   assert.match(source, /scope: "\/"/)
   assert.match(source, /display: "standalone"/)
   assert.match(source, /purpose: "maskable"/)
+  assert.match(source, /short_name: "73Kit"/)
+  assert.match(source, /app-icon-192\.png/)
+  assert.match(source, /app-icon-512\.png/)
 })
 
 test("service worker excludes user and update artifacts from caches", async () => {

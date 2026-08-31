@@ -39,6 +39,14 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
   Empty,
   EmptyHeader,
   EmptyMedia,
@@ -55,6 +63,7 @@ import {
 } from "@/components/ui/table"
 import type { BackupHistoryEntry } from "@/modules/cps-workspace/index"
 import { createCpsFile } from "@/modules/cps-workspace/cps-file"
+import { canExportCpsFile } from "@/modules/cps-workspace/codeplug-document"
 import { createCodeplug } from "@/modules/codeplug/index"
 
 const backupHistoryStore = createIndexedDbBackupHistoryStore()
@@ -67,14 +76,17 @@ function BackupsWorkspace() {
     capability,
     completedRead,
     downloadCpsFile,
+    downloadRawBackup,
     error,
     importedCpsFile,
     importedRestoreResult,
     openCpsFile,
+    openRawCodeplug,
     prepareBackupRestore,
     prepareImportedRestore,
   } = useCpsWorkspace()
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+  const rawFileInputRef = React.useRef<HTMLInputElement>(null)
   const [entries, setEntries] = React.useState<readonly BackupHistoryEntry[]>(
     []
   )
@@ -84,6 +96,10 @@ function BackupsWorkspace() {
     React.useState<BackupHistoryEntry | null>(null)
   const [clearOpen, setClearOpen] = React.useState(false)
   const [fileError, setFileError] = React.useState<string | null>(null)
+  const [fileErrorKind, setFileErrorKind] = React.useState<"cps" | "raw">("cps")
+  const [pendingRawFile, setPendingRawFile] = React.useState<File | null>(null)
+  const rawImport =
+    completedRead?.binding === "unbound" ? completedRead.rawImport : null
 
   React.useEffect(() => {
     let active = true
@@ -131,11 +147,34 @@ function BackupsWorkspace() {
     event.target.value = ""
     if (!file) return
     setFileError(null)
+    setFileErrorKind("cps")
     try {
       await openCpsFile(file)
     } catch (cause) {
       setFileError(
         cause instanceof Error ? cause.message : t("cpsFileOpenFailed")
+      )
+    }
+  }
+
+  function selectRawFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file) return
+    setFileError(null)
+    setFileErrorKind("raw")
+    setPendingRawFile(file)
+  }
+
+  async function confirmRawImport() {
+    if (!pendingRawFile) return
+    const file = pendingRawFile
+    setPendingRawFile(null)
+    try {
+      await openRawCodeplug(file)
+    } catch (cause) {
+      setFileError(
+        cause instanceof Error ? cause.message : t("rawImportFailed")
       )
     }
   }
@@ -151,6 +190,22 @@ function BackupsWorkspace() {
             accept=".uvl15cps,application/vnd.tyt.uvl15-cps+zip"
             onChange={(event) => void selectCpsFile(event)}
           />
+          <input
+            ref={rawFileInputRef}
+            hidden
+            type="file"
+            accept=".bin,application/octet-stream"
+            onChange={selectRawFile}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy}
+            onClick={() => rawFileInputRef.current?.click()}
+          >
+            <FileUpIcon data-icon="inline-start" />
+            {t("rawImportAction")}
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -162,7 +217,7 @@ function BackupsWorkspace() {
           </Button>
           <Button
             size="sm"
-            disabled={busy || completedRead === null}
+            disabled={busy || !canExportCpsFile(completedRead)}
             onClick={() => void downloadCpsFile()}
           >
             <DownloadIcon data-icon="inline-start" />
@@ -171,21 +226,31 @@ function BackupsWorkspace() {
         </div>
       </PageHeader>
 
-      {(importedCpsFile || importedRestoreResult || fileError || error) && (
+      {(importedCpsFile ||
+        rawImport ||
+        importedRestoreResult ||
+        fileError ||
+        error) && (
         <Card>
           <CardHeader>
             <CardTitle>
               {fileError
-                ? t("cpsFileOpenFailed")
+                ? t(
+                    fileErrorKind === "raw"
+                      ? "rawImportFailed"
+                      : "cpsFileOpenFailed"
+                  )
                 : error
                   ? t("cpsFileRestoreFailedTitle")
                   : importedRestoreResult?.status === "already-current"
                     ? t("cpsFileAlreadyCurrentTitle")
                     : importedRestoreResult?.status === "restore-ready"
                       ? t("cpsFileRestoreReadyTitle")
-                      : t("cpsFileOpenReady")}
+                      : rawImport
+                        ? t("rawImportReady")
+                        : t("cpsFileOpenReady")}
             </CardTitle>
-            {importedCpsFile && (
+            {importedCpsFile ? (
               <CardAction>
                 <Button
                   size="sm"
@@ -198,7 +263,14 @@ function BackupsWorkspace() {
                   {t("cpsFilePrepareRestore")}
                 </Button>
               </CardAction>
-            )}
+            ) : rawImport ? (
+              <CardAction>
+                <Button size="sm" disabled={busy} onClick={downloadRawBackup}>
+                  <DownloadIcon data-icon="inline-start" />
+                  {t("rawWorkingExport")}
+                </Button>
+              </CardAction>
+            ) : null}
           </CardHeader>
           <CardContent>
             {fileError ? (
@@ -221,6 +293,45 @@ function BackupsWorkspace() {
                   })}
                 </AlertDescription>
               </Alert>
+            ) : rawImport ? (
+              <div className="flex flex-col gap-3">
+                <Alert>
+                  <TriangleAlertIcon aria-hidden="true" />
+                  <AlertTitle>{t("rawImportUnboundTitle")}</AlertTitle>
+                  <AlertDescription>
+                    {t("rawImportUnboundDescription")}
+                  </AlertDescription>
+                </Alert>
+                <div className="grid gap-3 text-sm sm:grid-cols-3">
+                  <div>
+                    <div className="text-muted-foreground">
+                      {t("rawImportFile")}
+                    </div>
+                    <div className="truncate font-medium">
+                      {rawImport.fileName}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">
+                      {t("rawImportLayout")}
+                    </div>
+                    <div className="font-mono text-xs">
+                      {rawImport.layoutId}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">
+                      {t("rawImportSize")}
+                    </div>
+                    <div className="font-medium">
+                      {new Intl.NumberFormat(locale).format(
+                        rawImport.byteLength
+                      )}{" "}
+                      {t("bytes")}
+                    </div>
+                  </div>
+                </div>
+              </div>
             ) : importedCpsFile ? (
               <div className="flex flex-col gap-3">
                 {capability === "unsupported" && (
@@ -284,6 +395,49 @@ function BackupsWorkspace() {
       )}
 
       <WorkingCodeplugLibraryCard />
+
+      <Dialog
+        open={pendingRawFile !== null}
+        onOpenChange={(open) => !open && setPendingRawFile(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("rawImportReviewTitle")}</DialogTitle>
+            <DialogDescription className="sr-only">
+              {t("rawImportReviewDescription")}
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-sm">{t("rawImportReviewDescription")}</p>
+          {pendingRawFile && (
+            <dl className="grid gap-3 rounded-lg border p-4 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-muted-foreground">{t("rawImportFile")}</dt>
+                <dd className="font-medium break-all">{pendingRawFile.name}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">{t("rawImportSize")}</dt>
+                <dd className="font-medium">
+                  {new Intl.NumberFormat(locale).format(pendingRawFile.size)}{" "}
+                  {t("bytes")}
+                </dd>
+              </div>
+            </dl>
+          )}
+          <Alert>
+            <TriangleAlertIcon aria-hidden="true" />
+            <AlertTitle>{t("rawImportUnboundTitle")}</AlertTitle>
+            <AlertDescription>{t("rawImportReviewSafety")}</AlertDescription>
+          </Alert>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingRawFile(null)}>
+              {t("cancel")}
+            </Button>
+            <Button onClick={() => void confirmRawImport()}>
+              {t("rawImportConfirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card className="min-h-0 flex-1">
         <CardHeader>

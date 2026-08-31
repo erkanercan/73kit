@@ -18,6 +18,7 @@ import {
 import { WorkspaceErrorAlert } from "@/components/workspace-error-alert"
 import { useUpdateCoordinator } from "@/components/update-coordinator-provider"
 import { createRadioWriteReview } from "@/modules/cps-workspace/index"
+import { canPrepareRadioWrite } from "@/modules/cps-workspace/codeplug-document"
 
 const ACTIVE_WRITE_PHASES = new Set([
   "checking-radio",
@@ -37,7 +38,6 @@ function RadioWriteDialog() {
     discardRadioWriteStatus,
     downloadRadioOperationReport,
     error,
-    importedCpsFile,
     prepareRadioWrite,
     radioWriteReleased,
     radioWriteReview,
@@ -109,9 +109,7 @@ function RadioWriteDialog() {
 
         <RadioWriteWorkflow
           released={radioWriteReleased}
-          hasWorkingCodeplug={
-            completedRead !== null && importedCpsFile === null
-          }
+          hasWorkingCodeplug={canPrepareRadioWrite(completedRead)}
           changeCount={changes.length}
           snapshot={radioWriteSnapshot}
           review={visibleReview}

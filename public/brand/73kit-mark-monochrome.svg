@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 128" role="img" aria-labelledby="title">
+  <title id="title">73Kit</title>
+  <circle cx="18" cy="86" r="10"/>
+  <path d="M18 86h29c13 0 16-10 20-25 4-14 11-22 21-22 14 0 18 13 23 31l6 22c4 14 11 21 21 21 9 0 16-7 24-15l10-10" fill="none" stroke="#000" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M151 88h21v21" fill="none" stroke="#000" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M100 42c20 0 36 16 36 36M100 16c34 0 62 28 62 62" fill="none" stroke="#000" stroke-width="12" stroke-linecap="round"/>
+</svg>

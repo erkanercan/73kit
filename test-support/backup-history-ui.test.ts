@@ -67,7 +67,7 @@ test("shows the no-op restore result title only once", () => {
 test("shows direct Backup History restore failures without an imported file", () => {
   assert.match(
     backupsSource,
-    /importedCpsFile \|\| importedRestoreResult \|\| fileError \|\| error/
+    /importedCpsFile \|\|\s+rawImport \|\|\s+importedRestoreResult \|\|\s+fileError \|\|\s+error/
   )
   assert.match(backupsSource, /: error\s+\? t\("cpsFileRestoreFailedTitle"\)/)
   assert.match(

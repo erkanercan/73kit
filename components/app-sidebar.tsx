@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import {
   ArchiveIcon,
   ChartNoAxesColumnIncreasingIcon,
@@ -193,14 +194,21 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
-              tooltip="UVL-15W CPS"
+              tooltip="73Kit"
               render={<Link href="/" />}
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <RadioIcon />
-              </div>
+              <Image
+                src="/icons/app-icon.svg"
+                alt=""
+                width={32}
+                height={32}
+                className="size-8 rounded-lg"
+                priority
+              />
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">UVL-15W CPS</span>
+                <span className="truncate font-heading font-semibold tracking-tight">
+                  73Kit
+                </span>
                 <span className="truncate text-xs">
                   {t("localRadioWorkspace")}
                 </span>

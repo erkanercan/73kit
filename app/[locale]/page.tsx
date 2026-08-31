@@ -42,8 +42,8 @@ export default async function Page({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "TYT UVL-15W Browser CPS",
-    alternateName: "Tekser TR-UV15 Tarayıcı CPS",
+    name: "73Kit",
+    alternateName: ["TYT UVL-15W Browser CPS", "Tekser TR-UV15 Tarayıcı CPS"],
     url: canonicalUrl,
     description: t("metadataDescription"),
     applicationCategory: "UtilitiesApplication",

@@ -2,16 +2,16 @@
   <title id="title">73Kit</title>
   <defs>
     <linearGradient id="path" x1="90" y1="330" x2="418" y2="280" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#3B2AC7"/>
-      <stop offset="1" stop-color="#211A82"/>
+      <stop stop-color="#9B93FF"/>
+      <stop offset="1" stop-color="#F0EEFF"/>
     </linearGradient>
     <linearGradient id="signal" x1="270" y1="126" x2="392" y2="286" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2ED8D4"/>
-      <stop offset="1" stop-color="#1AA8AE"/>
+      <stop stop-color="#50E7E1"/>
+      <stop offset="1" stop-color="#20C7C7"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="#F7F7FC"/>
-  <g transform="translate(54 112) scale(2.25)">
+  <rect width="512" height="512" fill="#151333"/>
+  <g transform="translate(94 145) scale(1.8)">
     <circle cx="18" cy="86" r="10" fill="url(#path)"/>
     <path d="M18 86h29c13 0 16-10 20-25 4-14 11-22 21-22 14 0 18 13 23 31l6 22c4 14 11 21 21 21 9 0 16-7 24-15l10-10" fill="none" stroke="url(#path)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M151 88h21v21" fill="none" stroke="url(#path)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>

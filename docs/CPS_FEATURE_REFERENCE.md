@@ -287,11 +287,12 @@ Read `0x8000 → 0x21000` into a complete 102,400-byte Codeplug. A successful Ra
 
 ### Raw Backup Export - P0 / IMPLEMENTED PRODUCT
 
-The Radio workspace downloads the immutable Baseline Backup as an exact
-102,400-byte `.bin` file. It does not export the edited Working Codeplug. A Raw
-Backup Export contains no Source Radio identity or interpretation metadata.
-Raw `.bin` import remains planned. When implemented, it creates an Unbound
-Codeplug that may be inspected and edited but cannot be used for a Radio Write.
+For the validated firmware 3.07.23 layout, the Radio workspace downloads the
+immutable Baseline Backup as an exact 102,400-byte `.bin` file. It does not
+export the edited Working Codeplug. A Raw Backup Export contains no Source Radio
+identity or interpretation metadata. An imported Unbound Codeplug is the sole
+exception: its download action exports the current edited Working Codeplug as a
+new raw `.bin`, because no Source-Radio-bound Baseline Backup can be implied.
 
 Metadata such as model, firmware, date/time and SHA-256 belongs in a CPS Export or a separate sidecar, never inside the Raw Backup Export.
 
@@ -316,11 +317,22 @@ populated between complete reads without a user edit; the entire tail is
 therefore excluded from the user-facing Restore Plan and is never restored from
 an older CPS File.
 
-### Raw import for offline inspection/editing - P1 / PLANNED
+### Raw import for offline inspection/editing - P1 / IMPLEMENTED PRODUCT
 
-Support Raw Backup Exports using the Unbound Codeplug rules above. CSV and other
-future imports also create Unbound Codeplugs unless Source Radio identity can be
-proven.
+Backups provides a separate **Import Raw Backup** action and explicit review.
+The current import profile accepts only a case-insensitive `.bin` extension and
+exactly 102,400 bytes, which identifies the currently validated firmware
+3.07.23 layout; this is not a universal size rule for future firmware layouts.
+The size is checked before and after reading, and the imported bytes become an
+immutable Baseline Backup plus a distinct editable Working Codeplug.
+
+The document is explicitly Unbound: it has no model, firmware claim or Source
+Radio identity. It can use all current offline inspectors and editors and can
+download its edited Working Codeplug as raw `.bin`. Radio Write, restore
+preparation, CPS File export, Backup History and named IndexedDB snapshots all
+remain unavailable. Opening a failed or cancelled import does not replace the
+active document. CSV and other future imports also create Unbound Codeplugs
+unless Source Radio identity can be proven.
 
 ### Backup History - P0 / IMPLEMENTED
 
@@ -1153,7 +1165,7 @@ and write protection before E3. A mismatch stops before the first write block.
 
 Potential formats and binding rules:
 
-- raw `.bin`: Raw Backup Export; exact Codeplug bytes only; imports as an Unbound Codeplug
+- raw `.bin`: implemented for the validated firmware 3.07.23 102,400-byte layout; imports as an Unbound Codeplug and re-exports edited raw bytes
 - `.uvl15cps`: implemented; preserves baseline and working bytes, Source Radio identity, layout metadata, and integrity hashes
 - CSV: imports as an Unbound Codeplug
 - CHIRP-compatible CSV: imports as an Unbound Codeplug
@@ -1332,7 +1344,7 @@ Partial or changed-block writes are excluded until hardware-verified.
 ## Epic 14 - PWA / saved Working Codeplugs / import-export
 
 - [x] exact immutable Baseline Backup Raw Backup Export
-- [ ] Raw Backup import as an Unbound Codeplug
+- [x] firmware-3.07.23 Raw Backup import as an Unbound Codeplug with edited raw re-export
 - [x] identity-bound CPS File export, verified import, offline reopen/edit/re-export, direct Backup History restore, and same-layout restore preparation
 - [x] durable Backup History
 - [x] named immutable IndexedDB Working Codeplug snapshots
@@ -1425,7 +1437,7 @@ firmware update commands
 - [x] complete Radio Write through validated reboot response
 - [x] durable interrupted-write `Write Outcome Unknown` handling
 - [x] imported CPS File binding requires a fresh same-Source-Radio read before restore
-- [ ] Raw Backup import and Unbound Codeplug enforcement
+- [x] firmware-3.07.23 Raw Backup import and Unbound Codeplug enforcement
 
 ## P2 - Extended Codeplug Settings
 

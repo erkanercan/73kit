@@ -1,7 +1,7 @@
 import type { Locale } from "@/i18n/routing"
 
 const SITE_ORIGIN = new URL("https://cps.erkan.dev")
-const SITE_NAME = "TYT UVL-15W Browser CPS"
+const SITE_NAME = "73Kit"
 const SITE_LAST_REVIEWED = new Date("2026-08-31T00:00:00.000Z")
 const PUBLIC_INDEXABLE_PATHS = [""] as const
 

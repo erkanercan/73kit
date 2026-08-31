@@ -5,7 +5,7 @@ import { SITE_DESCRIPTIONS, SITE_NAME } from "@/lib/site"
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: SITE_NAME,
-    short_name: "UVL-15W CPS",
+    short_name: "73Kit",
     description: SITE_DESCRIPTIONS.en,
     start_url: "/tr",
     scope: "/",
@@ -14,15 +14,21 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#09090b",
     icons: [
       {
-        src: "/icons/app-icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/icons/app-icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/app-icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/icons/app-icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/app-icon-maskable-512.png",
+        sizes: "512x512",
+        type: "image/png",
         purpose: "maskable",
       },
     ],
