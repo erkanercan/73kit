@@ -82,7 +82,7 @@ const tr = {
   after: "Sonra",
   cancel: "İptal",
   metadataDescription:
-    "TYT UVL-15W Codeplug'ını yerel olarak okuyun, inceleyin ve yönetin.",
+    "Tekser TR-UV15 ve TYT UVL-15W Codeplug'ını uyumlu bir masaüstü tarayıcıda yerel olarak programlayın, yedekleyin ve yönetin.",
   languageSwitcherLabel: "Dil",
   languageTr: "Türkçe",
   languageEn: "English",

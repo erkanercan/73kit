@@ -1,6 +1,8 @@
 {
   "name": "tyt-uvl15-web-cps",
   "version": "0.0.1",
+  "author": "Erkan Ercan <erkanercandev@gmail.com>",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "private": true,
   "scripts": {

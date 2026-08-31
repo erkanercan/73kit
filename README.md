@@ -46,6 +46,16 @@ Official update packages can be checked against the catalog with:
 pnpm updates:verify-packages -- '<firmware.Fir>' '<resource.DAT>'
 ```
 
+## License
+
+Copyright (C) 2026 Erkan Ercan
+
+Contact: [erkanercandev@gmail.com](mailto:erkanercandev@gmail.com)
+
+This project is independent, unofficial software and is not affiliated with
+TYT or Tekser. It is licensed under the GNU Affero General Public License v3.0
+only. See [`LICENSE`](LICENSE).
+
 ## Third-party assets
 
 APRS symbol graphics are vendored from

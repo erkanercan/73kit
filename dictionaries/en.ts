@@ -83,7 +83,7 @@ const en = {
   after: "After",
   cancel: "Cancel",
   metadataDescription:
-    "Read, inspect, and manage a TYT UVL-15W Codeplug locally.",
+    "Program, back up, and manage a TYT UVL-15W Codeplug locally in a compatible desktop browser.",
   languageSwitcherLabel: "Language",
   languageTr: "Türkçe",
   languageEn: "English",

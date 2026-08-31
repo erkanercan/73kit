@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google"
 import { getLocale } from "next-intl/server"
 
@@ -5,7 +6,18 @@ import "./globals.css"
 import { CpsWorkspaceProvider } from "@/components/cps-workspace-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { UpdateCoordinatorProvider } from "@/components/update-coordinator-provider"
+import { SITE_DESCRIPTIONS, SITE_NAME, SITE_ORIGIN } from "@/lib/site"
 import { cn } from "@/lib/utils"
+
+export const metadata: Metadata = {
+  metadataBase: SITE_ORIGIN,
+  applicationName: SITE_NAME,
+  title: {
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTIONS.en,
+}
 
 const spaceGroteskHeading = Space_Grotesk({
   subsets: ["latin"],
