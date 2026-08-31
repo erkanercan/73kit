@@ -168,7 +168,7 @@ representations.
 Keep **Symbol table** as the existing primary/secondary control. Replace the
 symbol's long text-only select with a searchable popover suited to 94 entries:
 
-- trigger: 32 px preview, localized name, and code, for example `Car — />`;
+- trigger: 32 px preview, localized name, and code, for example `Car - />`;
 - popover header: search by localized name or exact code;
 - body: a compact icon grid for quick recognition, with the name and code in a
   tooltip and accessible name;

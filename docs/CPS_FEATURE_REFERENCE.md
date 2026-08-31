@@ -1,4 +1,4 @@
-# TYT UVL-15W Browser CPS — Feature & Capability Reference
+# TYT UVL-15W Browser CPS - Feature & Capability Reference
 
 > **Purpose:** Canonical feature reference for implementation planning and Codex-assisted development.
 >
@@ -8,13 +8,13 @@
 >
 > **Status convention used in this document**
 >
-> - **PROVEN** — verified against a physical UVL-15W using the browser PoC.
-> - **DOCUMENTED** — explicitly supported by the supplied TYT protocol/storage documentation.
-> - **IMPLEMENTED** — present in production source and covered by automated verification; this does not by itself claim physical Radio validation.
-> - **PARTIALLY IMPLEMENTED** — a usable subset is present and verified; the remaining scope is stated explicitly.
-> - **PLANNED** — product capability we intend to implement using documented data/protocol behavior.
-> - **OPTIONAL** — enhancement that is not required to reproduce the vendor CPS.
-> - **FUTURE / RESEARCH** — requires additional protocol work, browser transport work, or product decisions.
+> - **PROVEN** - verified against a physical UVL-15W using the browser PoC.
+> - **DOCUMENTED** - explicitly supported by the supplied TYT protocol/storage documentation.
+> - **IMPLEMENTED** - present in production source and covered by automated verification; this does not by itself claim physical Radio validation.
+> - **PARTIALLY IMPLEMENTED** - a usable subset is present and verified; the remaining scope is stated explicitly.
+> - **PLANNED** - product capability we intend to implement using documented data/protocol behavior.
+> - **OPTIONAL** - enhancement that is not required to reproduce the vendor CPS.
+> - **FUTURE / RESEARCH** - requires additional protocol work, browser transport work, or product decisions.
 
 ---
 
@@ -83,7 +83,7 @@ physical browser validation.
 
 The browser proof of concept has already been tested against a physical TYT UVL-15W.
 
-### 3.1 Browser → radio connection — PROVEN TRANSPORT
+### 3.1 Browser → radio connection - PROVEN TRANSPORT
 
 - Web Serial works with the radio's USB CDC interface.
 - Chrome on macOS can connect directly to the radio.
@@ -91,7 +91,7 @@ The browser proof of concept has already been tested against a physical TYT UVL-
 - Because this is USB CDC, the baud setting may not represent a physical UART rate and may be ignored by the Radio implementation.
 - Initial browser targets are Chrome/Edge/Chromium with Web Serial support.
 
-### 3.2 Radio handshake — PROVEN
+### 3.2 Radio handshake - PROVEN
 
 The radio responds to the documented `E0` handshake using `"UVL-15W"`.
 
@@ -101,7 +101,7 @@ Known-good request frame:
 FE FE EE EF E0 D5 D6 CC AD B1 B5 D7 9F FD
 ```
 
-### 3.3 Radio information — PROVEN / DOCUMENTED
+### 3.3 Radio information - PROVEN / DOCUMENTED
 
 The `E1` response exposes:
 
@@ -134,7 +134,7 @@ comparisons, protocol/address validation, fixtures and physical Radio testing.
 
 The Communication Protocol describes one E1 payload as **71 bytes**, but the documented field offsets extend through byte 80, which describes an **81-byte structure**. The newer Data Storage Reference also describes E1 as 81 bytes. Parse defensively and preserve this discrepancy in documentation/tests.
 
-### 3.4 Full Radio Read — PROVEN
+### 3.4 Full Radio Read - PROVEN
 
 Successful sequence:
 
@@ -158,7 +158,7 @@ radio exits PC Reading mode / reboots
 
 The complete documented region `0x8000 → 0x21000` (102,400 bytes) has been read successfully from real hardware.
 
-### 3.5 Read-session completion — PROVEN
+### 3.5 Read-session completion - PROVEN
 
 `E5 + "Read Complete"` is required after a complete read. Without it, the physical radio was observed remaining on `PC Reading 99%`.
 
@@ -168,7 +168,7 @@ The complete documented region `0x8000 → 0x21000` (102,400 bytes) has been rea
 
 Primary reference: `docs/technical/TYT_UVL-15W_Communication_Protocol_V3.0_EN_REVIEWED.md`
 
-### 4.1 Framing — DOCUMENTED
+### 4.1 Framing - DOCUMENTED
 
 - Host → radio core header: `FE EE EF`
 - Radio → host core header: `FE EF EE`
@@ -176,7 +176,7 @@ Primary reference: `docs/technical/TYT_UVL-15W_Communication_Protocol_V3.0_EN_RE
 
 At least one additional `FE` preamble byte is required before the core header for synchronization/wake behavior.
 
-### 4.2 Byte escaping — DOCUMENTED / PROVEN
+### 4.2 Byte escaping - DOCUMENTED / PROVEN
 
 Escaping applies to payload bytes and LRC, but not the command byte.
 
@@ -196,7 +196,7 @@ FE FE EE EF E2 80 80 00 80 80 82 90 80 EE FD
 
 Keep this as a regression test.
 
-### 4.3 LRC — DOCUMENTED / PROVEN
+### 4.3 LRC - DOCUMENTED / PROVEN
 
 LRC is calculated over unescaped payload bytes only:
 
@@ -206,7 +206,7 @@ LRC = uint8(0x100 - (sum(payload) & 0xFF))
 
 Then escape the LRC byte like payload data.
 
-### 4.4 Stream parsing — PROVEN IMPLEMENTATION REQUIREMENT
+### 4.4 Stream parsing - PROVEN IMPLEMENTATION REQUIREMENT
 
 Do not assume one `reader.read()` equals one protocol frame. Responses may be split across arbitrary USB chunks.
 
@@ -257,7 +257,7 @@ Codeplug.
 
 ## 7.1 Radio & Connection
 
-### Operation-scoped connect/disconnect — P0 / IMPLEMENTED PRODUCT; PROVEN TRANSPORT
+### Operation-scoped connect/disconnect - P0 / IMPLEMENTED PRODUCT; PROVEN TRANSPORT
 
 - request a Web Serial port for every Radio operation
 - open and close the connection within the operation
@@ -269,7 +269,7 @@ The CPS does not maintain a persistent Radio connection between operations. A la
 
 Protocol diagnostics remain planned for a later milestone; no diagnostics log or diagnostics UI is implemented in this milestone.
 
-### Read radio information — P0 / IMPLEMENTED PRODUCT; PROVEN PROTOCOL
+### Read radio information - P0 / IMPLEMENTED PRODUCT; PROVEN PROTOCOL
 
 Display model, firmware, hardware, serial number, CPU ID, bootloader model, resource version and read/write protection state.
 
@@ -277,11 +277,11 @@ Display model, firmware, hardware, serial number, CPU ID, bootloader model, reso
 
 ## 7.2 Backups, Working Codeplugs & Exports
 
-### Radio Read — P0 / IMPLEMENTED PRODUCT; PROVEN PROTOCOL
+### Radio Read - P0 / IMPLEMENTED PRODUCT; PROVEN PROTOCOL
 
 Read `0x8000 → 0x21000` into a complete 102,400-byte Codeplug. A successful Radio Read creates an immutable Baseline Backup and a separate Working Codeplug. An incomplete or invalid read creates neither.
 
-### Raw Backup Export — P0 / IMPLEMENTED PRODUCT
+### Raw Backup Export - P0 / IMPLEMENTED PRODUCT
 
 The Radio workspace downloads the immutable Baseline Backup as an exact
 102,400-byte `.bin` file. It does not export the edited Working Codeplug. A Raw
@@ -291,7 +291,7 @@ Codeplug that may be inspected and edited but cannot be used for a Radio Write.
 
 Metadata such as model, firmware, date/time and SHA-256 belongs in a CPS Export or a separate sidecar, never inside the Raw Backup Export.
 
-### CPS File export and import — P0 / IMPLEMENTED PRODUCT
+### CPS File export and import - P0 / IMPLEMENTED PRODUCT
 
 Export a `.uvl15cps` ZIP package containing `manifest.json`, `baseline.bin`, and
 `working.bin`. The manifest preserves Source Radio identity, layout and firmware
@@ -312,13 +312,13 @@ populated between complete reads without a user edit; the entire tail is
 therefore excluded from the user-facing Restore Plan and is never restored from
 an older CPS File.
 
-### Raw import for offline inspection/editing — P1 / PLANNED
+### Raw import for offline inspection/editing - P1 / PLANNED
 
 Support Raw Backup Exports using the Unbound Codeplug rules above. CSV and other
 future imports also create Unbound Codeplugs unless Source Radio identity can be
 proven.
 
-### Backup History — P0 / IMPLEMENTED
+### Backup History - P0 / IMPLEMENTED
 
 The browser retains an immutable Codeplug Backup in IndexedDB after every
 successful Radio Read and completed Radio Write. A completed write stores the
@@ -330,11 +330,11 @@ download one as a CPS File, delete one backup, or delete all saved backups.
 Clearing Backup History does not clear the separate active Radio Write recovery
 record.
 
-### Change Set review — P1 / IMPLEMENTED; REQUIRED FOR RADIO WRITE
+### Change Set review - P1 / IMPLEMENTED; REQUIRED FOR RADIO WRITE
 
 Show the complete intended differences between a Baseline Backup and its Working Codeplug. Values outside the Change Set remain unchanged, and an empty Change Set cannot be written.
 
-### Additional Codeplug comparison — P1 / OPTIONAL
+### Additional Codeplug comparison - P1 / OPTIONAL
 
 Compare backups or Working Codeplugs semantically for inspection. This optional comparison is separate from the mandatory Change Set used by a Radio Write.
 
@@ -345,7 +345,7 @@ Compare backups or Working Codeplugs semantically for inspection. This optional 
 - Primary storage: `0x00008000 → 0x00013B7F`
 - Capacity: `1000 channels × 48 bytes`
 
-### Channel inspection and ordering UI — P0 / IMPLEMENTED
+### Channel inspection and ordering UI - P0 / IMPLEMENTED
 
 The Channels workspace provides a virtualized, searchable Memory table, Basic
 and Advanced column visibility, complete channel details, formatted CTCSS/DCS,
@@ -373,7 +373,7 @@ Radio Write. Deleting a newly added or duplicated row restores the
 exact pre-operation Working Codeplug, including when that temporary row was
 edited, so the canceled operation leaves no pending Change Set entry.
 
-### Memory Channel inline editing — P1 / IMPLEMENTED
+### Memory Channel inline editing - P1 / IMPLEMENTED
 
 The Memory table directly edits channel use state, name, RX/TX/offset
 frequencies, duplex, reverse/talk-around, step, modulation, TX power, RX-only,
@@ -398,7 +398,7 @@ for positive or negative Duplex modes. Zone and Scan List columns provide
 compact multi-select membership editors when enabled through the Columns menu;
 the complete Channel Drawer always exposes both editors.
 
-### VFO and Call Channel inline editing — P1 / IMPLEMENTED
+### VFO and Call Channel inline editing - P1 / IMPLEMENTED
 
 VFO A/B and Call 1/2 use the same validated 48-byte Channel field editor as
 Memory Channels. Frequently used fields are editable directly in their tables,
@@ -411,34 +411,34 @@ change. Edits remain in the Working Codeplug only; no Radio Write is performed.
 
 ### Supported channel fields
 
-- RX frequency — P0
-- TX frequency — P0
-- channel name (24-byte UTF-8) — P0
-- duplex/off/negative/positive/split — P0
-- offset frequency — P0
-- reverse/talk-around — P1
-- frequency step — P0
-- modulation: FM / FM-N / AM / AM-N — P0
-- TX power: Low / Medium / High — P0
-- RX-only — P0
-- Busy Channel Lockout — P1
-- squelch type — P1
-- TX CTCSS — P0
-- RX CTCSS — P0
-- TX DTCS/DCS — P0
-- RX DTCS/DCS — P0
-- DCS polarity/reverse modes — P1
-- compander — P1
-- optional signalling: Off / DTMF / 2-Tone / 5-Tone — P1
-- scrambler — P1
-- PTT ID — P1
-- APRS RX — P1
+- RX frequency - P0
+- TX frequency - P0
+- channel name (24-byte UTF-8) - P0
+- duplex/off/negative/positive/split - P0
+- offset frequency - P0
+- reverse/talk-around - P1
+- frequency step - P0
+- modulation: FM / FM-N / AM / AM-N - P0
+- TX power: Low / Medium / High - P0
+- RX-only - P0
+- Busy Channel Lockout - P1
+- squelch type - P1
+- TX CTCSS - P0
+- RX CTCSS - P0
+- TX DTCS/DCS - P0
+- RX DTCS/DCS - P0
+- DCS polarity/reverse modes - P1
+- compander - P1
+- optional signalling: Off / DTMF / 2-Tone / 5-Tone - P1
+- scrambler - P1
+- PTT ID - P1
+- APRS RX - P1
 
-### Frequency steps — DOCUMENTED
+### Frequency steps - DOCUMENTED
 
 `2.5, 3.125, 5, 6.25, 8.33, 10, 12.5, 15, 20, 25, 50, 100 kHz`
 
-### CTCSS — DOCUMENTED
+### CTCSS - DOCUMENTED
 
 50 CTCSS values from `67.0` through `254.1 Hz`.
 
@@ -446,7 +446,7 @@ Index `20` corresponds to `131.8 Hz`.
 
 UX rule: RX CTCSS must not be silently mirrored from TX CTCSS. Explain that RX tone mutes audio unless the received signal contains the configured tone.
 
-### Scrambler — DOCUMENTED
+### Scrambler - DOCUMENTED
 
 Off plus documented values `2700` through `3400` in 100-unit increments.
 
@@ -454,10 +454,10 @@ Off plus documented values `2700` through `3400` in 100-unit increments.
 
 ## 7.4 Channel State & Membership Metadata
 
-- channel valid/use bitmap — P0
-- scan flag (off / skip / priority / reserved) — P0
-- zone membership bitmap — P0
-- scan-list membership bitmap — P0
+- channel valid/use bitmap - P0
+- scan flag (off / skip / priority / reserved) - P0
+- zone membership bitmap - P0
+- scan-list membership bitmap - P0
 
 Important: zone and scan-list membership bitmaps are stored inverted (`0 = member`). Hide this behind domain APIs.
 
@@ -471,19 +471,19 @@ the remaining bytes are preserved exactly.
 
 ## 7.5 VFOs, Call Channels, Temporary Channels & Weather Channels
 
-### VFO A/B — P1 / IMPLEMENTED PRODUCT; DOCUMENTED STORAGE
+### VFO A/B - P1 / IMPLEMENTED PRODUCT; DOCUMENTED STORAGE
 
 Two 48-byte channel records.
 
-### Call Channels 1/2 — P1 / IMPLEMENTED PRODUCT; DOCUMENTED STORAGE
+### Call Channels 1/2 - P1 / IMPLEMENTED PRODUCT; DOCUMENTED STORAGE
 
 Two special Call Channel storage slots.
 
-### Temporary Channels A/B — INTERNAL / DOCUMENTED
+### Temporary Channels A/B - INTERNAL / DOCUMENTED
 
 The storage reference's normal save flow mirrors `VFO A → Temp A` and `VFO B → Temp B` as raw 48-byte copies. `Temp A/B` are storage labels for the internal Temporary Channels, not user-facing names.
 
-### Weather Channels — INTERNAL / DOCUMENTED FIXED DATA
+### Weather Channels - INTERNAL / DOCUMENTED FIXED DATA
 
 The codeplug contains 10 documented fixed weather-channel records and templates.
 The current TYT CPS does not expose these records as a separate page or editor,
@@ -494,14 +494,14 @@ remain in Radio Settings → Function Settings.
 
 ## 7.6 Zones
 
-- 16 zones — P0
-- 24-byte UTF-8 names — P0
-- 128 member slots per zone — P0
-- A/B multi-Zone selection — P1 / IMPLEMENTED PRODUCT; PROVEN STORAGE
+- 16 zones - P0
+- 24-byte UTF-8 names - P0
+- 128 member slots per zone - P0
+- A/B multi-Zone selection - P1 / IMPLEMENTED PRODUCT; PROVEN STORAGE
 
 Zone information exists in both ordered member lists and per-channel membership bitmaps. Writer code must maintain both consistently.
 
-### Zone and Scan List domain operations — P1 / IMPLEMENTED
+### Zone and Scan List domain operations - P1 / IMPLEMENTED
 
 The Codeplug module exposes immutable Zone and Scan List collections plus
 operations to rename a collection, replace and reorder its members, or update
@@ -514,7 +514,7 @@ valid Channel and collection numbers, and the 128-member capacity. Consistency
 validation reports stable codes for invalid or duplicate ordered entries and
 for differences between ordered lists and membership bitmaps.
 
-### Zone editor — P1 / IMPLEMENTED
+### Zone editor - P1 / IMPLEMENTED
 
 The `/zones` workspace presents all 16 fixed hardware Zone slots in one
 master-detail page. The selected Zone supports a 24-byte UTF-8 name, ordered
@@ -545,15 +545,15 @@ Channel. Band A/B Zone selection remains independent from Channel membership.
 
 ## 7.7 Scan Lists
 
-- 16 scan lists — P0 / IMPLEMENTED PRODUCT; PROVEN STORAGE
-- 24-byte names — P0 / IMPLEMENTED PRODUCT; PROVEN STORAGE
-- 128 member slots per list — P0 / IMPLEMENTED PRODUCT; PROVEN STORAGE
-- A/B active scan-list selection — P1 / IMPLEMENTED PRODUCT; PROVEN STORAGE
-- member Off/Skip/Priority semantics — P1 / IMPLEMENTED PRODUCT; PROVEN STORAGE
+- 16 scan lists - P0 / IMPLEMENTED PRODUCT; PROVEN STORAGE
+- 24-byte names - P0 / IMPLEMENTED PRODUCT; PROVEN STORAGE
+- 128 member slots per list - P0 / IMPLEMENTED PRODUCT; PROVEN STORAGE
+- A/B active scan-list selection - P1 / IMPLEMENTED PRODUCT; PROVEN STORAGE
+- member Off/Skip/Priority semantics - P1 / IMPLEMENTED PRODUCT; PROVEN STORAGE
 
 Like zones, both ordered lists and per-channel membership bitmaps must remain synchronized.
 
-### Scan List editor — P1 / IMPLEMENTED
+### Scan List editor - P1 / IMPLEMENTED
 
 The `/scan-lists` workspace uses the same fixed-slot master-detail workflow as
 Zones. It presents all 16 Scan Lists, a 24-byte UTF-8 name, ordered membership,
@@ -577,7 +577,7 @@ the ordered member list and inverted bitmap synchronized, prevents additions to
 full 128-member lists, and does not change the independent Band A/B active Scan
 List selection.
 
-### VFO Scan Edge editor — P1 / IMPLEMENTED; CURRENT-CPS-VERIFIED STORAGE
+### VFO Scan Edge editor - P1 / IMPLEMENTED; CURRENT-CPS-VERIFIED STORAGE
 
 The `/vfo-scan-edges` workspace immediately presents all 32 fixed Scan Edge
 slots, including unused slots, in a searchable table with directly editable
@@ -595,24 +595,24 @@ Set reconciliation.
 
 ---
 
-## 7.8 General Radio Settings — P1/P2 / IMPLEMENTED; DOCUMENTED STORAGE
+## 7.8 General Radio Settings - P1/P2 / IMPLEMENTED; DOCUMENTED STORAGE
 
 Documented settings include:
 
-- receive/transmit mode — P1
-- cross-band repeat mode — P2
-- cross-band repeat monitor — P2
-- squelch level — P1
-- TX timeout timer — P1
-- TX channel behavior — P2
-- call hold time — P2
-- A-side operating mode — P1
-- B-side operating mode — P1
-- Auto Repeater — P2
-- Auto AM Mode: Off / 108.0–136.0 MHz / 108.0–137.0 MHz — P2
-- CI-T USB CDC enable — P2
-- CI-T Bluetooth SPP enable — P2
-- CI-T Bluetooth BLE enable — P2
+- receive/transmit mode - P1
+- cross-band repeat mode - P2
+- cross-band repeat monitor - P2
+- squelch level - P1
+- TX timeout timer - P1
+- TX channel behavior - P2
+- call hold time - P2
+- A-side operating mode - P1
+- B-side operating mode - P1
+- Auto Repeater - P2
+- Auto AM Mode: Off / 108.0–136.0 MHz / 108.0–137.0 MHz - P2
+- CI-T USB CDC enable - P2
+- CI-T Bluetooth SPP enable - P2
+- CI-T Bluetooth BLE enable - P2
 
 A/B operating modes include Channel, VFO/frequency, Call Channel and Weather Channel modes.
 
@@ -623,29 +623,29 @@ reconciliation.
 
 ---
 
-## 7.9 Tail & Tone Burst — P2 / IMPLEMENTED; DOCUMENTED STORAGE
+## 7.9 Tail & Tone Burst - P2 / IMPLEMENTED; DOCUMENTED STORAGE
 
-- no-signalling tail — P2
-- analog tone tail — P2
-- digital tone tail — P2
-- tail duration — P2
-- Tone Burst frequency: 1000 / 1450 / 1750 / 2100 Hz — P2
-- Tone Burst duration — P2
-- Tone Burst sidetone — P2
-
----
-
-## 7.10 Scan Behavior — P1 / IMPLEMENTED; DOCUMENTED STORAGE
-
-- scan mode — P1
-- MR scan type: Normal / Priority — P1
-- CO Resume Delay: 0.0–10.0 seconds in 0.1-second increments — P1
-- TO Hold Time: 1.0–10.0 seconds in 0.1-second increments — P1
-- Scan Dwell Time: 10 / 20 / 30 / 40 / 50 ms — P1
+- no-signalling tail - P2
+- analog tone tail - P2
+- digital tone tail - P2
+- tail duration - P2
+- Tone Burst frequency: 1000 / 1450 / 1750 / 2100 Hz - P2
+- Tone Burst duration - P2
+- Tone Burst sidetone - P2
 
 ---
 
-## 7.11 Spectrum — P1 / IMPLEMENTED; CURRENT-CPS-VERIFIED STORAGE
+## 7.10 Scan Behavior - P1 / IMPLEMENTED; DOCUMENTED STORAGE
+
+- scan mode - P1
+- MR scan type: Normal / Priority - P1
+- CO Resume Delay: 0.0–10.0 seconds in 0.1-second increments - P1
+- TO Hold Time: 1.0–10.0 seconds in 0.1-second increments - P1
+- Scan Dwell Time: 10 / 20 / 30 / 40 / 50 ms - P1
+
+---
+
+## 7.11 Spectrum - P1 / IMPLEMENTED; CURRENT-CPS-VERIFIED STORAGE
 
 The `/spectrum` workspace edits the Radio's Spectrum configuration from the
 Radio Status block. Spectrum Mode supports Center, Edge, Zone, and Scan List.
@@ -668,40 +668,40 @@ reconciliation; the Custom editor state does not.
 
 ---
 
-## 7.12 Power Saving & Weather Channel Behavior — P2/P3 / IMPLEMENTED; DOCUMENTED STORAGE
+## 7.12 Power Saving & Weather Channel Behavior - P2/P3 / IMPLEMENTED; DOCUMENTED STORAGE
 
-- power save enable — P2 / IMPLEMENTED PRODUCT
-- power-save delay — P2 / IMPLEMENTED PRODUCT
-- Weather Channel squelch control — P3 / IMPLEMENTED PRODUCT
-- Weather Channel receive mode — P3 / IMPLEMENTED PRODUCT
-- Weather Channel scan-selection mask — P3 / IMPLEMENTED PRODUCT
-- Weather Channel decode reset time — P3 / IMPLEMENTED PRODUCT
+- power save enable - P2 / IMPLEMENTED PRODUCT
+- power-save delay - P2 / IMPLEMENTED PRODUCT
+- Weather Channel squelch control - P3 / IMPLEMENTED PRODUCT
+- Weather Channel receive mode - P3 / IMPLEMENTED PRODUCT
+- Weather Channel scan-selection mask - P3 / IMPLEMENTED PRODUCT
+- Weather Channel decode reset time - P3 / IMPLEMENTED PRODUCT
 
 Weather Channel controls are presented only in Radio Settings → Function
 Settings, matching the current TYT CPS. No standalone WX page is planned.
 
 ---
 
-## 7.13 Display Settings — P1/P2/P3 / IMPLEMENTED; DOCUMENTED STORAGE
+## 7.13 Display Settings - P1/P2/P3 / IMPLEMENTED; DOCUMENTED STORAGE
 
-- backlight level — P2
-- auto dim — P2
-- auto-dim delay — P2
-- exit dimming on RX — P2
-- exit dimming on TX — P2
-- startup image enable — P3
-- firmware version at boot — P2
-- startup message enable/text — P2
-- battery voltage at startup — P2
-- channel display fields (frequency/name/zone) — P2
-- coordinate/speed/altitude/distance/rain/wind/temperature units — P2
-- system language — P2
-- theme — P2
-- menu auto-exit — P2
-- battery display style — P2
-- RX indicator — P2
-- screen-off indicator — P2
-- signal strength display: Off / dBm / RSSI+dBm — P1
+- backlight level - P2
+- auto dim - P2
+- auto-dim delay - P2
+- exit dimming on RX - P2
+- exit dimming on TX - P2
+- startup image enable - P3
+- firmware version at boot - P2
+- startup message enable/text - P2
+- battery voltage at startup - P2
+- channel display fields (frequency/name/zone) - P2
+- coordinate/speed/altitude/distance/rain/wind/temperature units - P2
+- system language - P2
+- theme - P2
+- menu auto-exit - P2
+- battery display style - P2
+- RX indicator - P2
+- screen-off indicator - P2
+- signal strength display: Off / dBm / RSSI+dBm - P1
 
 Documented languages: Simplified Chinese, Traditional Chinese, English, Turkish.
 
@@ -711,22 +711,22 @@ reconciliation.
 
 ---
 
-## 7.14 Audio Settings — P2 / IMPLEMENTED; DOCUMENTED STORAGE
+## 7.14 Audio Settings - P2 / IMPLEMENTED; DOCUMENTED STORAGE
 
-- key beep — P2
-- low-battery beep — P2
-- power-on beep — P2
-- TX timeout beep — P2
-- call-start beep — P2
-- call-end beep — P2
-- scan-start beep — P2
-- scan-pause beep — P2
-- scan-stop beep — P2
-- microphone gain — P2
-- AM / AM-N analog RX gain: 0–15 — P2
-- AM / AM-N digital RX gain: −26.0–+5.5 dB in 0.5 dB increments — P2
-- AI voice control enable/sensitivity/delay — P2
-- AI noise reduction enable — P2
+- key beep - P2
+- low-battery beep - P2
+- power-on beep - P2
+- TX timeout beep - P2
+- call-start beep - P2
+- call-end beep - P2
+- scan-start beep - P2
+- scan-pause beep - P2
+- scan-stop beep - P2
+- microphone gain - P2
+- AM / AM-N analog RX gain: 0–15 - P2
+- AM / AM-N digital RX gain: −26.0–+5.5 dB in 0.5 dB increments - P2
+- AI voice control enable/sensitivity/delay - P2
+- AI noise reduction enable - P2
 
 The CPS only configures these persisted options; DSP behavior is firmware-internal.
 
@@ -735,7 +735,7 @@ with reserved-bit preservation and per-field Change Set reconciliation.
 
 ---
 
-## 7.15 Programmable Keys — P1 / IMPLEMENTED; DOCUMENTED STORAGE
+## 7.15 Programmable Keys - P1 / IMPLEMENTED; DOCUMENTED STORAGE
 
 Configurable controls include Side Key 1/2, top key, 0–9 long press, Menu long press and Back long press.
 
@@ -777,17 +777,17 @@ preserved until the user intentionally selects a documented action.
 
 ---
 
-## 7.16 Keyboard Lock — P2 / IMPLEMENTED; DOCUMENTED STORAGE
+## 7.16 Keyboard Lock - P2 / IMPLEMENTED; DOCUMENTED STORAGE
 
-- auto lock — P2
-- lock type — P2
-- lock delay — P2
+- auto lock - P2
+- lock type - P2
+- lock delay - P2
 
 Lock combinations include keys, encoder, PTT and combinations thereof.
 
 ---
 
-## 7.17 Menu Visibility — P2 / IMPLEMENTED; CURRENT-CPS-VERIFIED STORAGE
+## 7.17 Menu Visibility - P2 / IMPLEMENTED; CURRENT-CPS-VERIFIED STORAGE
 
 Current Menu display mask: `0x0001EA00`, 256 bytes. Controlled exports from
 the 2026-07-23 TYT CPS leave the older `0x0001BA00` block unused.
@@ -805,7 +805,7 @@ each changed item against the Baseline Backup.
 
 ---
 
-## 7.18 FM Broadcast Radio — P3 / IMPLEMENTED; DOCUMENTED STORAGE
+## 7.18 FM Broadcast Radio - P3 / IMPLEMENTED; DOCUMENTED STORAGE
 
 The localized `/fm-radio` workspace exposes all 32 fixed FM preset slots in a
 compact searchable table aligned with the Memory Channel editor. Each row shows
@@ -819,11 +819,11 @@ VFO frequency. Preset and VFO frequencies are validated from 64.0 through
 update only the documented validity bit or field bytes, and reconcile against
 the immutable Baseline Backup.
 
-- 32 FM presets — P3 / IMPLEMENTED
-- preset-valid bitmap — P3 / IMPLEMENTED
-- FM radio enable — P3 / IMPLEMENTED
-- VFO/Memory mode — P3 / IMPLEMENTED
-- FM VFO frequency — P3 / IMPLEMENTED
+- 32 FM presets - P3 / IMPLEMENTED
+- preset-valid bitmap - P3 / IMPLEMENTED
+- FM radio enable - P3 / IMPLEMENTED
+- VFO/Memory mode - P3 / IMPLEMENTED
+- FM VFO frequency - P3 / IMPLEMENTED
 
 Documented FM VFO range: `64.0 → 108.0 MHz`.
 
@@ -837,7 +837,7 @@ The Data Storage Reference's overall map describes `0x00015404–0x00015406` as 
 
 APRS block: `0x00015500`, 1024 bytes.
 
-### APRS editor — P1/P2 / IMPLEMENTED; CONTROLLED-CODEPLUG-VERIFIED STORAGE
+### APRS editor - P1/P2 / IMPLEMENTED; CONTROLLED-CODEPLUG-VERIFIED STORAGE
 
 The localized `/aprs` page exposes Station Identity, Beacon Transmission,
 Fixed Beacon Position, Manual Beacon, Digipeater Path, Comment, RX Decode,
@@ -857,38 +857,38 @@ CPS incorrectly displays it as a duplicate 55-second entry.
 
 Features:
 
-- callsign — P1
-- SSID 0–15 — P1
-- APRS symbol/table — P1
-- decode CRC — P2
-- decode filters: MIC-E, Position, Weather, Object, Item, Status, Other — P2
-- popup behavior — P2
-- ring behavior — P2
-- destination callsign/SSID — P1
-- beacon type: Fixed / GPS — P1
-- auto beacon interval — P1
-- TX pre-carrier — P2
-- TX end delay — P2
-- TX sidetone — P2
-- RF beacon transmission — P1
-- APRS TX channel selection — P1
-- manual beacon mode — P2
-- manual beacon side/band — P2
-- fixed latitude/longitude/altitude — P2
-- digipeater path, up to 8 entries — P1
-- APRS comment/description — P2
-- 8 APRS TX channel records — P1
-- TNC output settings — P2
+- callsign - P1
+- SSID 0–15 - P1
+- APRS symbol/table - P1
+- decode CRC - P2
+- decode filters: MIC-E, Position, Weather, Object, Item, Status, Other - P2
+- popup behavior - P2
+- ring behavior - P2
+- destination callsign/SSID - P1
+- beacon type: Fixed / GPS - P1
+- auto beacon interval - P1
+- TX pre-carrier - P2
+- TX end delay - P2
+- TX sidetone - P2
+- RF beacon transmission - P1
+- APRS TX channel selection - P1
+- manual beacon mode - P2
+- manual beacon side/band - P2
+- fixed latitude/longitude/altitude - P2
+- digipeater path, up to 8 entries - P1
+- APRS comment/description - P2
+- 8 APRS TX channel records - P1
+- TNC output settings - P2
 
 TNC output modes are documented for USB virtual serial, classic Bluetooth SPP and BLE, with KISS/GPWPL/UI-text formats. This does **not** by itself prove browser CPS transport over Bluetooth.
 
 ---
 
-## 7.20 GPS — P2 / IMPLEMENTED; DOCUMENTED STORAGE
+## 7.20 GPS - P2 / IMPLEMENTED; DOCUMENTED STORAGE
 
-- GPS enable — P2
-- timezone — P2
-- GNSS mode — P2
+- GPS enable - P2
+- timezone - P2
+- GNSS mode - P2
 
 Supported GNSS combinations:
 
@@ -909,7 +909,7 @@ Backup.
 
 ## 7.21 Bluetooth Settings
 
-### Bluetooth editor — P2 / IMPLEMENTED; DOCUMENTED STORAGE
+### Bluetooth editor - P2 / IMPLEMENTED; DOCUMENTED STORAGE
 
 The localized `/bluetooth` page exposes Bluetooth enable, host/peripheral role,
 BT hold time from 1 to 300 seconds or Infinite, built-in speaker and microphone
@@ -939,21 +939,21 @@ ID records. Edits use read-modify-write and preserve reserved bytes.
 
 Features:
 
-- local ID — P2
-- separator/group-call code — P2
-- dialer type — P2
-- encoder sidetone/timing — P2
-- first-digit timing — P2
-- pre-carrier / after-send delay — P2
-- D-code pause — P2
-- PTT ID pause — P2
-- decoder response — P2
-- auto reset — P2
-- ANI display — P2
-- remote inhibit/kill/stun/wake codes — P3
-- 16 DTMF encode memories — P2
-- 8 PTT ID definitions — P2
-- local browser Tone Preview for every non-empty encode memory — P2
+- local ID - P2
+- separator/group-call code - P2
+- dialer type - P2
+- encoder sidetone/timing - P2
+- first-digit timing - P2
+- pre-carrier / after-send delay - P2
+- D-code pause - P2
+- PTT ID pause - P2
+- decoder response - P2
+- auto reset - P2
+- ANI display - P2
+- remote inhibit/kill/stun/wake codes - P3
+- 16 DTMF encode memories - P2
+- 8 PTT ID definitions - P2
+- local browser Tone Preview for every non-empty encode memory - P2
 
 ---
 
@@ -966,12 +966,12 @@ tables and all global settings are editable. Frequencies are encoded as
 little-endian unsigned tenths of a hertz; blank tone cells retain the Radio's
 empty-record representation.
 
-- encoder/decoder timing — P3
-- 16 encode records — P3
-- 16 decode records — P3
-- Tone1/Tone2 values — P3
-- response and names — P3
-- local browser Tone Preview for single-long-tone and two-tone encode records — P3
+- encoder/decoder timing - P3
+- 16 encode records - P3
+- 16 decode records - P3
+- Tone1/Tone2 values - P3
+- response and names - P3
+- local browser Tone Preview for single-long-tone and two-tone encode records - P3
 
 ---
 
@@ -983,17 +983,17 @@ Implementation status (2026-08-27): complete in the browser CPS. The editor
 covers all global encode/decode settings, 16 encode records, eight PTT ID
 records and 16 information-code records.
 
-- local ID — P3
-- encoder timing/settings — P3
-- pause code/timing — P3
-- PTT ID pause — P3
-- decode standard — P3
-- decode digit mask — P3
-- decode response/reset/ANI — P3
-- 16 encode records — P3
-- 8 PTT ID records — P3
-- 16 information-code records — P3
-- local browser Tone Preview for every supported encode record — P3
+- local ID - P3
+- encoder timing/settings - P3
+- pause code/timing - P3
+- PTT ID pause - P3
+- decode standard - P3
+- decode digit mask - P3
+- decode response/reset/ANI - P3
+- 16 encode records - P3
+- 8 PTT ID records - P3
+- 16 information-code records - P3
+- local browser Tone Preview for every supported encode record - P3
 
 Documented standards include ZVEI1/2/3, PZVEI, DZVEI, PDZVEI, CCIR1/2, PCCIR, EEA, EURO SIGNAL, NATEL, MODAT, CCITT and EIA.
 
@@ -1031,7 +1031,7 @@ not proof of over-the-air interoperability.
 
 # 8. Product Features Beyond the Vendor CPS
 
-## 8.1 Change Set review — IMPLEMENTED; REQUIRED FOR RADIO WRITE
+## 8.1 Change Set review - IMPLEMENTED; REQUIRED FOR RADIO WRITE
 
 Before writing, show user-facing changes such as:
 
@@ -1045,14 +1045,14 @@ CH 043
   RPT1 → ANTALYA
 ```
 
-## 8.2 Baseline recovery reference — REQUIRED FOR RADIO WRITE
+## 8.2 Baseline recovery reference - REQUIRED FOR RADIO WRITE
 
 Radio Write uses the immutable Baseline Backup from the initial Radio Read as
 its recovery reference. Preparation does not perform another Radio Read. The
 operator explicitly selects the Source Radio port, and the actual write session
 must pass the E1 identity, firmware, and write-protection checks before E3.
 
-## 8.3 Complete writes — IMPLEMENTED
+## 8.3 Complete writes - IMPLEMENTED
 
 Documented write flow:
 
@@ -1078,7 +1078,7 @@ Implemented internal safety model:
 
 Changed-block or other partial-write strategies are FUTURE / RESEARCH. The supplied protocol describes sending blocks until all data in the declared range has been sent; it does not establish that omitted blocks are safe.
 
-## 8.4 Interrupted-write handling — IMPLEMENTED
+## 8.4 Interrupted-write handling - IMPLEMENTED
 
 Do not blindly resume an interrupted transfer from the last ACK. Retain
 `Write Outcome Unknown` when a transfer stops after its first E4 attempt and
@@ -1091,7 +1091,7 @@ clears the record after a completed write or when the operator closes the
 status. The IndexedDB adapter and user-facing review, confirmation, progress,
 completion, and operation-report UX are implemented.
 
-## 8.5 Bulk editing — HIGH VALUE / PLANNED
+## 8.5 Bulk editing - HIGH VALUE / PLANNED
 
 Single-Channel add, duplicate, delete and drag-to-reorder operations are
 implemented. Selection-wide bulk field editing remains planned.
@@ -1104,13 +1104,13 @@ implemented. Selection-wide bulk field editing remains planned.
 - duplicate channels
 - patterned rename
 
-## 8.6 Search/filtering — HIGH VALUE / PARTIALLY IMPLEMENTED
+## 8.6 Search/filtering - HIGH VALUE / PARTIALLY IMPLEMENTED
 
 The Channel table supports Used/All filtering and search by name, number or
 frequency. VFO Scan Edges and FM Broadcast presets also have focused search.
 Search by tone, Zone, Scan List and mode remains planned.
 
-## 8.7 Validation/warnings — HIGH VALUE
+## 8.7 Validation/warnings - HIGH VALUE
 
 Storage bounds, encoded options, UTF-8 byte limits, frequencies, collection
 capacity and representation consistency are validated by the implemented
@@ -1123,23 +1123,23 @@ Examples:
 - out-of-range TX warning
 - inconsistent zone/scan-list representation warning
 
-## 8.8 Saved Working Codeplugs — P1
+## 8.8 Saved Working Codeplugs - P1
 
 Allow Working Codeplugs to be named and retained locally without changing their Baseline Backup or Source Radio binding.
 
-## 8.9 Undo/redo — P1
+## 8.9 Undo/redo - P1
 
 Dedicated step-by-step undo/redo remains planned. Returning an edited field to
 its Baseline Backup value removes its Change Set entry, and Channels currently
 provides a reset-all action for the Working Codeplug.
 
-## 8.10 Source Radio write-session comparison — IMPLEMENTED
+## 8.10 Source Radio write-session comparison - IMPLEMENTED
 
 The operator selects the serial port before preparation. The actual write
 session compares the E1 identity with the Source Radio and validates firmware
 and write protection before E3. A mismatch stops before the first write block.
 
-## 8.11 Additional import/export formats — P1/P2
+## 8.11 Additional import/export formats - P1/P2
 
 Potential formats and binding rules:
 
@@ -1150,7 +1150,7 @@ Potential formats and binding rules:
 
 JSON must not become the canonical Codeplug representation. JSON metadata may be used inside a CPS Export, but the exact Codeplug bytes remain authoritative.
 
-## 8.12 PWA/offline use — P1
+## 8.12 PWA/offline use - P1
 
 Core radio operations should remain local-first and backend-independent.
 
@@ -1184,7 +1184,7 @@ Updates (beta)
 
 # 10. Recommended Implementation Roadmap
 
-## Epic 1 — UVL-15W Radio connection & Transport seam
+## Epic 1 - UVL-15W Radio connection & Transport seam
 
 - [x] Transport interface owned by the UVL-15W Radio module
 - [x] Web Serial adapter
@@ -1193,9 +1193,9 @@ Updates (beta)
 - [x] stream parser
 - [x] operation-scoped open/close lifecycle
 - [x] secure-context and browser capability handling
-- [ ] protocol diagnostic log — deferred
+- [ ] protocol diagnostic log - deferred
 
-## Epic 2 — Read protocol
+## Epic 2 - Read protocol
 
 - [x] E0/E1
 - [x] E2
@@ -1204,7 +1204,7 @@ Updates (beta)
 - [x] E5 Read Complete
 - [x] safe error handling/retry
 
-## Epic 3 — Codeplug core
+## Epic 3 - Codeplug core
 
 - [x] Codeplug module with private exact-byte preservation
 - [x] private memory-map constants and binary helpers
@@ -1213,7 +1213,7 @@ Updates (beta)
 - [x] scan bitmap
 - [x] preserve unknown and reserved bytes
 
-## Epic 4 — Channel inspection and ordering UI
+## Epic 4 - Channel inspection and ordering UI
 
 - [x] virtualized 1000-row Memory table
 - [x] used/all filter and name, number, or frequency search
@@ -1225,7 +1225,7 @@ Updates (beta)
 - [x] tracked drag-to-reorder with record and membership-reference remapping
 - [x] add, duplicate and delete-with-compaction Memory Channel row actions
 
-## Epic 5 — Offline editing model
+## Epic 5 - Offline editing model
 
 - [x] Memory Channel scalar-field editing directly in table cells
 - [x] 24-byte UTF-8 name and storage-level frequency/value validation
@@ -1241,7 +1241,7 @@ Radio Write is implemented and released for the firmware-`3.07.23`, USB CDC,
 Source-Radio-bound, unprotected-Radio production scope. It always writes the
 complete materialized Codeplug and ends at the validated reboot response.
 
-## Epic 6 — Zones & scan lists
+## Epic 6 - Zones & scan lists
 
 - [x] shared immutable Zone and Scan List domain interface
 - [x] rename and ordered-member replacement operations
@@ -1255,7 +1255,7 @@ complete materialized Codeplug and ends at the validated reboot response.
 - [x] A/B active Scan List selection
 - [x] Scan List Off/Skip/Priority display and Drawer editing
 
-## Epic 7 — Safe writer
+## Epic 7 - Safe writer
 
 - [x] retain the immutable Baseline Backup as the recovery reference
 - [x] explicit operator serial-port selection before preparation
@@ -1270,7 +1270,7 @@ complete materialized Codeplug and ends at the validated reboot response.
 
 Partial or changed-block writes are excluded until hardware-verified.
 
-## Epic 8 — General radio settings
+## Epic 8 - General radio settings
 
 - [x] Function Settings page and typed codec
 - [x] Display Settings page and typed codec
@@ -1278,25 +1278,25 @@ Partial or changed-block writes are excluded until hardware-verified.
 - [x] power saving, Weather Channel, Tail, Tone Burst and Scan Behavior settings
 - [x] Spectrum page, codec, validation, and semantic Change Set tracking
 
-## Epic 9 — Programmable keys / menu visibility
+## Epic 9 - Programmable keys / menu visibility
 
 - [x] programmable-key and Keyboard Lock editor
 - [x] separate short-press and long-press action maps
 - [x] hierarchical Menu Visibility editor with cascade and search
 - [x] semantic Working Codeplug Change Set tracking
 
-## Epic 10 — APRS
+## Epic 10 - APRS
 
 - [x] APRS page and typed codec
 - [x] APRS symbol, beacon, path, fixed-position, receive and TNC settings
 - [x] semantic Working Codeplug Change Set tracking
 
-## Epic 11 — GPS & Bluetooth settings
+## Epic 11 - GPS & Bluetooth settings
 
 - [x] GPS page, typed codec and semantic Change Set tracking
 - [x] Bluetooth page, typed codec and semantic Change Set tracking
 
-## Epic 12 — DTMF / 2-Tone / 5-Tone
+## Epic 12 - DTMF / 2-Tone / 5-Tone
 
 - [x] Typed codecs and persisted editors for DTMF, 2-Tone and 5-Tone
 - [x] Semantic Working Codeplug change tracking
@@ -1304,13 +1304,13 @@ Partial or changed-block writes are excluded until hardware-verified.
 - [x] Documented storage regions, offsets, encodings and indexes verified
 - [x] Read-modify-write and unrelated-byte preservation verified
 
-## Epic 13 — FM radio / advanced settings
+## Epic 13 - FM radio / advanced settings
 
 - [x] FM Broadcast page, 32 presets, documented settings and Change Set tracking
 - [x] Weather Channel settings remain in Function Settings; fixed WX records are intentionally internal
 - [ ] FM noise-suppression/auto-scan encoding research
 
-## Epic 14 — PWA / saved Working Codeplugs / import-export
+## Epic 14 - PWA / saved Working Codeplugs / import-export
 
 - [x] exact immutable Baseline Backup Raw Backup Export
 - [ ] Raw Backup import as an Unbound Codeplug
@@ -1367,7 +1367,7 @@ firmware update commands
 
 # 13. Feature Status Matrix
 
-## P0 — Core CPS
+## P0 - Core CPS
 
 - [x] Web Serial PoC
 - [x] E0/E1 physical test
@@ -1388,7 +1388,7 @@ firmware update commands
 - [x] typed Zone names and membership codec
 - [x] typed Scan List names and membership codec
 
-## P1 — Main Product
+## P1 - Main Product
 
 - [x] channel editing
 - [ ] bulk edit
@@ -1408,7 +1408,7 @@ firmware update commands
 - [x] imported CPS File binding requires a fresh same-Source-Radio read before restore
 - [ ] Raw Backup import and Unbound Codeplug enforcement
 
-## P2 — Extended Codeplug Settings
+## P2 - Extended Codeplug Settings
 
 - [x] display settings
 - [x] audio settings
@@ -1421,7 +1421,7 @@ firmware update commands
 - [x] Tone Burst
 - [x] APRS TNC settings
 
-## P3 — Advanced / Specialist
+## P3 - Advanced / Specialist
 
 - [x] DTMF
 - [x] remote signalling codes

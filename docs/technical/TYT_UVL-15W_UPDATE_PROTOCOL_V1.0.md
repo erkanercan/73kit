@@ -270,7 +270,7 @@ in 24-byte strides. Identifying it more narrowly as a Qt/C++ value is an
 inference; the overlap, stride, field reads, and formatting behavior are pinned
 static facts. The two words are incidental object representation, not a value
 derived from the DAT, its address range, the Radio handshake, or time. The
-captured variation—including `C42FC32FC62FC52F`—and successful `WRITE START OK`
+captured variation-including `C42FC32FC62FC52F`-and successful `WRITE START OK`
 responses are consistent with that binary behavior.
 
 Do not reproduce Qt object-layout leakage in the browser. Use the exact

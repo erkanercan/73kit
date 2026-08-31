@@ -26,7 +26,7 @@ The first supported Radio Write scope is therefore:
 - a Working Codeplug created from that Source Radio;
 - a complete full-range write ending with the validated E5 `Reboot` response.
 
-## 1. Freeze the safety contract — implemented
+## 1. Freeze the safety contract - implemented
 
 The CPS Workspace seam now defines:
 
@@ -48,7 +48,7 @@ The CPS Workspace seam now defines:
 No E3, E4 write, E6 write acknowledgement, or E5 `Write Complete` command is
 implemented or reachable in this step.
 
-## 2. Materialize the firmware-specific write image — implemented
+## 2. Materialize the firmware-specific write image - implemented
 
 - The Codeplug interface materializes only the `uvl15w-3.07.23` profile.
 - It copies the complete VFO A/B records to Temporary Channels A/B.
@@ -68,7 +68,7 @@ implemented or reachable in this step.
 Exit gate passed: independent documented literals prove the exact output,
 unrelated-byte preservation, immutability, SHA-256, and derived-change markers.
 
-## 3. Implement the protocol writer using the scripted Transport — implemented
+## 3. Implement the protocol writer using the scripted Transport - implemented
 
 - The Radio interface accepts only a complete materialized
   `uvl15w-3.07.23` write image.
@@ -93,7 +93,7 @@ disconnect, corrupted frames, write protection, finalization failure, and the
 destructive boundary. The validated E5 `Reboot` response is both protocol and
 product-level Radio Write completion; no later readback stage exists.
 
-## 4. Implement CPS Workspace orchestration and durable interruption handling — implemented
+## 4. Implement CPS Workspace orchestration and durable interruption handling - implemented
 
 - `CpsWorkspace.prepareRadioWrite` rejects an empty Change Set, an unrelated
   Working Codeplug, or an ineligible Source Radio before E3.
@@ -122,7 +122,7 @@ Exit gate passed: scripted end-to-end tests cover protocol-complete success
 without post-write traffic, corrupt durable data, reloads in persisted phases,
 wrong-Radio selection before E3, and interrupted-transfer handling.
 
-## 5. Add desktop review, confirmation, progress, and outcome UX — implemented
+## 5. Add desktop review, confirmation, progress, and outcome UX - implemented
 
 - The Radio page renders semantic before/after Change Set values, including
   write-image normalization disclosures.
@@ -147,7 +147,7 @@ production-build validation pass. Production-mode browser validation confirms
 that Radio Write is available only after a complete Radio Read creates a bound
 Working Codeplug.
 
-## 6. Run a controlled physical canary — complete
+## 6. Run a controlled physical canary - complete
 
 The canary harness now provides:
 

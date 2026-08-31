@@ -455,11 +455,11 @@ function formatReviewField(field: string, t: Translator): string {
 }
 
 function formatReviewValue(value: unknown, t: Translator): string {
-  if (value === null || value === undefined) return "—"
+  if (value === null || value === undefined) return "-"
   if (Array.isArray(value))
     return value.length > 0
       ? value.map((entry) => formatReviewValue(entry, t)).join(", ")
-      : "—"
+      : "-"
   if (typeof value === "object") return JSON.stringify(value)
   if (typeof value !== "string") return String(value)
 

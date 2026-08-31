@@ -71,7 +71,7 @@ function CollectionMemberRow({
       <TableCell className="font-mono">
         {formatFrequency(channel.transmitFrequencyHz)}
       </TableCell>
-      <TableCell className="max-w-48 truncate">{channel.name || "—"}</TableCell>
+      <TableCell className="max-w-48 truncate">{channel.name || "-"}</TableCell>
       <TableCell>{channelValue(channel.transmitPower, t)}</TableCell>
       <TableCell>{channelValue(channel.squelch, t)}</TableCell>
       {kind === "scan-list" && (

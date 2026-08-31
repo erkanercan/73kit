@@ -362,7 +362,7 @@ function BackupsWorkspace() {
                     <TableCell>
                       {entry.origin === "radio-write"
                         ? t("backupsChangeCount", { count: entry.changeCount })
-                        : "—"}
+                        : "-"}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">

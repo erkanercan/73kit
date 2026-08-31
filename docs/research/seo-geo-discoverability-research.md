@@ -212,7 +212,7 @@ precise sections and anchors.
   that is decided.
 - Give every public route a localized, route-specific title, description,
   canonical URL, Open Graph/Twitter metadata, and share image. Titles should
-  name the entity and task naturally, for example “TYT UVL-15W Browser CPS —
+  name the entity and task naturally, for example “TYT UVL-15W Browser CPS -
   Program and Back Up Your Radio” rather than repeating keyword variants.
 - Declare reciprocal `tr`, `en`, and where appropriate `x-default` alternates.
   Each localized page must link to itself and its corresponding translation.
@@ -341,7 +341,7 @@ their public-search indexes discover or rank third-party sites through
 
 1. do not create it before the canonical public documentation;
 2. if added, make it a short generated directory of canonical public pages,
-   product scope, and documentation links—not a second source of truth;
+   product scope, and documentation links-not a second source of truth;
 3. link only public, safe information; and
 4. measure bot requests and cited/referral outcomes before investing in
    Markdown mirrors.
@@ -420,7 +420,7 @@ and zero leakage of browser-local Radio data.
 
 ## Phased implementation order
 
-### Phase 0 — decisions and baseline
+### Phase 0 - decisions and baseline
 
 - Confirm canonical production domain and deployment host.
 - Confirm official/independent relationship wording, publisher identity,
@@ -428,7 +428,7 @@ and zero leakage of browser-local Radio data.
 - Decide GPTBot and ClaudeBot training policy separately from search visibility.
 - Capture current index/query baseline and decide the public/app URL split.
 
-### Phase 1 — public content foundation
+### Phase 1 - public content foundation
 
 - Create localized public landing, compatibility, features, programming guide,
   backup/restore safety, privacy/local operation, troubleshooting, and
@@ -438,7 +438,7 @@ and zero leakage of browser-local Radio data.
 - Add screenshots with meaningful alt text and captions. Show the real desktop
   product; do not create fictional features.
 
-### Phase 2 — technical discovery
+### Phase 2 - technical discovery
 
 - Add metadata base, unique localized metadata, canonical and reciprocal
   alternates, sitemap, robots, real 404/redirect behavior, and public/app index
@@ -448,14 +448,14 @@ and zero leakage of browser-local Radio data.
 - Verify CDN/WAF crawler access, submit the sitemap, and inspect representative
   URLs in both webmaster tools.
 
-### Phase 3 — distribution and freshness
+### Phase 3 - distribution and freshness
 
 - Publish genuine repository/release/community links.
 - Add IndexNow if public support/release content changes often enough to benefit.
 - Optionally generate a minimal `llms.txt`; compare crawler logs and citations
   before adding Markdown mirrors.
 
-### Phase 4 — iteration
+### Phase 4 - iteration
 
 - Review search and activation data monthly for the first three months.
 - Improve pages that earn impressions but fail to answer intent or produce a

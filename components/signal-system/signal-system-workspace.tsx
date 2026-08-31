@@ -1104,7 +1104,7 @@ function CellInput({
   return (
     <EditableTextCell
       value={value}
-      displayValue={value || "—"}
+      displayValue={value || "-"}
       ariaLabel={resolvedAriaLabel}
       invalidMessage={symbols ? t("signalInvalidCode") : t("signalInvalidText")}
       validate={(next) => next.length <= maxLength && pattern.test(next)}
@@ -1125,7 +1125,7 @@ function FrequencyInput({
   return (
     <EditableTextCell
       value={source}
-      displayValue={value === null ? "—" : `${value.toFixed(1)} Hz`}
+      displayValue={value === null ? "-" : `${value.toFixed(1)} Hz`}
       ariaLabel={t("signalFrequencyAria")}
       inputMode="decimal"
       invalidMessage={t("signalFrequencyInvalid")}

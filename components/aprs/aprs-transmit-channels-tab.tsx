@@ -298,7 +298,7 @@ function AprsSelectCell<Value extends string | number>({
 }
 
 function UnavailableValue() {
-  return <span className="px-2 text-muted-foreground">—</span>
+  return <span className="px-2 text-muted-foreground">-</span>
 }
 
 export { AprsTransmitChannelsTab }

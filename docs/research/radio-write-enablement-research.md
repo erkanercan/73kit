@@ -177,7 +177,7 @@ remain outside that one successful run:
   exact typed codecs, round-trip coverage, and unrelated-byte preservation
   ([feature roadmap](../CPS_FEATURE_REFERENCE.md#epic-12--dtmf--2-tone--5-tone)).
 
-## Historical pre-canary proposal — superseded
+## Historical pre-canary proposal - superseded
 
 The remainder of this document records the original conservative proposal. It
 is retained to explain earlier decisions, but it is not the current product
@@ -187,7 +187,7 @@ UI from the historical material below.
 
 ### Former blockers before any engineering-only physical write
 
-1. **Protocol writer — implemented in scripted tests.** E3, the complete
+1. **Protocol writer - implemented in scripted tests.** E3, the complete
    full-range E4 transfer, strict E6 validation, E5 completion, progress, and
    destructive-start tracking now live inside `modules/uvl15w-radio`. This is
    not physical write evidence or product-level success.
@@ -195,7 +195,7 @@ UI from the historical material below.
    now applies the VFO-to-Temp and fixed-WX invariants without exposing offsets,
    and freezes/hashes the 102,400-byte result. The writer and coordinator use
    this artifact rather than `WorkingCodeplug.codeplug.toBytes()`.
-3. **Failure boundaries — implemented at the protocol seam.** Failures before
+3. **Failure boundaries - implemented at the protocol seam.** Failures before
    the first E4 attempt are ordinary failures. From immediately before that
    attempt, protocol errors report `write-outcome-unknown` and acknowledged
    byte count. Timeout/disconnect resume is deliberately absent. The CPS
@@ -206,22 +206,22 @@ UI from the historical material below.
 
 ### Blockers before a user-facing beta
 
-1. **CPS Workspace orchestration — implemented internally.** It owns the
+1. **CPS Workspace orchestration - implemented internally.** It owns the
    immutable operation snapshot, Source Radio checks, preflight read, recovery
    backup, write, post-reboot read, exact comparison, Baseline Backup creation,
    and recovery. The React provider must later render and invoke this deep
    workflow rather than assemble protocol phases itself
    ([module ownership](../architecture/module-design.md#cps-workspace)).
-2. **Persist safety data before E3 — implemented internally.** The immutable
+2. **Persist safety data before E3 - implemented internally.** The immutable
    preflight backup, intended write-image hash/bytes, Source Radio fingerprint,
    Change Set snapshot, operation phase, and timestamps are stored in IndexedDB
    through the Radio Write store seam and retained until recovery or exact
    verification resolves the operation.
-3. **Source Radio identity — implemented.** The canonical stable fingerprint
+3. **Source Radio identity - implemented.** The canonical stable fingerprint
    and comparator use model + sub-model + CPU ID + serial number, with
    firmware/hardware/bootloader handled as compatibility gates rather than
    permanent identity because firmware/resources can change.
-4. **Preflight semantics — implemented internally.** The CPS re-reads the Radio
+4. **Preflight semantics - implemented internally.** The CPS re-reads the Radio
    immediately before writing and retains that read as the recovery backup. If its Source
    Radio differs, stop. If its bytes differ from the expected Baseline Backup,
    stop and begin a new working session; never silently rebase the user's
@@ -262,7 +262,7 @@ review, Source Radio comparison, and readback verification are blockers.
 
 ## Recommended development and verification phases
 
-### Phase 1 — Freeze the safety contract
+### Phase 1 - Freeze the safety contract
 
 - Define the stable Source Radio fingerprint and compatibility fields.
 - Define the immutable `PreparedRadioWrite`: Source Radio fingerprint,
@@ -279,7 +279,7 @@ Exit gate: domain tests prove that an empty Change Set, Unbound Codeplug,
 mismatched Source Radio, baseline drift, unsupported firmware, and
 write-protected Radio are rejected before E3.
 
-### Phase 2 — TDD the Radio writer without hardware — implemented
+### Phase 2 - TDD the Radio writer without hardware - implemented
 
 Use the existing scripted Transport and production frame codec. Cover:
 
@@ -299,7 +299,7 @@ Use the existing scripted Transport and production frame codec. Cover:
 Exit gate: unit/integration tests prove every command and failure boundary, and
 the production UI still has no reachable Radio Write action.
 
-### Phase 3 — Implement the CPS Workspace coordinator and persistence — implemented
+### Phase 3 - Implement the CPS Workspace coordinator and persistence - implemented
 
 - Materialize and hash the intended write image.
 - Persist the Baseline Backup, automatic preflight recovery backup, intended
@@ -316,7 +316,7 @@ Exit gate: scripted end-to-end tests cover success, baseline drift, wrong Radio
 at every reconnect, tab reload in every phase, mismatch after readback, and
 recovery-record clearance only after exact verification.
 
-### Phase 4 — Implement the browser/desktop UX
+### Phase 4 - Implement the browser/desktop UX
 
 - Add a desktop Change Set review and confirmation flow using existing shadcn
   patterns.
@@ -332,7 +332,7 @@ Exit gate: automated browser tests cover permission denial, port disappearance,
 reconnect fallback, reload recovery, and all visible success/unknown states.
 Per the repository instructions, final UI validation must use Chrome.
 
-### Phase 5 — Controlled physical canary
+### Phase 5 - Controlled physical canary
 
 Use one reversible, well-understood setting change on a dedicated Radio with
 firmware `3.07.23`, USB CDC, a charged battery, stable cable/power, a separately
@@ -355,7 +355,7 @@ cycle is repeatable. Then test disconnects at controlled points with the
 official recovery path ready. Each case must prove that the CPS persists and
 shows `Write Outcome Unknown`, never success or an ordinary harmless failure.
 
-### Phase 6 — Expand the supported matrix
+### Phase 6 - Expand the supported matrix
 
 - Validate each additional firmware/hardware profile separately.
 - Add optional functional over-the-air test fixtures when broader Radio

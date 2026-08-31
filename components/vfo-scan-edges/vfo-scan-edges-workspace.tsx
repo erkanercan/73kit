@@ -203,7 +203,7 @@ function VfoScanEdgesWorkspace() {
                           : EMPTY_SCAN_EDGE_DEFAULTS.lowFrequencyHz
                       }
                       displayValue={
-                        edge.valid ? formatMHz(edge.lowFrequencyHz) : "—"
+                        edge.valid ? formatMHz(edge.lowFrequencyHz) : "-"
                       }
                       otherValue={
                         edge.valid
@@ -227,7 +227,7 @@ function VfoScanEdgesWorkspace() {
                           : EMPTY_SCAN_EDGE_DEFAULTS.highFrequencyHz
                       }
                       displayValue={
-                        edge.valid ? formatMHz(edge.highFrequencyHz) : "—"
+                        edge.valid ? formatMHz(edge.highFrequencyHz) : "-"
                       }
                       otherValue={
                         edge.valid
@@ -246,7 +246,7 @@ function VfoScanEdgesWorkspace() {
                   <TableCell>
                     <EditableSelectCell
                       value={edge.valid ? String(edge.stepKHz) : ""}
-                      placeholder={edge.valid ? undefined : "—"}
+                      placeholder={edge.valid ? undefined : "-"}
                       ariaLabel={`${t("frequencyStep")} ${edge.number}`}
                       options={VFO_SCAN_EDGE_STEPS.filter(
                         (step) =>
@@ -267,7 +267,7 @@ function VfoScanEdgesWorkspace() {
                   <TableCell>
                     <EditableSelectCell
                       value={edge.valid ? edge.modulation : ""}
-                      placeholder={edge.valid ? undefined : "—"}
+                      placeholder={edge.valid ? undefined : "-"}
                       ariaLabel={`${t("channelMode")} ${edge.number}`}
                       options={VFO_SCAN_EDGE_MODES.filter(
                         (mode) =>

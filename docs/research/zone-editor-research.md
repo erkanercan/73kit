@@ -8,8 +8,8 @@ member editor. Do not reproduce the stock CPS tree as `Zone Set`, `Zone 0`,
 
 The page should separate two concepts:
 
-1. **Zone definition** — the zone's name and ordered channel members.
-2. **Radio A/B zone selection** — which zone is active/default on each of the
+1. **Zone definition** - the zone's name and ordered channel members.
+2. **Radio A/B zone selection** - which zone is active/default on each of the
    radio's two displayed receivers.
 
 Both concepts are implemented. Controlled stock-CPS backup comparisons proved
@@ -155,8 +155,8 @@ with the Channel editor.
 The implemented page adds compact global controls above the master-detail
 editor:
 
-- `Band A Zones` — All Zones or any combination of Zone 0-15
-- `Band B Zones` — All Zones or any combination of Zone 0-15
+- `Band A Zones` - All Zones or any combination of Zone 0-15
+- `Band B Zones` - All Zones or any combination of Zone 0-15
 
 These controls select existing Zones; they do not edit Zone contents. Their
 changes use the same baseline-aware pending-change behavior as other editors.

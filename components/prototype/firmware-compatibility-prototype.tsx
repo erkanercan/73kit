@@ -250,7 +250,7 @@ function VariantVersionMatrix({
                         {version || t("firmwareDemoBlankVersion")}
                       </TableCell>
                       <TableCell className="font-mono">
-                        {result.normalizedVersion ?? "—"}
+                        {result.normalizedVersion ?? "-"}
                       </TableCell>
                       <TableCell>
                         <CompatibilityStatus compatibility={result} />
@@ -366,7 +366,7 @@ function CompatibilityAlert({
 
   const values = {
     detectedVersion: compatibility.detectedVersion || t("notReported"),
-    validatedVersion: compatibility.validatedVersions.at(-1) ?? "—",
+    validatedVersion: compatibility.validatedVersions.at(-1) ?? "-",
   }
 
   return (

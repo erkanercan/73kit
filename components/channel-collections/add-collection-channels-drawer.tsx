@@ -122,7 +122,7 @@ function AddCollectionChannelsDrawer({
                     <TableCell className="font-mono font-medium">
                       {channel.number}
                     </TableCell>
-                    <TableCell>{channel.name || "—"}</TableCell>
+                    <TableCell>{channel.name || "-"}</TableCell>
                     <TableCell className="font-mono">
                       {formatFrequency(channel.receiveFrequencyHz)}
                     </TableCell>

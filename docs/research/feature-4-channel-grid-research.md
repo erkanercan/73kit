@@ -183,9 +183,9 @@ provide two presets over the same data:
 
 ### Basic columns (default)
 
-1. Channel number / valid state — pinned
-2. Name — pinned
-3. RX frequency — pinned
+1. Channel number / valid state - pinned
+2. Name - pinned
+3. RX frequency - pinned
 4. Duplex
 5. Offset or explicit TX frequency
 6. Mode
@@ -225,11 +225,11 @@ Do not combine different storage semantics into one 1,006-row table.
 
 Use a page-level segmented switch or tabs:
 
-- **Memory** — the main virtualized 1,000-slot table with validity, scan, Zone,
+- **Memory** - the main virtualized 1,000-slot table with validity, scan, Zone,
   and Scan List membership.
-- **VFO** — a compact two-row A/B table using the shared channel fields except
+- **VFO** - a compact two-row A/B table using the shared channel fields except
   channel name, Zone, and Scan List, matching the observed TYT CPS.
-- **Call** — a compact two-row Call 1/Call 2 table using the VFO fields plus
+- **Call** - a compact two-row Call 1/Call 2 table using the VFO fields plus
   channel name, matching the observed TYT CPS. Zone and Scan List do not apply.
 
 Temporary A/B are internal VFO snapshots. The storage reference requires every

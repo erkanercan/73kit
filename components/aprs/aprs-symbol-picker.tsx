@@ -257,7 +257,7 @@ function SymbolPlaceholder({ size }: { size: "small" | "large" }) {
           : "flex size-8 shrink-0 items-center justify-center rounded border text-muted-foreground"
       }
     >
-      —
+      -
     </span>
   )
 }

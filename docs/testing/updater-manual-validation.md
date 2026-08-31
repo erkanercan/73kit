@@ -58,7 +58,7 @@ numbers, or activation material.
 
 ## Success-path cases
 
-### UPD-PHY-01 — Language Resource Write
+### UPD-PHY-01 - Language Resource Write
 
 - Package: Language `1.01.05`
 - Expected blocks: `194`
@@ -67,7 +67,7 @@ numbers, or activation material.
 - 2026-08-28 observation: the first browser Language update completed
   successfully on the available Radio (user-reported).
 
-### UPD-PHY-02 — Image Resource Flash
+### UPD-PHY-02 - Image Resource Flash
 
 - Package: Image `1.01.00`
 - Expected blocks: `5,795`
@@ -92,7 +92,7 @@ numbers, or activation material.
   Radio (user-reported). This passes the single-Radio browser success path; the
   interruption matrix and a second compatible Radio remain separate gates.
 
-### UPD-PHY-03 — Combined Resource Flash
+### UPD-PHY-03 - Combined Resource Flash
 
 - Package: combined Language `1.01.05` and Image `1.01.00`
 - Expected blocks: `13,056`
@@ -104,7 +104,7 @@ numbers, or activation material.
   This passes the single-Radio browser success path; the interruption matrix
   and a second compatible Radio remain separate gates.
 
-### UPD-PHY-04 — Firmware Update
+### UPD-PHY-04 - Firmware Update
 
 - Prerequisite: Language `1.01.05` is installed
 - Package: Firmware `3.7.23`
