@@ -5,6 +5,11 @@ import * as React from "react"
 import { useCollectionActions } from "@/components/cps-workspace/use-collection-actions"
 import { useMemoryChannelActions } from "@/components/cps-workspace/use-memory-channel-actions"
 import { useSettingsActions } from "@/components/cps-workspace/use-settings-actions"
+import {
+  browserDiagnosticEnvironment,
+  safeRadioMetadata,
+} from "@/components/diagnostics/browser-diagnostics"
+import { recordDiagnosticIncident } from "@/components/diagnostics/diagnostic-recorder"
 import type {
   CpsWorkspaceContextValue,
   ImportedRestoreResult,
@@ -80,6 +85,7 @@ function useCpsWorkspaceController() {
   const mounted = React.useRef(true)
   const operationInProgress = React.useRef(false)
   const radioDebugEvents = React.useRef<RadioDebugEvent[]>([])
+  const radioDiagnosticOperation = React.useRef("radio-operation")
   const importedCpsFileRef = React.useRef<CpsFileManifest | null>(null)
   const [capability, setCapability] = React.useState<
     RadioCapability | "checking"
@@ -149,12 +155,48 @@ function useCpsWorkspaceController() {
     )
   }, [])
 
+  const recordRadioDiagnostic = React.useCallback(
+    (input: {
+      operation: string
+      outcome: "failed" | "outcome-unknown" | "success"
+      phase: string
+      errorCode: string | null
+      radio?: SourceRadio | null
+    }) => {
+      const metadata = safeRadioMetadata(input.radio ?? sourceRadio)
+      const report = createRadioDiagnosticReport({
+        generatedAt: new Date().toISOString(),
+        locale: document.documentElement.lang || "unknown",
+        pathname: window.location.pathname,
+        phase: input.phase,
+        errorCode: input.errorCode,
+        operation: input.operation,
+        radio: metadata,
+        environment: browserDiagnosticEnvironment(),
+        events: radioDebugEvents.current,
+      })
+      void recordDiagnosticIncident({
+        source: "radio",
+        operation: input.operation,
+        outcome: input.outcome,
+        phase: input.phase,
+        errorCode: input.errorCode,
+        eventCount: radioDebugEvents.current.length,
+        radio: metadata,
+        reportContent: report.content,
+      })
+    },
+    [sourceRadio]
+  )
+
   const readRadio = React.useCallback(async () => {
     if (capability !== "available" || busy || operationInProgress.current) {
       return
     }
 
     operationInProgress.current = true
+    radioDiagnosticOperation.current = "radio-read"
+    radioDebugEvents.current = []
     const previousRead = completedRead
     setError(null)
     setProgress(0)
@@ -202,17 +244,38 @@ function useCpsWorkspaceController() {
       setDocumentState({ completedRead: bindRadioRead(result), changes: [] })
       setProgress(100)
       setPhase("ready")
+      recordRadioDiagnostic({
+        operation: "radio-read",
+        outcome: "success",
+        phase: "ready",
+        errorCode: null,
+        radio: result.sourceRadio,
+      })
     } catch (cause) {
       if (!mounted.current) {
         return
       }
-      setError(workspaceError(cause))
+      const nextError = workspaceError(cause)
+      setError(nextError)
       setSourceRadio(previousRead?.sourceRadio ?? null)
       setPhase("idle")
+      recordRadioDiagnostic({
+        operation: "radio-read",
+        outcome: "failed",
+        phase: "idle",
+        errorCode: "key" in nextError ? nextError.key : "operation-error",
+        radio: previousRead?.sourceRadio,
+      })
     } finally {
       operationInProgress.current = false
     }
-  }, [busy, capability, completedRead, recordRadioDebugEvent])
+  }, [
+    busy,
+    capability,
+    completedRead,
+    recordRadioDebugEvent,
+    recordRadioDiagnostic,
+  ])
 
   const prepareRadioWrite = React.useCallback(async () => {
     if (
@@ -228,6 +291,8 @@ function useCpsWorkspaceController() {
       return
     }
     operationInProgress.current = true
+    radioDiagnosticOperation.current = "radio-write"
+    radioDebugEvents.current = []
     setError(null)
     try {
       await radioTransport.current.requestPort()
@@ -239,12 +304,19 @@ function useCpsWorkspaceController() {
       setRadioWriteSnapshot(workspace.current.getRadioWriteSnapshot())
       setRadioWriteReview(workspace.current.getRadioWriteReview())
     } catch (cause) {
-      setError(workspaceError(cause))
+      const nextError = workspaceError(cause)
+      setError(nextError)
       setRadioWriteSnapshot(workspace.current.getRadioWriteSnapshot())
+      recordRadioDiagnostic({
+        operation: "radio-write",
+        outcome: "failed",
+        phase: workspace.current.getRadioWriteSnapshot()?.phase ?? "prepare",
+        errorCode: "key" in nextError ? nextError.key : "operation-error",
+      })
     } finally {
       operationInProgress.current = false
     }
-  }, [busy, changes, completedRead])
+  }, [busy, changes, completedRead, recordRadioDiagnostic])
 
   const confirmRadioWrite = React.useCallback(async () => {
     if (
@@ -257,6 +329,7 @@ function useCpsWorkspaceController() {
       return
     }
     operationInProgress.current = true
+    radioDiagnosticOperation.current = "radio-write"
     setError(null)
     try {
       const result = await workspace.current.executePreparedRadioWrite({
@@ -265,13 +338,36 @@ function useCpsWorkspaceController() {
       setDocumentState({ completedRead: bindRadioRead(result), changes: [] })
       setSourceRadio(result.sourceRadio)
       setRadioWriteReview([])
+      recordRadioDiagnostic({
+        operation: "radio-write",
+        outcome: "success",
+        phase: "completed",
+        errorCode: null,
+        radio: result.sourceRadio,
+      })
     } catch (cause) {
-      setError(workspaceError(cause))
-      setRadioWriteSnapshot(workspace.current.getRadioWriteSnapshot())
+      const nextError = workspaceError(cause)
+      const snapshot = workspace.current.getRadioWriteSnapshot()
+      setError(nextError)
+      setRadioWriteSnapshot(snapshot)
+      recordRadioDiagnostic({
+        operation: "radio-write",
+        outcome:
+          snapshot?.phase === "write-outcome-unknown"
+            ? "outcome-unknown"
+            : "failed",
+        phase: snapshot?.phase ?? "write",
+        errorCode: "key" in nextError ? nextError.key : "operation-error",
+      })
     } finally {
       operationInProgress.current = false
     }
-  }, [busy, radioWriteSnapshot])
+  }, [
+    busy,
+    radioDiagnosticOperation,
+    radioWriteSnapshot,
+    recordRadioDiagnostic,
+  ])
 
   const discardRadioWriteStatus = React.useCallback(async () => {
     setRadioWriteSnapshot(null)
@@ -323,6 +419,8 @@ function useCpsWorkspaceController() {
     async (file: File) => {
       if (busy || operationInProgress.current) return
       operationInProgress.current = true
+      radioDiagnosticOperation.current = "restore-preparation"
+      radioDebugEvents.current = []
       setError(null)
       try {
         const parsed = await parseCpsFile(
@@ -440,6 +538,13 @@ function useCpsWorkspaceController() {
         })
         setProgress(100)
         setPhase("ready")
+        recordRadioDiagnostic({
+          operation: "restore-preparation",
+          outcome: "success",
+          phase: "ready",
+          errorCode: null,
+          radio,
+        })
       } catch (cause) {
         setError({
           message:
@@ -448,12 +553,18 @@ function useCpsWorkspaceController() {
               : "Restore preparation failed",
         })
         setPhase("ready")
+        recordRadioDiagnostic({
+          operation: "restore-preparation",
+          outcome: "failed",
+          phase: "ready",
+          errorCode: "operation-error",
+        })
         throw cause
       } finally {
         operationInProgress.current = false
       }
     },
-    [busy, capability, recordRadioDebugEvent]
+    [busy, capability, recordRadioDebugEvent, recordRadioDiagnostic]
   )
 
   const prepareImportedRestore = React.useCallback(async () => {
@@ -500,17 +611,13 @@ function useCpsWorkspaceController() {
       phase,
       errorCode:
         error && "key" in error ? error.key : error ? "operation-error" : null,
-      environment: {
-        secureContext: window.isSecureContext,
-        online: window.navigator.onLine,
-        webSerialSupported: "serial" in window.navigator,
-        serviceWorkerSupported: "serviceWorker" in window.navigator,
-        indexedDbSupported: "indexedDB" in window,
-      },
+      operation: radioDiagnosticOperation.current,
+      radio: safeRadioMetadata(sourceRadio ?? completedRead?.sourceRadio),
+      environment: browserDiagnosticEnvironment(),
       events: radioDebugEvents.current,
     })
     downloadText(report.fileName, report.content, report.mimeType)
-  }, [error, phase])
+  }, [completedRead, error, phase, sourceRadio])
 
   const {
     addMemoryChannel,

@@ -267,11 +267,15 @@ Codeplug.
 
 The CPS does not maintain a persistent Radio connection between operations. A later Radio Read starts a fresh operation and requests a port again. Radio Write ends after the validated E5 reboot response and does not reconnect or read back automatically.
 
-Operation-specific failure reports remain available from the Radio Write and
-updater workflows. They are bounded and omit raw frames, Radio identity, serial
-numbers, CPU IDs, full URLs and arbitrary error objects. A general Diagnostics
-workspace remains planned; its product questions and support workflow must be
-designed before implementation.
+The Diagnostics & Support workspace records bounded, allowlisted summaries of
+failed, uncertain and successful Radio and updater operations. It keeps at most
+10 incidents per source for 30 days plus the latest success per source in
+IndexedDB. Operators can inspect, copy, download or delete the exact JSON and
+open a prefilled support email; nothing is uploaded or sent automatically.
+Reports may include public Radio version fields but omit serial numbers, CPU
+IDs, raw frames, Codeplug and update-package bytes, arbitrary error text, full
+URLs and user-agent data. Diagnostics never connects to the Radio, retries an
+operation or changes recovery state.
 
 ### Read radio information - P0 / IMPLEMENTED PRODUCT; PROVEN PROTOCOL
 
@@ -1220,8 +1224,7 @@ FM Radio
 Signal System
 Backups
 Updates (beta)
-Backups
-Diagnostics (planned)
+Diagnostics
 About
 ```
 
@@ -1238,7 +1241,7 @@ About
 - [x] stream parser
 - [x] operation-scoped open/close lifecycle
 - [x] secure-context and browser capability handling
-- [ ] general Diagnostics workspace and support workflow
+- [x] local Diagnostics & Support workspace with sanitized history and email handoff
 
 ## Epic 2 - Read protocol
 

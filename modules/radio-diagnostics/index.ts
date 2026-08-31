@@ -8,6 +8,13 @@ interface RadioDiagnosticReportInput {
   readonly pathname: string
   readonly phase: string
   readonly errorCode: string | null
+  readonly operation: string
+  readonly radio?: {
+    readonly model: string
+    readonly firmwareVersion: string
+    readonly hardwareVersion: string
+    readonly resourceVersion: string
+  } | null
   readonly environment: {
     readonly secureContext: boolean
     readonly online: boolean
@@ -41,9 +48,11 @@ function createRadioDiagnosticReport(
         route: safePathname(input.pathname),
         environment: { ...input.environment },
         operation: {
+          name: input.operation,
           phase: input.phase,
           errorCode: input.errorCode,
         },
+        radio: input.radio ? { ...input.radio } : null,
         events: input.events
           .slice(-MAX_RADIO_DIAGNOSTIC_EVENTS)
           .map(sanitizeRadioDebugEvent),

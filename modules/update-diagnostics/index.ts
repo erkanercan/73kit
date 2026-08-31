@@ -2,7 +2,6 @@ import type { UpdatePackageSummary } from "../update-package/index.ts"
 import type { UpdateDebugEvent } from "../uvl15w-updater/index.ts"
 
 const MAX_UPDATE_DIAGNOSTIC_EVENTS = 1_000
-const MAX_UPDATE_DIAGNOSTIC_DETAIL_LENGTH = 240
 
 interface UpdateDiagnosticReportInput {
   readonly generatedAt: string
@@ -107,7 +106,6 @@ function sanitizeUpdateDebugEvent(event: UpdateDebugEvent) {
       ? {}
       : { commandLabel: event.commandLabel.slice(0, 80) }),
     ...(event.code === undefined ? {} : { code: event.code }),
-    detail: event.detail.slice(0, MAX_UPDATE_DIAGNOSTIC_DETAIL_LENGTH),
   })
 }
 
@@ -120,7 +118,6 @@ function safePathname(value: string) {
 }
 
 export {
-  MAX_UPDATE_DIAGNOSTIC_DETAIL_LENGTH,
   MAX_UPDATE_DIAGNOSTIC_EVENTS,
   createUpdateDiagnosticReport,
   sanitizeUpdateDebugEvent,

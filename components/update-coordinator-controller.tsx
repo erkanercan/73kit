@@ -4,6 +4,8 @@ import * as React from "react"
 
 import { findCatalogPackageBySha256 } from "@/modules/update-catalog/index"
 import { createUpdateDiagnosticReport } from "@/modules/update-diagnostics/index"
+import { browserDiagnosticEnvironment } from "@/components/diagnostics/browser-diagnostics"
+import { recordDiagnosticIncident } from "@/components/diagnostics/diagnostic-recorder"
 import {
   POC_VERIFIED_BAUD_RATE,
   WebSerialTransportError,
@@ -134,6 +136,7 @@ function useUpdateCoordinatorController() {
   const [recoveryRetryPrepared, setRecoveryRetryPrepared] =
     React.useState(false)
   const diagnosticEventsRef = React.useRef<UpdateDebugEvent[]>([])
+  const recordedDiagnosticKeyRef = React.useRef("")
 
   const recordDiagnosticEvent = React.useCallback((event: UpdateDebugEvent) => {
     diagnosticEventsRef.current = [...diagnosticEventsRef.current, event].slice(
@@ -168,6 +171,100 @@ function useUpdateCoordinatorController() {
   }, [recoveryRecord])
   const diagnosticReportAvailable =
     (phase === "failed" && errorCode !== null) || phase === "outcome-unknown"
+
+  const createCurrentDiagnosticReport = React.useCallback(
+    (reportPhase = phase, reportErrorCode: string | null = errorCode) =>
+      createUpdateDiagnosticReport({
+        generatedAt: new Date().toISOString(),
+        locale: document.documentElement.lang || "unknown",
+        pathname: window.location.pathname,
+        environment: browserDiagnosticEnvironment(),
+        phase: reportPhase,
+        errorCode:
+          reportErrorCode ?? recoveryRecord?.errorCode ?? "outcome-unknown",
+        selectedPackage,
+        progress: {
+          percent: progress,
+          completedBlocks,
+          totalBlocks,
+          lastAcknowledgedAddress,
+        },
+        recovery: recoveryRecord
+          ? {
+              phase: recoveryRecord.phase,
+              errorCode: recoveryRecord.errorCode ?? null,
+              lastAcknowledgedBlock: recoveryRecord.lastAcknowledgedBlock,
+              ...(recoveryRecord.lastAcknowledgedAddress === undefined
+                ? {}
+                : {
+                    lastAcknowledgedAddress:
+                      recoveryRecord.lastAcknowledgedAddress,
+                  }),
+            }
+          : null,
+        transfer: transferResult
+          ? {
+              kind: transferResult.kind,
+              requiresLanguageConfirmation:
+                transferResult.requiresLanguageConfirmation,
+            }
+          : null,
+        events: diagnosticEventsRef.current,
+      }),
+    [
+      completedBlocks,
+      errorCode,
+      lastAcknowledgedAddress,
+      phase,
+      progress,
+      recoveryRecord,
+      selectedPackage,
+      totalBlocks,
+      transferResult,
+    ]
+  )
+
+  React.useEffect(() => {
+    if (
+      phase !== "failed" &&
+      phase !== "outcome-unknown" &&
+      phase !== "complete"
+    ) {
+      return
+    }
+    const effectiveErrorCode = errorCode ?? recoveryRecord?.errorCode ?? null
+    const key = [
+      phase,
+      effectiveErrorCode,
+      selectedPackage?.sha256 ?? "none",
+    ].join(":")
+    if (recordedDiagnosticKeyRef.current === key) return
+    recordedDiagnosticKeyRef.current = key
+    const report = createCurrentDiagnosticReport(
+      phase,
+      effectiveErrorCode ?? (phase === "complete" ? "none" : "outcome-unknown")
+    )
+    void recordDiagnosticIncident({
+      source: "update",
+      operation: selectedPackage ? `${selectedPackage.kind}-update` : "update",
+      outcome:
+        phase === "complete"
+          ? "success"
+          : phase === "outcome-unknown"
+            ? "outcome-unknown"
+            : "failed",
+      phase,
+      errorCode: phase === "complete" ? null : effectiveErrorCode,
+      eventCount: diagnosticEventsRef.current.length,
+      reportContent: report.content,
+    })
+  }, [
+    createCurrentDiagnosticReport,
+    errorCode,
+    phase,
+    recoveryRecord?.errorCode,
+    selectedPackage,
+  ])
 
   React.useEffect(() => {
     const restore = window.setTimeout(() => {
@@ -577,48 +674,7 @@ function useUpdateCoordinatorController() {
 
   const downloadDiagnosticReport = React.useCallback(() => {
     if (!diagnosticReportAvailable) return
-    const report = createUpdateDiagnosticReport({
-      generatedAt: new Date().toISOString(),
-      locale: document.documentElement.lang || "unknown",
-      pathname: window.location.pathname,
-      environment: {
-        secureContext: window.isSecureContext,
-        online: window.navigator.onLine,
-        webSerialSupported: "serial" in window.navigator,
-        serviceWorkerSupported: "serviceWorker" in window.navigator,
-        indexedDbSupported: "indexedDB" in window,
-      },
-      phase,
-      errorCode: errorCode ?? recoveryRecord?.errorCode ?? "outcome-unknown",
-      selectedPackage,
-      progress: {
-        percent: progress,
-        completedBlocks,
-        totalBlocks,
-        lastAcknowledgedAddress,
-      },
-      recovery: recoveryRecord
-        ? {
-            phase: recoveryRecord.phase,
-            errorCode: recoveryRecord.errorCode ?? null,
-            lastAcknowledgedBlock: recoveryRecord.lastAcknowledgedBlock,
-            ...(recoveryRecord.lastAcknowledgedAddress === undefined
-              ? {}
-              : {
-                  lastAcknowledgedAddress:
-                    recoveryRecord.lastAcknowledgedAddress,
-                }),
-          }
-        : null,
-      transfer: transferResult
-        ? {
-            kind: transferResult.kind,
-            requiresLanguageConfirmation:
-              transferResult.requiresLanguageConfirmation,
-          }
-        : null,
-      events: diagnosticEventsRef.current,
-    })
+    const report = createCurrentDiagnosticReport()
     const url = URL.createObjectURL(
       new Blob([report.content], { type: report.mimeType })
     )
@@ -629,18 +685,7 @@ function useUpdateCoordinatorController() {
     link.click()
     link.remove()
     window.setTimeout(() => URL.revokeObjectURL(url), 0)
-  }, [
-    completedBlocks,
-    diagnosticReportAvailable,
-    errorCode,
-    lastAcknowledgedAddress,
-    phase,
-    progress,
-    recoveryRecord,
-    selectedPackage,
-    totalBlocks,
-    transferResult,
-  ])
+  }, [createCurrentDiagnosticReport, diagnosticReportAvailable])
 
   const value = React.useMemo<UpdateCoordinatorContextValue>(
     () => ({

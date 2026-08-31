@@ -10,6 +10,13 @@ test("creates a bounded allowlist-only Radio diagnostic report", () => {
     pathname: "https://example.test/en/diagnostics?secret=value#fragment",
     phase: "ready",
     errorCode: null,
+    operation: "radio-read",
+    radio: {
+      model: "UVL-15W",
+      firmwareVersion: "3.07.23",
+      hardwareVersion: "1.0",
+      resourceVersion: "2.0",
+    },
     environment: {
       secureContext: true,
       online: true,
@@ -33,6 +40,12 @@ test("creates a bounded allowlist-only Radio diagnostic report", () => {
   const serialized = JSON.stringify(content)
 
   assert.equal(content.route, "/en/diagnostics")
+  assert.deepEqual(content.radio, {
+    model: "UVL-15W",
+    firmwareVersion: "3.07.23",
+    hardwareVersion: "1.0",
+    resourceVersion: "2.0",
+  })
   assert.equal(serialized.includes("secret"), false)
   for (const forbidden of [
     "serialNumber",

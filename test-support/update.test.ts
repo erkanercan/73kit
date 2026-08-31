@@ -119,7 +119,7 @@ test("creates a portable error report without serializing the package object", (
     schemaVersion: number
     failure: { errorCode: string }
     package: Record<string, unknown>
-    protocolEvents: Array<{ detail: string }>
+    protocolEvents: Array<Record<string, unknown>>
   }
 
   assert.equal(
@@ -128,9 +128,10 @@ test("creates a portable error report without serializing the package object", (
   )
   assert.equal(content.schemaVersion, 2)
   assert.equal(content.failure.errorCode, "response-timeout")
-  assert.equal(content.protocolEvents[0]?.detail.includes("0 decoder"), true)
+  assert.equal("detail" in (content.protocolEvents[0] ?? {}), false)
   assert.equal("bytes" in content.package, false)
   assert.equal(report.content.includes("SECRET-FRAME-BYTES"), false)
+  assert.equal(report.content.includes("Timed out with 0 decoder"), false)
   assert.equal(report.content.includes("secret=value"), false)
 })
 

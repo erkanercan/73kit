@@ -1,8 +1,9 @@
 const DEFAULT_DATABASE_NAME = "tyt-uvl15-web-cps"
-const DATABASE_VERSION = 3
+const DATABASE_VERSION = 4
 const RADIO_WRITE_STORE_NAME = "radio-write-operations"
 const BACKUP_HISTORY_STORE_NAME = "codeplug-backups"
 const WORKING_CODEPLUG_STORE_NAME = "working-codeplugs"
+const DIAGNOSTIC_HISTORY_STORE_NAME = "diagnostic-incidents"
 
 function openCpsDatabase(databaseName = DEFAULT_DATABASE_NAME) {
   return new Promise<IDBDatabase>((resolve, reject) => {
@@ -23,6 +24,11 @@ function openCpsDatabase(databaseName = DEFAULT_DATABASE_NAME) {
           keyPath: "id",
         })
         store.createIndex("normalizedName", "normalizedName", { unique: true })
+      }
+      if (!database.objectStoreNames.contains(DIAGNOSTIC_HISTORY_STORE_NAME)) {
+        database.createObjectStore(DIAGNOSTIC_HISTORY_STORE_NAME, {
+          keyPath: "id",
+        })
       }
     })
     request.addEventListener("blocked", () => {
@@ -67,6 +73,7 @@ function transactionComplete(transaction: IDBTransaction) {
 export {
   BACKUP_HISTORY_STORE_NAME,
   DEFAULT_DATABASE_NAME,
+  DIAGNOSTIC_HISTORY_STORE_NAME,
   RADIO_WRITE_STORE_NAME,
   WORKING_CODEPLUG_STORE_NAME,
   openCpsDatabase,

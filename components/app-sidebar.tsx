@@ -175,8 +175,10 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     {
       title: t("navDiagnostics"),
+      href: "/diagnostics",
       icon: CircleGaugeIcon,
-      planned: true,
+      active: pathname === "/diagnostics",
+      planned: false,
     },
     {
       title: t("navAbout"),

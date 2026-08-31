@@ -215,6 +215,15 @@ only catalog metadata, safe recovery progress and bounded event facts. Neither
 serializer accepts arbitrary transport objects, raw frames, Radio identity or
 full URLs.
 
+`modules/diagnostics` owns the persisted incident contract, retention policy,
+portable JSON serialization and support-email summary. The IndexedDB adapter
+keeps at most 10 failed or uncertain incidents per Radio/Update source for 30
+days, plus only the latest successful summary per source. UI-side recorders are
+best-effort observers: a storage or report failure is swallowed and can never
+replace the result of the Radio or Update operation. The Diagnostics workspace
+is read-only with respect to the Radio and requires the operator to review and
+manually attach a downloaded report to the prefilled support email.
+
 The PWA layer is packaging, not a domain persistence mechanism. The service
 worker caches only same-origin GET navigation responses and static application
 assets. Codeplug files, raw backups, updater packages and JSON reports are
