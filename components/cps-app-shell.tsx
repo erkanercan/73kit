@@ -4,6 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 
 import { AppSidebar } from "@/components/app-sidebar"
+import { DocumentHistoryControls } from "@/components/document-history-controls"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { RadioReadButton } from "@/components/radio-read-button"
 import { RadioWriteDialog } from "@/components/radio-write/radio-write-dialog"
@@ -98,6 +99,7 @@ function AppHeader() {
         </BreadcrumbList>
       </Breadcrumb>
       <div className="ml-auto flex items-center gap-2">
+        <DocumentHistoryControls />
         <LanguageSwitcher />
         <RadioReadButton
           size="sm"

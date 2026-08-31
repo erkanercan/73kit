@@ -1,6 +1,13 @@
 import { menuVisibilityMessagesEn } from "./menu-visibility.ts"
 
 const en = {
+  historyControlsLabel: "Working Codeplug history",
+  undo: "Undo",
+  redo: "Redo",
+  undoUnavailable: "Nothing to undo",
+  redoUnavailable: "Nothing to redo",
+  undoShortcut: "Ctrl/Command Z",
+  redoShortcut: "Ctrl Y or Ctrl/Command Shift Z",
   serialPortSelectionRequired: "Select the Source Radio port to continue.",
   radioWriteTitle: "Radio Write",
   radioWriteDescription:

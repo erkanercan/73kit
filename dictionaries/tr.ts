@@ -2,6 +2,13 @@ import type { Messages } from "@/dictionaries/en"
 import { menuVisibilityMessagesTr } from "./menu-visibility.ts"
 
 const tr = {
+  historyControlsLabel: "Çalışma Codeplug'ı geçmişi",
+  undo: "Geri Al",
+  redo: "Yinele",
+  undoUnavailable: "Geri alınacak işlem yok",
+  redoUnavailable: "Yinelenecek işlem yok",
+  undoShortcut: "Ctrl/Command Z",
+  redoShortcut: "Ctrl Y veya Ctrl/Command Shift Z",
   serialPortSelectionRequired: "Devam etmek için Kaynak Telsiz portunu seçin.",
   radioWriteTitle: "Telsize Yazma",
   radioWriteDescription:

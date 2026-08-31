@@ -1149,11 +1149,25 @@ verification. Saving never silently overwrites or autosaves the active document;
 each save creates a new snapshot. The UI reports whether browser storage is
 persistent or best-effort.
 
-## 8.9 Undo/redo - P1
+## 8.9 Undo/redo - P1 / IMPLEMENTED
 
-Dedicated step-by-step undo/redo remains planned. Returning an edited field to
-its Baseline Backup value removes its Change Set entry, and Channels currently
-provides a reset-all action for the Working Codeplug.
+Undo/redo is document-wide and restores the Working Codeplug bytes and semantic
+Change Set together. Every committed editing command is one history step,
+including table-cell commits, row and membership operations, settings changes,
+and Reset All. Draft text inside a focused form control keeps its native browser
+undo behavior and does not create Codeplug history until the edit is committed.
+
+The persistent header provides Undo and Redo controls. Keyboard shortcuts follow
+desktop conventions: `Ctrl+Z` / `Command+Z` for Undo and `Ctrl+Y` or
+`Ctrl+Shift+Z` / `Command+Shift+Z` for Redo. Shortcuts are not intercepted while
+focus is in an input, textarea, select, contenteditable element or modal dialog.
+
+History is session-only and retains at most 100 compact Codeplug-byte revisions;
+it is not stored in IndexedDB, included in exports or sent to Radio Write. A new
+edit after Undo discards the Redo branch. Radio Read, file import, opening a saved
+Working Codeplug and other document replacements start a fresh history. History
+actions are unavailable while a radio operation or prepared Radio Write snapshot
+is active.
 
 ## 8.10 Source Radio write-session comparison - IMPLEMENTED
 
@@ -1266,7 +1280,7 @@ About
 - [x] VFO/Call Channel editing
 - [x] semantic Change Set tracking against the Baseline Backup
 - [x] Change Set review
-- [ ] undo/redo
+- [x] document-wide, bounded undo/redo with standard desktop shortcuts
 
 Radio Write is implemented and released for the firmware-`3.07.23`, USB CDC,
 Source-Radio-bound, unprotected-Radio production scope. It always writes the
@@ -1424,7 +1438,7 @@ firmware update commands
 - [x] channel editing
 - [ ] bulk edit
 - [x] Change Set review
-- [ ] undo/redo
+- [x] undo/redo
 - [x] saved Working Codeplugs
 - [x] zone editor
 - [x] scan-list editor

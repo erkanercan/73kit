@@ -22,7 +22,10 @@ const workflowSource = readFileSync(
   "utf8"
 )
 const controllerSource = readFileSync(
-  new URL("../components/cps-workspace-controller.tsx", import.meta.url),
+  new URL(
+    "../components/cps-workspace/use-cps-workspace-controller.ts",
+    import.meta.url
+  ),
   "utf8"
 )
 
