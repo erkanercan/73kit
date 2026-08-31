@@ -1,6 +1,6 @@
 "use client"
 
-import { ListIcon } from "lucide-react"
+import { ListIcon, TriangleAlertIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { MemoryChannelsCard } from "@/components/channels/memory-channels-card"
@@ -8,6 +8,7 @@ import { SpecialChannelsCard } from "@/components/channels/special-channels-card
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
 import { RadioReadButton } from "@/components/radio-read-button"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   Empty,
   EmptyContent,
@@ -61,9 +62,22 @@ function ChannelsWorkspace() {
   }
 
   const channels = codeplug.getChannels()
+  const membershipIssues = codeplug.validateMembershipConsistency()
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden p-4 sm:p-6 lg:p-8">
       <PageHeader title={t("channelsTitle")} />
+
+      {membershipIssues.length > 0 && (
+        <Alert variant="destructive">
+          <TriangleAlertIcon aria-hidden="true" />
+          <AlertTitle>{t("membershipConsistencyWarningTitle")}</AlertTitle>
+          <AlertDescription>
+            {t("membershipConsistencyWarningDescription", {
+              count: membershipIssues.length,
+            })}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Tabs defaultValue="memory" className="min-h-0 flex-1">
         <TabsList>

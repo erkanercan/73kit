@@ -19,6 +19,10 @@ firmware version, transport, or firmware/resource update scenario.
 - `.uvl15cps` export, verified offline import/reopen/edit/re-export, and
   same-layout restore preparation after a fresh Source Radio read;
 - direct verified restore preparation from a browser-local Backup History entry;
+- named immutable browser-local Working Codeplug snapshots with verified reopen
+  and portable export;
+- installable application shell and previously visited-route offline fallback,
+  excluding every Codeplug, report and updater package artifact from caches;
 - complete 102,400-byte writes only;
 - Radios with write protection disabled;
 - permanent Source Radio identity containing model, sub-model, CPU ID, and
@@ -71,7 +75,7 @@ Any interruption after writing may have begun remains durable
   offsets, encodings, indexes, round trips, and unrelated-byte preservation;
 - local Web Audio Tone Preview for DTMF, 2-Tone, and all 15 supported 5-Tone
   plans; preview never opens Web Serial or mutates the Codeplug;
-- source verification: 252 tests, typecheck, lint, and production build passed
+- source verification: 271 tests, typecheck, lint, and production build passed
   on 2026-08-31;
 - production-mode browser smoke test passed with no console warnings or errors;
 - automated production-mode Chromium smoke coverage verifies both locales, the
@@ -80,13 +84,8 @@ Any interruption after writing may have begun remains durable
 ## Remaining planned product work
 
 - Raw Backup import as an Unbound Codeplug;
-- browser-managed named Working Codeplugs without an external CPS File;
 - selection-wide bulk editing;
-- search by tone, Zone, Scan List, and mode;
 - dedicated undo/redo;
-- additional user-facing validation warnings;
-- PWA/offline packaging;
-- Diagnostics and About pages;
 - FM noise-suppression/auto-scan encoding research.
 
 These improve completeness and resilience but do not weaken the released
@@ -102,9 +101,12 @@ Source-Radio-bound Radio Write contract.
 ## Updater release status
 
 The four exact catalogued Firmware, Language, Image, and combined Resource
-packages remain beta. Stable updater promotion requires the same success path
-on a second compatible Radio and the controlled interruption/recovery matrix.
-This updater status is separate from normal Codeplug Radio Write.
+packages remain beta. The scripted transport now verifies first, middle and
+final-block disconnect classification for both Firmware and Resource Flash,
+alongside timeout, malformed acknowledgement and bounded retry behavior.
+Stable updater promotion still requires the same physical success and
+controlled interruption/recovery paths on a second compatible Radio. This
+updater status is separate from normal Codeplug Radio Write.
 
 ## Operational release checks
 

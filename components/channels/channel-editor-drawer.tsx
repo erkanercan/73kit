@@ -1,14 +1,16 @@
 "use client"
 
-import { XIcon } from "lucide-react"
+import { TriangleAlertIcon, XIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { ChannelEditorFields } from "@/components/channels/channel-editor-fields"
+import { channelAdvisories } from "@/components/channels/channel-filtering"
 import type {
   EditChannelMemberships,
   EditMemoryChannel,
 } from "@/components/channels/channel-editing"
 import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   Drawer,
   DrawerClose,
@@ -62,6 +64,25 @@ function ChannelEditorDrawer({
               </DrawerClose>
             </DrawerHeader>
             <ScrollArea className="min-h-0 flex-1 px-4 pb-4">
+              {channelAdvisories(channel).map((advisory) => (
+                <Alert key={advisory} className="mb-3">
+                  <TriangleAlertIcon aria-hidden="true" />
+                  <AlertTitle>
+                    {t(
+                      advisory === "receive-tone-enabled"
+                        ? "receiveToneAdvisoryTitle"
+                        : "txBandAdvisoryTitle"
+                    )}
+                  </AlertTitle>
+                  <AlertDescription>
+                    {t(
+                      advisory === "receive-tone-enabled"
+                        ? "receiveToneAdvisoryDescription"
+                        : "txBandAdvisoryDescription"
+                    )}
+                  </AlertDescription>
+                </Alert>
+              ))}
               <ChannelEditorFields
                 key={channel.number}
                 channel={channel}

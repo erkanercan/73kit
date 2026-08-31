@@ -4,6 +4,12 @@ The CPS treats a saved Codeplug as a durable work item, not merely a byte downlo
 
 Browser-local Backup History entries can also start this same verified restore flow directly. The user does not need to download and reopen a backup first; selecting Restore on a saved entry performs the fresh Radio Read, source identity check, and Restore Plan preparation before the existing Radio Write confirmation.
 
+The user may also create an explicitly named Working Codeplug copy in
+IndexedDB. This is the same integrity-checked CPS File payload stored locally,
+not a mutable autosave. Each Save Copy action creates a distinct snapshot;
+opening it uses the normal import verifier and retains the original Baseline
+Backup, Working Codeplug, Source Radio and layout binding.
+
 ## CPS File contents
 
 ```text
@@ -24,6 +30,10 @@ flowchart LR
   W -->|optional edits| W
   B --> H[Browser Backup History]
   H --> P
+  B --> S[Named local snapshot]
+  W --> S
+  S --> O
+  S --> P
   B --> E[CPS File export]
   W --> E
   E --> I[CPS File import]
@@ -78,6 +88,8 @@ For the current release, `uvl15w-3.07.23` is the only available Codeplug layout.
 
 - Baseline bytes are immutable; edits affect only Working Codeplug bytes.
 - Export uses the active Baseline Backup and Working Codeplug, so unedited files retain identical members and edited files retain both states.
+- Named local snapshots use the same verified CPS File representation, have
+  unique names, and never silently overwrite or autosave the active document.
 - The imported Working Codeplug is always the desired restore target.
 - Restore always reads first and retains that read as the immediate recovery backup.
 - Source Radio identity must match exactly before normal restore.

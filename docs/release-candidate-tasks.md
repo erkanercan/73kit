@@ -33,14 +33,21 @@ the release candidate progresses.
 | ID    | Feature                                                            | Release impact                                             |
 | ----- | ------------------------------------------------------------------ | ---------------------------------------------------------- |
 | BL-01 | Raw `.bin` import as an Unbound Codeplug                           | Not required for the identity-bound CPS File workflow      |
-| BL-02 | Named browser-managed Working Codeplugs                            | CPS Files already provide the portable saved-work workflow |
 | BL-03 | Bulk editing                                                       | Product enhancement                                        |
 | BL-04 | Undo/redo                                                          | Product enhancement; baseline reset remains available      |
-| BL-05 | Search by tone, Zone, Scan List and mode                           | Product enhancement                                        |
-| BL-06 | Additional user-facing validation warnings                         | Incremental resilience and guidance                        |
-| BL-07 | PWA/offline installation                                           | Packaging enhancement                                      |
-| BL-08 | Diagnostics and About pages                                        | Non-core product surfaces                                  |
+| BL-08a | Diagnostics workspace                                            | Support workflow must be designed before implementation    |
 | BL-09 | FM noise-suppression and auto-scan encoding research               | Specialist setting research                                |
 | BL-10 | Bluetooth, BLE, Node serial and desktop transports                 | Separate transport validation                              |
 | BL-11 | Additional firmware profiles and E7 write-password support         | Separate compatibility validation                          |
-| BL-12 | Stable updater promotion on a second Radio and interruption matrix | Beta-to-stable updater gate                                |
+| BL-12 | Stable updater promotion on a second Radio                         | Physical beta-to-stable updater gate                       |
+
+## Completed product backlog
+
+| ID    | Feature                                             | Completion evidence                                                                 |
+| ----- | --------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| BL-02 | Named browser-managed Working Codeplugs             | IndexedDB snapshot store, verified reopen/export, rename/delete and revision tests  |
+| BL-05 | Search by tone, Zone, Scan List and mode            | Combined Channel filter module, desktop Sheet controls and search/filter tests      |
+| BL-06 | Additional user-facing validation warnings          | RX-tone, published TX-band and collection-consistency advisories                    |
+| BL-07 | PWA/offline installation                            | Manifest, safe service worker policy tests, production build and HTTP header checks |
+| BL-08 | About page                                          | Routed localized product-scope and safety reference                                 |
+| BL-12a | Scripted updater interruption matrix               | First/middle/final Firmware and Resource Flash disconnect tests                     |

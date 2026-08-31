@@ -172,8 +172,18 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       active: pathname === "/updates",
       planned: false,
     },
-    { title: t("navDiagnostics"), icon: CircleGaugeIcon, planned: true },
-    { title: t("navAbout"), icon: BookOpenIcon, planned: true },
+    {
+      title: t("navDiagnostics"),
+      icon: CircleGaugeIcon,
+      planned: true,
+    },
+    {
+      title: t("navAbout"),
+      href: "/about",
+      icon: BookOpenIcon,
+      active: pathname === "/about",
+      planned: false,
+    },
   ]
 
   return (

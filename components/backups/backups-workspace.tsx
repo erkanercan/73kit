@@ -15,6 +15,7 @@ import { useLocale, useTranslations } from "next-intl"
 
 import { createIndexedDbBackupHistoryStore } from "@/adapters/indexed-db-backup-history-store/index"
 import { PageHeader } from "@/components/page-header"
+import { WorkingCodeplugLibraryCard } from "@/components/backups/working-codeplug-library-card"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { WorkspaceErrorAlert } from "@/components/workspace-error-alert"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -281,6 +282,8 @@ function BackupsWorkspace() {
           </CardContent>
         </Card>
       )}
+
+      <WorkingCodeplugLibraryCard />
 
       <Card className="min-h-0 flex-1">
         <CardHeader>

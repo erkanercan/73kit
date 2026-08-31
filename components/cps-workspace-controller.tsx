@@ -27,6 +27,10 @@ import {
 } from "@/modules/cps-workspace/cps-file"
 import { isRadioWriteReleased } from "@/modules/cps-workspace/radio-write-release"
 import {
+  MAX_RADIO_DIAGNOSTIC_EVENTS,
+  createRadioDiagnosticReport,
+} from "@/modules/radio-diagnostics/index"
+import {
   prepareRestoreDocument,
   restoreTargetFromBackup,
   type RestoreSource,
@@ -247,7 +251,9 @@ function useCpsWorkspaceController() {
   }, [])
 
   const recordRadioDebugEvent = React.useCallback((event: RadioDebugEvent) => {
-    radioDebugEvents.current = [...radioDebugEvents.current, event].slice(-5000)
+    radioDebugEvents.current = [...radioDebugEvents.current, event].slice(
+      -MAX_RADIO_DIAGNOSTIC_EVENTS
+    )
   }, [])
 
   const readRadio = React.useCallback(async () => {
@@ -273,7 +279,7 @@ function useCpsWorkspaceController() {
         onBackupHistoryError: () => {
           if (mounted.current) setError({ key: "backupHistorySaveFailed" })
         },
-        onDebugEvent: RADIO_WRITE_RELEASED ? recordRadioDebugEvent : undefined,
+        onDebugEvent: recordRadioDebugEvent,
       })
       radioTransport.current = nextTransport
       workspace.current = nextWorkspace
@@ -501,9 +507,7 @@ function useCpsWorkspaceController() {
           onBackupHistoryError: () => {
             if (mounted.current) setError({ key: "backupHistorySaveFailed" })
           },
-          onDebugEvent: RADIO_WRITE_RELEASED
-            ? recordRadioDebugEvent
-            : undefined,
+          onDebugEvent: recordRadioDebugEvent,
         })
         radioTransport.current = nextTransport
         workspace.current = nextWorkspace
@@ -578,16 +582,25 @@ function useCpsWorkspaceController() {
   )
 
   const downloadRadioOperationReport = React.useCallback(() => {
-    if (!RADIO_WRITE_RELEASED || radioDebugEvents.current.length === 0) return
-    downloadJson(
-      "uvl15w-radio-operation-report.json",
-      Object.freeze({
-        schemaVersion: 1,
-        createdAt: new Date().toISOString(),
-        events: radioDebugEvents.current,
-      })
-    )
-  }, [])
+    if (radioDebugEvents.current.length === 0) return
+    const report = createRadioDiagnosticReport({
+      generatedAt: new Date().toISOString(),
+      locale: document.documentElement.lang || "unknown",
+      pathname: window.location.pathname,
+      phase,
+      errorCode:
+        error && "key" in error ? error.key : error ? "operation-error" : null,
+      environment: {
+        secureContext: window.isSecureContext,
+        online: window.navigator.onLine,
+        webSerialSupported: "serial" in window.navigator,
+        serviceWorkerSupported: "serviceWorker" in window.navigator,
+        indexedDbSupported: "indexedDB" in window,
+      },
+      events: radioDebugEvents.current,
+    })
+    downloadText(report.fileName, report.content, report.mimeType)
+  }, [error, phase])
 
   const moveMemoryChannel = React.useCallback(
     (fromNumber: number, toNumber: number) => {
@@ -1548,7 +1561,7 @@ function useCpsWorkspaceController() {
       onBackupHistoryError: () => {
         if (mounted.current) setError({ key: "backupHistorySaveFailed" })
       },
-      onDebugEvent: RADIO_WRITE_RELEASED ? recordRadioDebugEvent : undefined,
+      onDebugEvent: recordRadioDebugEvent,
     })
     radioTransport.current = recoveryTransport
     workspace.current = recoveryWorkspace
@@ -1769,10 +1782,8 @@ function safeFilename(value: string) {
   return safeValue || "uvl15w"
 }
 
-function downloadJson(filename: string, value: unknown) {
-  const blob = new Blob([JSON.stringify(value, null, 2)], {
-    type: "application/json",
-  })
+function downloadText(filename: string, content: string, type: string) {
+  const blob = new Blob([content], { type })
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement("a")
   anchor.href = url

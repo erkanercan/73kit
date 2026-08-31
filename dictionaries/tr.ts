@@ -918,6 +918,33 @@ const tr = {
   backupsStorageErrorTitle: "Yedek Geçmişi açılamadı",
   backupsStorageErrorDescription:
     "Tarayıcı depolamasının kullanılabilir olduğunu kontrol edip bu sayfayı yenileyin.",
+  savedWorkingTitle: "Kayıtlı Çalışma Codeplug'ları",
+  savedWorkingDescription:
+    "Adlandırılmış anlık görüntüler bu tarayıcıda kalır ({storage}). Taşınabilir yedek için CPS Dosyası dışa aktarın.",
+  savedWorkingPersistent: "kalıcı depolama izni verildi",
+  savedWorkingBestEffort: "garantisiz tarayıcı depolaması",
+  savedWorkingSaveCopy: "Kopyayı Kaydet",
+  savedWorkingSaveTitle: "Bu Çalışma Codeplug'ını kaydet",
+  savedWorkingSaveDescription:
+    "Geçerli Temel Yedek ve Çalışma Codeplug'ının atomik, adlandırılmış bir anlık görüntüsünü oluşturun.",
+  savedWorkingRenameTitle: "Kayıtlı Çalışma Codeplug'ını yeniden adlandır",
+  savedWorkingRenameDescription:
+    "Kayıtlı baytlar ve Kaynak Telsiz bağlantısı değişmez.",
+  savedWorkingName: "Ad",
+  savedWorkingUpdated: "Güncellendi",
+  savedWorkingOpen: "Kayıtlı Çalışma Codeplug'ını aç",
+  savedWorkingExport: "Taşınabilir CPS Dosyasını dışa aktar",
+  savedWorkingRename: "Yeniden adlandır",
+  savedWorkingDeleteTitle: "Bu kayıtlı Çalışma Codeplug'ı silinsin mi?",
+  savedWorkingDeleteDescription:
+    "Adlandırılmış tarayıcı anlık görüntüsü silinir. Dışa aktarılan CPS Dosyaları ve Yedek Geçmişi etkilenmez.",
+  savedWorkingEmpty:
+    "Bu tarayıcıda adlandırılmış Çalışma Codeplug'ı kayıtlı değil.",
+  savedWorkingLocalOnly:
+    "Yerel tarayıcı depolaması taşınabilir bir yedek değildir ve site verileri temizlendiğinde silinebilir.",
+  savedWorkingErrorTitle: "Kayıtlı Çalışma Codeplug'ı işlemi başarısız",
+  savedWorkingNotFound: "Kayıtlı Çalışma Codeplug'ı artık mevcut değil.",
+  loading: "Yükleniyor…",
   cpsFileOpen: "CPS Dosyası Aç",
   cpsFileExport: "CPS Dosyası Dışa Aktar",
   cpsFileOpenReady: "CPS Dosyası açık",
@@ -938,6 +965,19 @@ const tr = {
   backupHistorySaveFailedTitle: "Codeplug Yedeği kaydedilemedi",
   navDiagnostics: "Tanılama",
   navAbout: "Hakkında",
+  aboutTitle: "UVL-15W CPS Hakkında",
+  aboutScopeTitle: "Doğrulanmış Telsiz kapsamı",
+  aboutScopeDescription:
+    "Üretim Codeplug desteği; TYT UVL-15W, firmware 3.07.23, masaüstü Chromium, USB CDC üzerinden Web Serial ve Kaynak Telsize bağlı tam yazma işlemlerini hedefler.",
+  aboutSafetyTitle: "Codeplug güvenliği",
+  aboutSafetyDescription:
+    "Telsizden Okuma, değiştirilemez bir Temel Yedek ve düzenlenebilir Çalışma Codeplug'ı oluşturur. Telsize Yazma, incelenebilir bir Değişiklik Kümesi gerektirir ve bilinmeyen baytları korur.",
+  aboutPlatformTitle: "Önce yerel uygulama",
+  aboutPlatformDescription:
+    "Telsiz iletişimi, düzenleme, adlandırılmış Çalışma Codeplug'ları, yedekler ve destek raporları bu bilgisayarda kalır. Taşınabilir CPS Dosyaları önerilen harici yedektir.",
+  aboutUpdaterTitle: "Updater beta sınırı",
+  aboutUpdaterDescription:
+    "Firmware ve Kaynak güncellemeleri beta kalır. Otomatik hata işleme doğrulandı; kararlı sürüme geçiş için ikinci uyumlu Telsiz ve kontrollü fiziksel kesinti/kurtarma kanıtı gerekir.",
   planned: "Planlandı",
   plannedUnavailable: "{item} planlandı; henüz kullanılamıyor.",
   localRadioWorkspace: "Yerel telsiz programlama",
@@ -1230,7 +1270,25 @@ const tr = {
   usedChannelsOnly: "Yalnız kullanılanlar",
   allChannelSlots: "Tüm kanal konumları",
   searchChannels: "Kanallarda ara",
-  searchChannelsPlaceholder: "Ad, numara veya frekans",
+  searchChannelsPlaceholder:
+    "Ad, numara, frekans, ton, mod, Bölge veya Tarama Listesi",
+  channelFilters: "Filtreler",
+  channelFiltersDescription:
+    "Hafıza tablosunu mod, ton türü, Bölge ve Tarama Listesine göre daraltın.",
+  closeChannelFilters: "Kanal filtrelerini kapat",
+  applyFilters: "Filtreleri uygula",
+  resetFilters: "Filtreleri sıfırla",
+  allValues: "Tümü",
+  receiveToneAdvisoryTitle: "Alma tonu etkin",
+  receiveToneAdvisoryDescription:
+    "Alınan sinyal bu CTCSS veya DCS tonunu içermediğinde ses kapalı kalır. RX tonu, TX tonundan bağımsızdır.",
+  txBandAdvisoryTitle: "Gönderim yetkisini doğrulayın",
+  txBandAdvisoryDescription:
+    "Bu TX frekansı, bu Telsiz için yayımlanmış AB/FCC amatör bantlarının dışındadır. Gönderimden önce Telsiz varyantını, yerel kuralları, lisansı ve frekans yetkisini doğrulayın.",
+  membershipConsistencyWarningTitle:
+    "Bölge veya Tarama Listesi verileri tutarsız",
+  membershipConsistencyWarningDescription:
+    "Codeplug'da sıralı üyeler ile üyelik bitmap'leri arasında {count} uyuşmazlık var. Telsize Yazmadan önce etkilenen koleksiyonları inceleyin.",
   columnVisibility: "Sütunlar",
   basicColumns: "Temel",
   advancedColumns: "Gelişmiş",

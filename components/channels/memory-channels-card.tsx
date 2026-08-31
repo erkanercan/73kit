@@ -24,6 +24,7 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual"
 import {
   Columns3Icon,
+  ListFilterIcon,
   PlusIcon,
   RotateCcwIcon,
   SearchIcon,
@@ -32,16 +33,24 @@ import {
 import { useTranslations } from "next-intl"
 
 import { ChannelEditorDrawer } from "@/components/channels/channel-editor-drawer"
+import {
+  DEFAULT_CHANNEL_FILTERS,
+  countActiveChannelFilters,
+  filterMemoryChannels,
+  type ChannelFilters,
+  type ChannelModulationFilter,
+  type ChannelToneFilter,
+} from "@/components/channels/channel-filtering"
 import type {
   EditChannelMemberships,
   EditMemoryChannel,
 } from "@/components/channels/channel-editing"
-import { formatFrequency } from "@/components/channels/channel-format"
 import {
   createMemoryColumns,
   SortableChannelRow,
 } from "@/components/channels/memory-channel-columns"
 import { Button } from "@/components/ui/button"
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -62,6 +71,24 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import {
   Table,
   TableBody,
@@ -120,6 +147,9 @@ function MemoryChannelsCard({
   const t = useTranslations()
   const [search, setSearch] = React.useState("")
   const [usedOnly, setUsedOnly] = React.useState(true)
+  const [filters, setFilters] = React.useState<ChannelFilters>(
+    DEFAULT_CHANNEL_FILTERS
+  )
   const [selectedChannelNumber, setSelectedChannelNumber] = React.useState<
     number | null
   >(null)
@@ -128,32 +158,17 @@ function MemoryChannelsCard({
       Object.fromEntries(DEFAULT_HIDDEN_COLUMN_IDS.map((id) => [id, false]))
     )
 
-  const normalizedSearch = search.trim().toLocaleLowerCase()
   const visibleChannels = React.useMemo(
     () =>
-      channels.filter((channel) => {
-        if (usedOnly && !channel.valid) {
-          return false
-        }
-        if (!normalizedSearch) {
-          return true
-        }
-
-        const haystack = [
-          channel.number,
-          channel.name,
-          channel.zoneNames.join(" "),
-          channel.scanListNames.join(" "),
-          formatFrequency(channel.receiveFrequencyHz),
-          formatFrequency(channel.transmitFrequencyHz),
-        ]
-          .join(" ")
-          .toLocaleLowerCase()
-
-        return haystack.includes(normalizedSearch)
+      filterMemoryChannels(channels, zones, scanLists, {
+        usedOnly,
+        query: search,
+        filters,
       }),
-    [channels, normalizedSearch, usedOnly]
+    [channels, filters, scanLists, search, usedOnly, zones]
   )
+  const normalizedSearch = search.trim().toLocaleLowerCase()
+  const activeFilterCount = countActiveChannelFilters(filters)
   const canAdd = channels.some((channel) => !channel.valid)
 
   const columns = React.useMemo(
@@ -257,6 +272,107 @@ function MemoryChannelsCard({
               <PlusIcon data-icon="inline-start" />
               {t("addChannel")}
             </Button>
+            <Sheet>
+              <SheetTrigger render={<Button variant="outline" size="sm" />}>
+                <ListFilterIcon data-icon="inline-start" />
+                {t("channelFilters")}
+                {activeFilterCount > 0 && ` (${activeFilterCount})`}
+              </SheetTrigger>
+              <SheetContent closeLabel={t("closeChannelFilters")}>
+                <SheetHeader>
+                  <SheetTitle>{t("channelFilters")}</SheetTitle>
+                  <SheetDescription>
+                    {t("channelFiltersDescription")}
+                  </SheetDescription>
+                </SheetHeader>
+                <FieldGroup className="px-4">
+                  <FilterSelect
+                    id="channel-mode-filter"
+                    label={t("channelMode")}
+                    value={filters.modulation}
+                    options={[
+                      { value: "all", label: t("allValues") },
+                      { value: "fm", label: t("valueFm") },
+                      { value: "fm-narrow", label: t("valueFmNarrow") },
+                      { value: "am", label: t("valueAm") },
+                      { value: "am-narrow", label: t("valueAmNarrow") },
+                      { value: "unknown", label: t("valueUnknown") },
+                    ]}
+                    onChange={(modulation) =>
+                      setFilters((current) => ({
+                        ...current,
+                        modulation: modulation as ChannelModulationFilter,
+                      }))
+                    }
+                  />
+                  <FilterSelect
+                    id="channel-tone-filter"
+                    label={t("toneType")}
+                    value={filters.tone}
+                    options={[
+                      { value: "all", label: t("allValues") },
+                      { value: "off", label: t("valueOff") },
+                      { value: "ctcss", label: "CTCSS" },
+                      { value: "dcs", label: "DCS" },
+                    ]}
+                    onChange={(tone) =>
+                      setFilters((current) => ({
+                        ...current,
+                        tone: tone as ChannelToneFilter,
+                      }))
+                    }
+                  />
+                  <FilterSelect
+                    id="channel-zone-filter"
+                    label={t("channelZones")}
+                    value={filters.zoneNumber?.toString() ?? "all"}
+                    options={[
+                      { value: "all", label: t("allValues") },
+                      ...zones.map((zone) => ({
+                        value: zone.number.toString(),
+                        label: zone.name || t("unnamedMembership"),
+                      })),
+                    ]}
+                    onChange={(value) =>
+                      setFilters((current) => ({
+                        ...current,
+                        zoneNumber: value === "all" ? null : Number(value),
+                      }))
+                    }
+                  />
+                  <FilterSelect
+                    id="channel-scan-list-filter"
+                    label={t("channelScanLists")}
+                    value={filters.scanListNumber?.toString() ?? "all"}
+                    options={[
+                      { value: "all", label: t("allValues") },
+                      ...scanLists.map((scanList) => ({
+                        value: scanList.number.toString(),
+                        label: scanList.name || t("unnamedMembership"),
+                      })),
+                    ]}
+                    onChange={(value) =>
+                      setFilters((current) => ({
+                        ...current,
+                        scanListNumber: value === "all" ? null : Number(value),
+                      }))
+                    }
+                  />
+                </FieldGroup>
+                <SheetFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setFilters(DEFAULT_CHANNEL_FILTERS)}
+                  >
+                    <RotateCcwIcon data-icon="inline-start" />
+                    {t("resetFilters")}
+                  </Button>
+                  <SheetClose render={<Button />}>
+                    {t("applyFilters")}
+                  </SheetClose>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
             <Button
               variant={usedOnly ? "secondary" : "outline"}
               size="sm"
@@ -436,6 +552,44 @@ function MemoryChannelsCard({
         onOpenChange={(open) => !open && setSelectedChannelNumber(null)}
       />
     </>
+  )
+}
+
+function FilterSelect({
+  id,
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  id: string
+  label: string
+  value: string
+  options: readonly { readonly value: string; readonly label: string }[]
+  onChange(value: string): void
+}) {
+  return (
+    <Field>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Select
+        items={options}
+        value={value}
+        onValueChange={(nextValue) => nextValue && onChange(nextValue)}
+      >
+        <SelectTrigger id={id} className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent align="start" alignItemWithTrigger={false}>
+          <SelectGroup>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </Field>
   )
 }
 

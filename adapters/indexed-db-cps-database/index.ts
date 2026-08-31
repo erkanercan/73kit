@@ -1,7 +1,8 @@
 const DEFAULT_DATABASE_NAME = "tyt-uvl15-web-cps"
-const DATABASE_VERSION = 2
+const DATABASE_VERSION = 3
 const RADIO_WRITE_STORE_NAME = "radio-write-operations"
 const BACKUP_HISTORY_STORE_NAME = "codeplug-backups"
+const WORKING_CODEPLUG_STORE_NAME = "working-codeplugs"
 
 function openCpsDatabase(databaseName = DEFAULT_DATABASE_NAME) {
   return new Promise<IDBDatabase>((resolve, reject) => {
@@ -17,8 +18,25 @@ function openCpsDatabase(databaseName = DEFAULT_DATABASE_NAME) {
           keyPath: "id",
         })
       }
+      if (!database.objectStoreNames.contains(WORKING_CODEPLUG_STORE_NAME)) {
+        const store = database.createObjectStore(WORKING_CODEPLUG_STORE_NAME, {
+          keyPath: "id",
+        })
+        store.createIndex("normalizedName", "normalizedName", { unique: true })
+      }
     })
-    request.addEventListener("success", () => resolve(request.result))
+    request.addEventListener("blocked", () => {
+      reject(
+        new Error(
+          "Close other CPS tabs before upgrading browser Codeplug storage"
+        )
+      )
+    })
+    request.addEventListener("success", () => {
+      const database = request.result
+      database.addEventListener("versionchange", () => database.close())
+      resolve(database)
+    })
     request.addEventListener("error", () => {
       reject(request.error ?? new Error("IndexedDB could not be opened"))
     })
@@ -50,6 +68,7 @@ export {
   BACKUP_HISTORY_STORE_NAME,
   DEFAULT_DATABASE_NAME,
   RADIO_WRITE_STORE_NAME,
+  WORKING_CODEPLUG_STORE_NAME,
   openCpsDatabase,
   requestResult,
   transactionComplete,

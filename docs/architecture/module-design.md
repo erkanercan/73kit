@@ -30,7 +30,10 @@ modules/
   update-package/            Fir and DAT parsing and validation
   uvl15w-updater/            Update-mode firmware/resource protocols
 adapters/
+  indexed-db-cps-database/  Shared versioned CPS database opener
+  indexed-db-backup-history-store/ Immutable automatic backup history
   indexed-db-radio-write-store/ Durable prepared-write and recovery adapter
+  indexed-db-working-codeplug-store/ Named immutable local documents
   web-serial/                Production Transport adapter
 test-support/
   scripted-transport/        Deterministic Transport adapter for tests
@@ -64,6 +67,13 @@ object store, while sharing one versioned database opener with Radio Write
 recovery so schema upgrades remain compatible. Backup persistence errors are
 reported independently and never change a completed Radio operation into a
 failed one.
+
+Named Working Codeplugs use a third store in the same versioned IndexedDB
+database. Each record contains an immutable `.uvl15cps` snapshot, its verified
+manifest, a unique normalized display name, timestamps and an optimistic
+revision. Create never overwrites an existing name; rename and delete require
+the expected revision. Opening a saved entry passes through the normal CPS File
+parser rather than trusting database bytes.
 
 Portable Codeplug lifecycle is also owned here. A CPS File packages a manifest,
 immutable baseline bytes, and working bytes; import verifies its schema, layout,
@@ -196,6 +206,22 @@ not call adapters directly. The production adapter must additionally expose the
 captured RTS behavior and connection lifecycle needed in update mode before a
 physical updater is enabled.
 
+## Diagnostics and offline shell
+
+Radio and updater diagnostics are separate allowlist serializers at the UI
+boundary. The Radio report retains at most 1,000 in-memory events and exposes
+only protocol shape and progress fields. Updater reports likewise reconstruct
+only catalog metadata, safe recovery progress and bounded event facts. Neither
+serializer accepts arbitrary transport objects, raw frames, Radio identity or
+full URLs.
+
+The PWA layer is packaging, not a domain persistence mechanism. The service
+worker caches only same-origin GET navigation responses and static application
+assets. Codeplug files, raw backups, updater packages and JSON reports are
+extension-denied and remain in explicit browser download/IndexedDB workflows.
+Worker updates do not call `skipWaiting`, so a newly installed shell cannot
+force an active Radio session onto new code.
+
 ## Testing
 
 Tests use the same module interfaces as production callers:
@@ -206,7 +232,8 @@ Tests use the same module interfaces as production callers:
 - Update Package tests run without a Radio and verify official package hashes,
   malformed-file rejection, integrity tags, DAT continuity, and address policy.
 - UVL-15W Updater tests replay complete sanitized protocol fixtures through the
-  scripted Transport, including strict acknowledgements and interruption states.
+  scripted Transport, including strict acknowledgements and first, middle and
+  final-block interruption states for Firmware and Resource Flash.
 - Update Coordinator tests exercise prerequisites, confirmation, exclusivity,
   post-reboot verification, and Update Outcome Unknown recovery.
 

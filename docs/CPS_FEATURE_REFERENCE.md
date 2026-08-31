@@ -267,7 +267,11 @@ Codeplug.
 
 The CPS does not maintain a persistent Radio connection between operations. A later Radio Read starts a fresh operation and requests a port again. Radio Write ends after the validated E5 reboot response and does not reconnect or read back automatically.
 
-Protocol diagnostics remain planned for a later milestone; no diagnostics log or diagnostics UI is implemented in this milestone.
+Operation-specific failure reports remain available from the Radio Write and
+updater workflows. They are bounded and omit raw frames, Radio identity, serial
+numbers, CPU IDs, full URLs and arbitrary error objects. A general Diagnostics
+workspace remains planned; its product questions and support workflow must be
+designed before implementation.
 
 ### Read radio information - P0 / IMPLEMENTED PRODUCT; PROVEN PROTOCOL
 
@@ -1104,28 +1108,34 @@ implemented. Selection-wide bulk field editing remains planned.
 - duplicate channels
 - patterned rename
 
-## 8.6 Search/filtering - HIGH VALUE / PARTIALLY IMPLEMENTED
+## 8.6 Search/filtering - HIGH VALUE / IMPLEMENTED
 
-The Channel table supports Used/All filtering and search by name, number or
-frequency. VFO Scan Edges and FM Broadcast presets also have focused search.
-Search by tone, Zone, Scan List and mode remains planned.
+The Channel table supports Used/All filtering, free-text search by name,
+number, frequency, tone, Zone, Scan List and mode, plus combinable Mode, Tone,
+Zone and Scan List selectors. VFO Scan Edges and FM Broadcast presets also have
+focused search.
 
 ## 8.7 Validation/warnings - HIGH VALUE
 
 Storage bounds, encoded options, UTF-8 byte limits, frequencies, collection
 capacity and representation consistency are validated by the implemented
-editors and Codeplug operations. Additional user-facing warnings remain
-planned, including:
+editors and Codeplug operations. The Channel editor also presents advisory
+warnings when an RX CTCSS/DCS tone is enabled or a TX frequency falls outside
+the published 144–148 MHz and 420–450 MHz amateur ranges. The Channels
+workspace reports inconsistent Zone/Scan List ordered-list and bitmap
+representations before editing continues. These are guidance warnings; exact
+operator privileges and regional band plans remain the operator's
+responsibility.
 
-Examples:
+## 8.8 Saved Working Codeplugs - P1 / IMPLEMENTED
 
-- RX CTCSS enabled warning
-- out-of-range TX warning
-- inconsistent zone/scan-list representation warning
-
-## 8.8 Saved Working Codeplugs - P1
-
-Allow Working Codeplugs to be named and retained locally without changing their Baseline Backup or Source Radio binding.
+The Backups workspace can save an explicitly named immutable copy of the active
+Baseline Backup and Working Codeplug in IndexedDB. Names are unique, copies
+retain Source Radio/layout binding and CPS File integrity metadata, and entries
+can be opened, exported, renamed or deleted. Opening reuses normal `.uvl15cps`
+verification. Saving never silently overwrites or autosaves the active document;
+each save creates a new snapshot. The UI reports whether browser storage is
+persistent or best-effort.
 
 ## 8.9 Undo/redo - P1
 
@@ -1152,7 +1162,13 @@ JSON must not become the canonical Codeplug representation. JSON metadata may be
 
 ## 8.12 PWA/offline use - P1
 
-Core radio operations should remain local-first and backend-independent.
+The application publishes a standalone web app manifest and a same-origin
+service worker. The worker caches the localized application shell, visited
+pages, Next static assets, the app icon and APRS symbol sprites. It never caches
+`.uvl15cps`, `.bin`, `.Fir`, `.DAT` or JSON artifacts, and it does not force a
+new worker to take over an active session. Offline use is limited to previously
+cached application routes/assets; first-time routes and browser/Radio APIs still
+depend on the browser environment.
 
 ---
 
@@ -1178,6 +1194,9 @@ FM Radio
 Signal System
 Backups
 Updates (beta)
+Backups
+Diagnostics (planned)
+About
 ```
 
 ---
@@ -1193,7 +1212,7 @@ Updates (beta)
 - [x] stream parser
 - [x] operation-scoped open/close lifecycle
 - [x] secure-context and browser capability handling
-- [ ] protocol diagnostic log - deferred
+- [ ] general Diagnostics workspace and support workflow
 
 ## Epic 2 - Read protocol
 
@@ -1216,7 +1235,7 @@ Updates (beta)
 ## Epic 4 - Channel inspection and ordering UI
 
 - [x] virtualized 1000-row Memory table
-- [x] used/all filter and name, number, or frequency search
+- [x] used/all filter, broad search and Mode/Tone/Zone/Scan List filters
 - [x] Basic/Advanced column visibility and complete details
 - [x] CTCSS/DCS formatting
 - [x] mode/power display
@@ -1316,8 +1335,8 @@ Partial or changed-block writes are excluded until hardware-verified.
 - [ ] Raw Backup import as an Unbound Codeplug
 - [x] identity-bound CPS File export, verified import, offline reopen/edit/re-export, direct Backup History restore, and same-layout restore preparation
 - [x] durable Backup History
-- [ ] saved Working Codeplugs
-- [ ] PWA/offline packaging
+- [x] named immutable IndexedDB Working Codeplug snapshots
+- [x] installable application shell with static-only offline caching
 
 ---
 
@@ -1394,7 +1413,7 @@ firmware update commands
 - [ ] bulk edit
 - [x] Change Set review
 - [ ] undo/redo
-- [ ] saved Working Codeplugs
+- [x] saved Working Codeplugs
 - [x] zone editor
 - [x] scan-list editor
 - [x] VFO/Call Channel editor
@@ -1446,7 +1465,8 @@ firmware update commands
 - [x] catalog-driven browser Firmware Update released as single-Radio beta
 - [x] catalog-driven browser Resource Flash released as single-Radio beta
 - [x] physical browser success path for each supported package kind
-- [ ] second-Radio and interruption/recovery validation
+- [x] scripted first/middle/final-block interruption classification for Firmware and Resource Flash
+- [ ] second-Radio physical update and interruption/recovery validation
 - [ ] custom firmware tooling
 
 ---

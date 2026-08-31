@@ -579,8 +579,15 @@ function useUpdateCoordinatorController() {
     if (!diagnosticReportAvailable) return
     const report = createUpdateDiagnosticReport({
       generatedAt: new Date().toISOString(),
-      pageUrl: window.location.href,
-      userAgent: window.navigator.userAgent,
+      locale: document.documentElement.lang || "unknown",
+      pathname: window.location.pathname,
+      environment: {
+        secureContext: window.isSecureContext,
+        online: window.navigator.onLine,
+        webSerialSupported: "serial" in window.navigator,
+        serviceWorkerSupported: "serviceWorker" in window.navigator,
+        indexedDbSupported: "indexedDB" in window,
+      },
       phase,
       errorCode: errorCode ?? recoveryRecord?.errorCode ?? "outcome-unknown",
       selectedPackage,
@@ -590,8 +597,26 @@ function useUpdateCoordinatorController() {
         totalBlocks,
         lastAcknowledgedAddress,
       },
-      recoveryRecord,
-      transferResult,
+      recovery: recoveryRecord
+        ? {
+            phase: recoveryRecord.phase,
+            errorCode: recoveryRecord.errorCode ?? null,
+            lastAcknowledgedBlock: recoveryRecord.lastAcknowledgedBlock,
+            ...(recoveryRecord.lastAcknowledgedAddress === undefined
+              ? {}
+              : {
+                  lastAcknowledgedAddress:
+                    recoveryRecord.lastAcknowledgedAddress,
+                }),
+          }
+        : null,
+      transfer: transferResult
+        ? {
+            kind: transferResult.kind,
+            requiresLanguageConfirmation:
+              transferResult.requiresLanguageConfirmation,
+          }
+        : null,
       events: diagnosticEventsRef.current,
     })
     const url = URL.createObjectURL(

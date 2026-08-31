@@ -910,6 +910,32 @@ const en = {
   backupsStorageErrorTitle: "Backup History could not be opened",
   backupsStorageErrorDescription:
     "Check that browser storage is available, then reload this page.",
+  savedWorkingTitle: "Saved Working Codeplugs",
+  savedWorkingDescription:
+    "Named snapshots stay in this browser ({storage}). Export a CPS File for a portable backup.",
+  savedWorkingPersistent: "persistent storage granted",
+  savedWorkingBestEffort: "best-effort browser storage",
+  savedWorkingSaveCopy: "Save Copy",
+  savedWorkingSaveTitle: "Save this Working Codeplug",
+  savedWorkingSaveDescription:
+    "Create an atomic named snapshot of the current Baseline Backup and Working Codeplug.",
+  savedWorkingRenameTitle: "Rename saved Working Codeplug",
+  savedWorkingRenameDescription:
+    "The saved bytes and Source Radio binding will not change.",
+  savedWorkingName: "Name",
+  savedWorkingUpdated: "Updated",
+  savedWorkingOpen: "Open saved Working Codeplug",
+  savedWorkingExport: "Export portable CPS File",
+  savedWorkingRename: "Rename",
+  savedWorkingDeleteTitle: "Delete this saved Working Codeplug?",
+  savedWorkingDeleteDescription:
+    "This removes the named browser snapshot. Exported CPS Files and Backup History are not affected.",
+  savedWorkingEmpty: "No named Working Codeplugs are saved in this browser.",
+  savedWorkingLocalOnly:
+    "Local browser storage is not a portable backup and can be removed when site data is cleared.",
+  savedWorkingErrorTitle: "Saved Working Codeplug operation failed",
+  savedWorkingNotFound: "The saved Working Codeplug no longer exists.",
+  loading: "Loading…",
   cpsFileOpen: "Open CPS File",
   cpsFileExport: "Export CPS File",
   cpsFileOpenReady: "CPS File open",
@@ -930,6 +956,19 @@ const en = {
   backupHistorySaveFailedTitle: "Codeplug Backup was not saved",
   navDiagnostics: "Diagnostics",
   navAbout: "About",
+  aboutTitle: "About UVL-15W CPS",
+  aboutScopeTitle: "Validated Radio scope",
+  aboutScopeDescription:
+    "Production Codeplug support targets the TYT UVL-15W, firmware 3.07.23, desktop Chromium, Web Serial over USB CDC, and complete Source-Radio-bound writes.",
+  aboutSafetyTitle: "Codeplug safety",
+  aboutSafetyDescription:
+    "Radio Read creates an immutable Baseline Backup and editable Working Codeplug. Radio Write requires a reviewable Change Set and preserves unknown bytes.",
+  aboutPlatformTitle: "Local-first application",
+  aboutPlatformDescription:
+    "Radio communication, editing, named Working Codeplugs, backups, and support reports stay on this computer. Portable CPS Files remain the recommended external backup.",
+  aboutUpdaterTitle: "Updater beta boundary",
+  aboutUpdaterDescription:
+    "Firmware and Resource updates remain beta. Automated fault handling is verified, but stable promotion still requires a second compatible Radio and controlled physical interruption and recovery evidence.",
   planned: "Planned",
   plannedUnavailable: "{item} is planned and not yet available.",
   localRadioWorkspace: "Local radio programming",
@@ -1213,7 +1252,24 @@ const en = {
   usedChannelsOnly: "Used only",
   allChannelSlots: "All slots",
   searchChannels: "Search channels",
-  searchChannelsPlaceholder: "Name, number, or frequency",
+  searchChannelsPlaceholder:
+    "Name, number, frequency, tone, mode, Zone, or Scan List",
+  channelFilters: "Filters",
+  channelFiltersDescription:
+    "Narrow the Memory table by mode, tone type, Zone, and Scan List.",
+  closeChannelFilters: "Close channel filters",
+  applyFilters: "Apply filters",
+  resetFilters: "Reset filters",
+  allValues: "All",
+  receiveToneAdvisoryTitle: "Receive tone is enabled",
+  receiveToneAdvisoryDescription:
+    "Audio stays muted unless the received signal includes this CTCSS or DCS tone. RX tone is independent from TX tone.",
+  txBandAdvisoryTitle: "Verify transmit authorization",
+  txBandAdvisoryDescription:
+    "This TX frequency is outside the published EU/FCC amateur bands for this Radio. Confirm the Radio variant, local rules, licence, and frequency authorization before transmitting.",
+  membershipConsistencyWarningTitle: "Zone or Scan List data is inconsistent",
+  membershipConsistencyWarningDescription:
+    "The Codeplug contains {count, plural, one {# mismatch} other {# mismatches}} between ordered members and membership bitmaps. Review the affected collections before Radio Write.",
   columnVisibility: "Columns",
   basicColumns: "Basic",
   advancedColumns: "Advanced",

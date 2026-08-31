@@ -75,6 +75,8 @@ function AppHeader() {
     "/signal-system": t("navSignalSystem"),
     "/backups": t("navBackups"),
     "/updates": t("navUpdates"),
+    "/diagnostics": t("navDiagnostics"),
+    "/about": t("navAbout"),
     "/prototype/firmware-compatibility": t("navFirmwareSimulator"),
     "/prototype/radio-write": t("radioWriteTitle"),
   }

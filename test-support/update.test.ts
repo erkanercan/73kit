@@ -87,8 +87,9 @@ test("creates a portable error report without serializing the package object", (
   const updatePackage = firmwarePackage(1)
   const report = createUpdateDiagnosticReport({
     generatedAt: "2026-08-28T12:34:56.000Z",
-    pageUrl: "http://localhost:3000/en/updates",
-    userAgent: "Test Browser",
+    locale: "en",
+    pathname: "http://localhost:3000/en/updates?secret=value",
+    environment: diagnosticEnvironment(),
     phase: "outcome-unknown",
     errorCode: "response-timeout",
     selectedPackage: updatePackage,
@@ -97,8 +98,12 @@ test("creates a portable error report without serializing the package object", (
       completedBlocks: 111,
       totalBlocks: 1590,
     },
-    recoveryRecord: { lastAcknowledgedBlock: 111 },
-    transferResult: null,
+    recovery: {
+      phase: "transferring",
+      errorCode: "response-timeout",
+      lastAcknowledgedBlock: 111,
+    },
+    transfer: null,
     events: [
       {
         sequence: 1,
@@ -106,6 +111,7 @@ test("creates a portable error report without serializing the package object", (
         kind: "error",
         code: "response-timeout",
         detail: "Timed out with 0 decoder bytes pending",
+        frameHex: "SECRET-FRAME-BYTES",
       },
     ],
   })
@@ -120,31 +126,35 @@ test("creates a portable error report without serializing the package object", (
     report.fileName,
     "tyt-uvl15w-update-error-2026-08-28T12-34-56.000Z.json"
   )
-  assert.equal(content.schemaVersion, 1)
+  assert.equal(content.schemaVersion, 2)
   assert.equal(content.failure.errorCode, "response-timeout")
   assert.equal(content.protocolEvents[0]?.detail.includes("0 decoder"), true)
   assert.equal("bytes" in content.package, false)
+  assert.equal(report.content.includes("SECRET-FRAME-BYTES"), false)
+  assert.equal(report.content.includes("secret=value"), false)
 })
 
 test("restores package metadata in an error report after a page reload", () => {
   const updatePackage = firmwarePackage(1)
   const report = createUpdateDiagnosticReport({
     generatedAt: "2026-08-28T12:34:56.000Z",
-    pageUrl: "http://localhost:3000/tr/updates",
-    userAgent: "Test Browser",
+    locale: "tr",
+    pathname: "/tr/updates",
+    environment: diagnosticEnvironment(),
     phase: "outcome-unknown",
     errorCode: "response-timeout",
-    selectedPackage: null,
+    selectedPackage: updatePackage,
     progress: {
       percent: 10,
       completedBlocks: 111,
       totalBlocks: 1590,
     },
-    recoveryRecord: {
-      packageSummary: updatePackage,
+    recovery: {
+      phase: "transferring",
+      errorCode: "response-timeout",
       lastAcknowledgedBlock: 111,
     },
-    transferResult: null,
+    transfer: null,
     events: [],
   })
   const content = JSON.parse(report.content) as {
@@ -361,6 +371,82 @@ test("marks a disconnect after Resource Flash begins as Update Outcome Unknown",
   })
   transport.assertComplete()
 })
+
+for (const [label, interruptedBlock] of [
+  ["first", 0],
+  ["middle", 1],
+  ["final", 2],
+] as const) {
+  test(`classifies a ${label}-block Firmware disconnect without advancing recovery`, async () => {
+    const updatePackage = firmwarePackage(3)
+    const acknowledgedSteps = Array.from(
+      { length: interruptedBlock },
+      () =>
+        ({
+          expectedWrite: expectCommand(0xc2),
+          responseChunks: [encodeResponseFrame(0x2c, encoder.encode("OK"))],
+        }) satisfies ScriptStep
+    )
+    const transport = new ScriptedTransport([
+      ...handshakeSteps(),
+      ...acknowledgedSteps,
+      { expectedWrite: expectCommand(0xc2), closeAfterWrite: true },
+    ])
+    const updater = createUvl15wUpdater(transport, {
+      responseTimeoutMs: 100,
+      compatibilityPolicy: testCompatibilityPolicy(),
+    })
+
+    await assert.rejects(updater.update(updatePackage), (error) => {
+      assert.ok(error instanceof Uvl15wUpdaterError)
+      assert.equal(error.outcomeUnknown, true)
+      assert.equal(error.recovery?.lastAcknowledgedBlock, interruptedBlock)
+      return true
+    })
+    transport.assertComplete()
+  })
+
+  test(`classifies a ${label}-block Resource Flash disconnect without advancing recovery`, async () => {
+    const oneBlockPackage = resourcePackage()
+    const updatePackage = {
+      ...oneBlockPackage,
+      byteLength: 3 * 512,
+      blockCount: 3,
+      endAddress: oneBlockPackage.startAddress + 3 * 512,
+      bytes: Uint8Array.from({ length: 3 * 512 }, (_, index) => index),
+    } satisfies ValidatedResourcePackage
+    const acknowledgedSteps = Array.from(
+      { length: interruptedBlock },
+      (_, index) => resourceBlockStep(updatePackage, false, index)
+    )
+    const transport = new ScriptedTransport([
+      ...handshakeSteps(),
+      {
+        expectedWrite: encodeRequestFrame(
+          0xe3,
+          updatePackage.compatibilityPayload
+        ),
+        responseChunks: [
+          encodeResponseFrame(0xe3, encoder.encode("WRITE START OK")),
+        ],
+      },
+      ...acknowledgedSteps,
+      resourceBlockStep(updatePackage, true, interruptedBlock),
+    ])
+    const updater = createUvl15wUpdater(transport, {
+      responseTimeoutMs: 100,
+      compatibilityPolicy: testCompatibilityPolicy(),
+    })
+
+    await assert.rejects(updater.update(updatePackage), (error) => {
+      assert.ok(error instanceof Uvl15wUpdaterError)
+      assert.equal(error.outcomeUnknown, true)
+      assert.equal(error.recovery?.lastAcknowledgedBlock, interruptedBlock)
+      return true
+    })
+    transport.assertComplete()
+  })
+}
 
 for (const message of [
   "Frame Head Error",
@@ -936,6 +1022,16 @@ function sha256(bytes: Uint8Array) {
 
 function toHex(bytes: Uint8Array) {
   return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("")
+}
+
+function diagnosticEnvironment() {
+  return {
+    secureContext: true,
+    online: true,
+    webSerialSupported: true,
+    serviceWorkerSupported: true,
+    indexedDbSupported: true,
+  }
 }
 
 function toSpacedHex(bytes: Uint8Array) {
