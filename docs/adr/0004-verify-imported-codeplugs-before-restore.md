@@ -12,7 +12,7 @@ The Radio Write review presents restored fields through the same semantic Change
 
 ## Consequences
 
-- A `.uvl15cps` file is the normal portable artifact; raw `.bin` remains an advanced, unbound inspection artifact.
+- A `.73kcps` file is the normal portable artifact; raw `.bin` remains an advanced, unbound inspection artifact.
 - Backup History is the direct local restore source; downloading and reopening an entry is optional.
 - The imported Working Codeplug is the desired restore target, whether or not it differs from the exported Baseline Backup.
 - Older firmware is not rejected merely for being older. Its recorded layout determines whether the CPS can restore, migrate, or only inspect it.

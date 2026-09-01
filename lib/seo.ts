@@ -46,7 +46,7 @@ function createPageMetadata({
           url: "/opengraph-image",
           width: 1200,
           height: 630,
-          alt: "73Kit — TYT UVL-15W browser radio programming",
+          alt: "73Kit Radio CPS",
         },
       ],
     },

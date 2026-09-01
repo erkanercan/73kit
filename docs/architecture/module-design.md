@@ -1,28 +1,34 @@
-# Module design
+# 73Kit module design
 
-The CPS is organized around the Codeplug workflow and a separate updater
-workflow, both behind one adapter seam. Application source lives directly at
-the repository root; there is no `src/` directory.
+73Kit has a suite shell and independent tools. Radio CPS is organized around the
+Codeplug workflow and a separate updater workflow, both selected through a
+Radio support registry. Application source lives directly at the repository
+root; there is no `src/` directory.
 
 ```text
 UI
-├── CPS Workspace
-│   ├── UVL-15W Radio
-│   └── Codeplug
-└── Update Coordinator
-    ├── Update Package
-    └── UVL-15W Updater
-        └── Transport seam
-            ├── Web Serial adapter
-            └── Scripted test adapter
+├── 73Kit shell
+└── Radio CPS shell
+    ├── Radio support registry
+    │   └── model + exact firmware support profile
+    ├── CPS Workspace
+    │   ├── selected Radio driver
+    │   └── Codeplug
+    └── Update Coordinator
+        ├── Update Package
+        └── selected Radio updater
+            └── Transport seam
+                ├── Web Serial adapter
+                └── Scripted test adapter
 ```
 
 ## Repository layout
 
 ```text
-app/                         Next.js routes and UI composition
+app/                         73Kit and dynamic Radio CPS routes
 components/                  Shared UI
 modules/
+  radio-support/             Model, alias, capability, profile, and factory registry
   cps-workspace/             CPS workflow and safety invariants
   uvl15w-radio/              Radio protocol and session behaviour
   codeplug/                  Codeplug interpretation and editing
@@ -40,6 +46,30 @@ test-support/
 ```
 
 Create these directories only when their first implementation file is needed.
+
+## Application and route composition
+
+Suite-level routes use the general 73Kit shell. A selected, recognized
+`/cps/{radioModel}` route composes the Radio Model provider, CPS Workspace,
+Update Coordinator, and CPS shell. General routes do not initialize serial,
+Codeplug, updater, or Radio Write recovery state.
+
+Radio Model is runtime catalog data, so every model shares one dynamic CPS route
+tree. Model-specific feature availability comes from capabilities, while
+model-specific implementation comes from the workspace factory. See
+[73Kit and Radio CPS platform architecture](73kit-radio-cps-platform.md).
+
+## Radio support registry
+
+The Radio support registry is the entry point from selected model identity to
+model-specific behavior. It owns stable model IDs, aliases, capabilities, exact
+firmware support profiles, and route construction. The workspace factory must
+fail for an unregistered driver; it must never use a default Radio implementation.
+
+A support profile binds an exact firmware version to a Codeplug Layout. Unknown
+or unvalidated versions have no layout and cannot authorize a Radio Read or
+write. The current 102,400-byte size belongs only to the UVL-15W `3.07.23`
+profile.
 
 ## CPS Workspace
 
@@ -69,7 +99,7 @@ reported independently and never change a completed Radio operation into a
 failed one.
 
 Named Working Codeplugs use a third store in the same versioned IndexedDB
-database. Each record contains an immutable `.uvl15cps` snapshot, its verified
+database. Each record contains an immutable `.73kcps` snapshot, its verified
 manifest, a unique normalized display name, timestamps and an optimistic
 revision. Create never overwrites an existing name; rename and delete require
 the expected revision. Opening a saved entry passes through the normal CPS File

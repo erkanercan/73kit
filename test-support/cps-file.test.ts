@@ -55,6 +55,18 @@ test("rejects a CPS File whose working member no longer matches its hash", async
   await assert.rejects(() => parseCpsFile(file), CpsFileError)
 })
 
+test("rejects export when Source Radio and support profile do not match", async () => {
+  await assert.rejects(
+    () =>
+      createCpsFile({
+        sourceRadio: { ...sourceRadio, firmwareVersion: "3.08.00" },
+        baseline: createCodeplug(new Uint8Array(CODEPLUG_SIZE)),
+        working: createCodeplug(new Uint8Array(CODEPLUG_SIZE)),
+      }),
+    CpsFileError
+  )
+})
+
 test("does not infer compatibility for an unknown layout", () => {
   assert.deepEqual(evaluateCpsFileCompatibility("uvl15w-3.08.00"), {
     status: "unsupported-layout",

@@ -3,11 +3,11 @@ import type { Locale } from "@/i18n/routing"
 const SITE_ORIGIN = new URL("https://cps.erkan.dev")
 const SITE_NAME = "73Kit"
 const SITE_LAST_REVIEWED = new Date("2026-08-31T00:00:00.000Z")
-const PUBLIC_INDEXABLE_PATHS = [""] as const
+const PUBLIC_INDEXABLE_PATHS = ["", "cps", "cps/tyt-uvl15w"] as const
 
 const SITE_DESCRIPTIONS: Record<Locale, string> = {
-  en: "Program, back up, and manage a TYT UVL-15W Codeplug locally in a compatible desktop browser.",
-  tr: "TYT UVL-15W Codeplug'ını uyumlu bir masaüstü tarayıcıda yerel olarak programlayın, yedekleyin ve yönetin.",
+  en: "Program and back up supported Radios in a compatible desktop browser.",
+  tr: "Desteklenen telsizleri uyumlu bir masaüstü tarayıcıda programlayın ve yedekleyin.",
 }
 
 function absoluteUrl(pathname = "/") {

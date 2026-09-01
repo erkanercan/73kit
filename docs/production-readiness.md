@@ -1,6 +1,6 @@
 # Production readiness
 
-Last reviewed: 2026-08-31
+Last reviewed: 2026-09-01
 
 ## Decision
 
@@ -16,14 +16,14 @@ firmware version, transport, or firmware/resource update scenario.
 - USB CDC only;
 - TYT UVL-15W firmware `3.07.23` only;
 - a complete Working Codeplug created by this CPS from the Source Radio;
-- `.uvl15cps` export, verified offline import/reopen/edit/re-export, and
+- `.73kcps` export, verified offline import/reopen/edit/re-export, and
   same-layout restore preparation after a fresh Source Radio read;
 - direct verified restore preparation from a browser-local Backup History entry;
 - named immutable browser-local Working Codeplug snapshots with verified reopen
   and portable export;
 - installable application shell and previously visited-route offline fallback,
   excluding every Codeplug, report and updater package artifact from caches;
-- complete 102,400-byte writes only;
+- complete 102,400-byte writes for the validated `3.07.23` profile only;
 - Radios with write protection disabled;
 - permanent Source Radio identity containing model, sub-model, CPU ID, and
   serial number.
@@ -75,17 +75,15 @@ Any interruption after writing may have begun remains durable
   offsets, encodings, indexes, round trips, and unrelated-byte preservation;
 - local Web Audio Tone Preview for DTMF, 2-Tone, and all 15 supported 5-Tone
   plans; preview never opens Web Serial or mutates the Codeplug;
-- source verification: 271 tests, typecheck, lint, and production build passed
-  on 2026-08-31;
+- source verification: 291 tests, typecheck, lint, and production build passed
+  on 2026-09-01;
 - production-mode browser smoke test passed with no console warnings or errors;
 - automated production-mode Chromium smoke coverage verifies both locales, the
   updater beta gate, and visible direct-restore failure handling.
 
 ## Remaining planned product work
 
-- Raw Backup import as an Unbound Codeplug;
 - selection-wide bulk editing;
-- dedicated undo/redo;
 - FM noise-suppression/auto-scan encoding research.
 
 These improve completeness and resilience but do not weaken the released

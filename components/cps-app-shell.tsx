@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { DocumentHistoryControls } from "@/components/document-history-controls"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { RadioReadButton } from "@/components/radio-read-button"
+import { useRadioModel } from "@/components/radio-model-provider"
 import { RadioWriteDialog } from "@/components/radio-write/radio-write-dialog"
 import {
   useCpsWorkspace,
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/sidebar"
 import { usePathname } from "@/i18n/navigation"
 import { formatPercent } from "@/lib/format-percent"
+import { radioCpsPath } from "@/modules/radio-support/index"
 
 function CpsAppShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations()
@@ -60,7 +62,11 @@ function AppHeader() {
   const { busy, capability, completedRead, readRadio } = useCpsWorkspace()
   const { busy: updateBusy } = useUpdateCoordinator()
   const pathname = usePathname()
+  const radioModel = useRadioModel()
   const t = useTranslations()
+  const basePath = radioCpsPath(radioModel.id)
+  const workspacePath =
+    pathname === basePath ? "/" : pathname.slice(basePath.length) || "/"
   const exactPageTitles: Record<string, string> = {
     "/": t("navOverview"),
     "/radio": t("navRadio"),
@@ -81,9 +87,9 @@ function AppHeader() {
     "/prototype/firmware-compatibility": t("navFirmwareSimulator"),
     "/prototype/radio-write": t("radioWriteTitle"),
   }
-  const pageTitle = pathname.startsWith("/radio-settings")
+  const pageTitle = workspacePath.startsWith("/radio-settings")
     ? t("navSettings")
-    : (exactPageTitles[pathname] ?? t("navOverview"))
+    : (exactPageTitles[workspacePath] ?? t("navOverview"))
   return (
     <header className="sticky top-0 flex h-14 shrink-0 items-center gap-2 bg-background px-3 sm:px-4">
       <SidebarTrigger className="-ml-1" />
@@ -165,7 +171,7 @@ function WorkspaceStatusBar() {
           rel="noopener noreferrer"
           className="ml-auto shrink-0 font-medium text-foreground underline-offset-4 hover:underline"
         >
-          {t("footerMadeBy")} erkan.dev
+          {t("footerMadeBy")} TA4EN - erkan.dev
         </a>
       </footer>
     </>

@@ -37,7 +37,8 @@ opens no serial port.
 1. Make a current Raw Backup with **Radio Read**.
 2. Use a charged Radio battery and a direct, stable USB connection.
 3. Close the official TYT CPS and every other program that could own the port.
-4. Open `/tr/updates` or `/en/updates` in the development build.
+4. Open `/tr/cps/tyt-uvl15w/updates` or
+   `/en/cps/tyt-uvl15w/updates` in the development build.
 5. Choose exactly one package. Confirm the expected kind, version, and block
    count before a serial-port prompt appears.
 6. Power the Radio off. Hold PTT plus the top orange button while powering it

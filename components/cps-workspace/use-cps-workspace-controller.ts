@@ -5,6 +5,7 @@ import * as React from "react"
 import { useCollectionActions } from "@/components/cps-workspace/use-collection-actions"
 import { useMemoryChannelActions } from "@/components/cps-workspace/use-memory-channel-actions"
 import { useSettingsActions } from "@/components/cps-workspace/use-settings-actions"
+import { useRadioModel } from "@/components/radio-model-provider"
 import {
   browserDiagnosticEnvironment,
   safeRadioMetadata,
@@ -34,12 +35,12 @@ import {
 import { createIndexedDbRadioWriteStore } from "@/adapters/indexed-db-radio-write-store/index"
 import { createIndexedDbBackupHistoryStore } from "@/adapters/indexed-db-backup-history-store/index"
 import {
-  createCpsWorkspace,
   type BackupHistoryEntry,
   type CpsWorkspace,
   type RadioWriteOperationSnapshot,
   type RadioWriteReviewItem,
 } from "@/modules/cps-workspace/index"
+import { createCpsWorkspaceForRadioModel } from "@/modules/radio-support/cps-workspace"
 import {
   createCpsFile,
   parseCpsFile,
@@ -80,6 +81,7 @@ const RADIO_WRITE_RELEASED = isRadioWriteReleased({
 })
 
 function useCpsWorkspaceController() {
+  const radioModel = useRadioModel()
   const workspace = React.useRef<CpsWorkspace | null>(null)
   const radioTransport = React.useRef<WebSerialTransport | null>(null)
   const mounted = React.useRef(true)
@@ -208,14 +210,18 @@ function useCpsWorkspaceController() {
       const nextTransport = createWebSerialTransport({
         baudRate: POC_VERIFIED_BAUD_RATE,
       })
-      const nextWorkspace = createCpsWorkspace(nextTransport, {
-        radioWriteStore: createIndexedDbRadioWriteStore(),
-        backupHistoryStore: createIndexedDbBackupHistoryStore(),
-        onBackupHistoryError: () => {
-          if (mounted.current) setError({ key: "backupHistorySaveFailed" })
-        },
-        onDebugEvent: recordRadioDebugEvent,
-      })
+      const nextWorkspace = createCpsWorkspaceForRadioModel(
+        radioModel.id,
+        nextTransport,
+        {
+          radioWriteStore: createIndexedDbRadioWriteStore(),
+          backupHistoryStore: createIndexedDbBackupHistoryStore(),
+          onBackupHistoryError: () => {
+            if (mounted.current) setError({ key: "backupHistorySaveFailed" })
+          },
+          onDebugEvent: recordRadioDebugEvent,
+        }
+      )
       radioTransport.current = nextTransport
       workspace.current = nextWorkspace
 
@@ -274,6 +280,7 @@ function useCpsWorkspaceController() {
     capability,
     completedRead,
     recordRadioDebugEvent,
+    radioModel.id,
     recordRadioDiagnostic,
   ])
 
@@ -409,9 +416,9 @@ function useCpsWorkspaceController() {
       working: completedRead.workingCodeplug.codeplug,
     })
     downloadBytes(
-      `${safeFilename(completedRead.sourceRadio.serialNumber || completedRead.sourceRadio.model)}-${new Date().toISOString().slice(0, 10)}.uvl15cps`,
+      `${safeFilename(completedRead.sourceRadio.serialNumber || completedRead.sourceRadio.model)}-${new Date().toISOString().slice(0, 10)}.73kcps`,
       bytes,
-      "application/vnd.tyt.uvl15-cps+zip"
+      "application/vnd.73kit.cps+zip"
     )
   }, [completedRead])
 
@@ -508,14 +515,18 @@ function useCpsWorkspaceController() {
         const nextTransport = createWebSerialTransport({
           baudRate: POC_VERIFIED_BAUD_RATE,
         })
-        const nextWorkspace = createCpsWorkspace(nextTransport, {
-          radioWriteStore: createIndexedDbRadioWriteStore(),
-          backupHistoryStore: createIndexedDbBackupHistoryStore(),
-          onBackupHistoryError: () => {
-            if (mounted.current) setError({ key: "backupHistorySaveFailed" })
-          },
-          onDebugEvent: recordRadioDebugEvent,
-        })
+        const nextWorkspace = createCpsWorkspaceForRadioModel(
+          radioModel.id,
+          nextTransport,
+          {
+            radioWriteStore: createIndexedDbRadioWriteStore(),
+            backupHistoryStore: createIndexedDbBackupHistoryStore(),
+            onBackupHistoryError: () => {
+              if (mounted.current) setError({ key: "backupHistorySaveFailed" })
+            },
+            onDebugEvent: recordRadioDebugEvent,
+          }
+        )
         radioTransport.current = nextTransport
         workspace.current = nextWorkspace
         const radio = await nextWorkspace.connect()
@@ -564,7 +575,13 @@ function useCpsWorkspaceController() {
         operationInProgress.current = false
       }
     },
-    [busy, capability, recordRadioDebugEvent, recordRadioDiagnostic]
+    [
+      busy,
+      capability,
+      radioModel.id,
+      recordRadioDebugEvent,
+      recordRadioDiagnostic,
+    ]
   )
 
   const prepareImportedRestore = React.useCallback(async () => {
@@ -661,14 +678,18 @@ function useCpsWorkspaceController() {
       baudRate: POC_VERIFIED_BAUD_RATE,
       preferPreviouslyGrantedPort: true,
     })
-    const recoveryWorkspace = createCpsWorkspace(recoveryTransport, {
-      radioWriteStore: createIndexedDbRadioWriteStore(),
-      backupHistoryStore: createIndexedDbBackupHistoryStore(),
-      onBackupHistoryError: () => {
-        if (mounted.current) setError({ key: "backupHistorySaveFailed" })
-      },
-      onDebugEvent: recordRadioDebugEvent,
-    })
+    const recoveryWorkspace = createCpsWorkspaceForRadioModel(
+      radioModel.id,
+      recoveryTransport,
+      {
+        radioWriteStore: createIndexedDbRadioWriteStore(),
+        backupHistoryStore: createIndexedDbBackupHistoryStore(),
+        onBackupHistoryError: () => {
+          if (mounted.current) setError({ key: "backupHistorySaveFailed" })
+        },
+        onDebugEvent: recordRadioDebugEvent,
+      }
+    )
     radioTransport.current = recoveryTransport
     workspace.current = recoveryWorkspace
     void recoveryWorkspace
@@ -690,7 +711,7 @@ function useCpsWorkspaceController() {
       mounted.current = false
       void workspace.current?.disconnect().catch(() => undefined)
     }
-  }, [recordRadioDebugEvent])
+  }, [radioModel.id, recordRadioDebugEvent])
 
   React.useEffect(() => {
     const destructive =

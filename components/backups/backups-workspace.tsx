@@ -187,7 +187,7 @@ function BackupsWorkspace() {
             ref={fileInputRef}
             hidden
             type="file"
-            accept=".uvl15cps,application/vnd.tyt.uvl15-cps+zip"
+            accept=".73kcps,application/vnd.73kit.cps+zip"
             onChange={(event) => void selectCpsFile(event)}
           />
           <input
@@ -627,12 +627,12 @@ async function downloadBackup(entry: BackupHistoryEntry) {
     createdAt: new Date(entry.createdAt),
   })
   const blob = new Blob([bytes.slice().buffer], {
-    type: "application/vnd.tyt.uvl15-cps+zip",
+    type: "application/vnd.73kit.cps+zip",
   })
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement("a")
   anchor.href = url
-  anchor.download = `${serial}-${origin}-${date}.uvl15cps`
+  anchor.download = `${serial}-${origin}-${date}.73kcps`
   anchor.click()
   setTimeout(() => URL.revokeObjectURL(url), 0)
 }

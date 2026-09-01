@@ -42,14 +42,14 @@ Read/write operations target the following absolute range in the radio's externa
 
 ### 2.3 Frame Elements
 
-| Field | Length | Description | Escaping |
-| --- | --- | --- | --- |
-| Request header | 3 bytes | Core header fixed at `FE EE EF`, preceded by at least one `0xFE` preamble byte (s). | Do not escape |
-| Response header | 3 bytes | Core header fixed at `FE EF EE`, preceded by at least one `0xFE` preamble byte (s). | Do not escape |
-| Command byte (CMD) | 1 byte | Identifies the operation; see Section 5 | **Do not escape** |
-| Payload | Variable | Command parameters/data; see Section 5 | **Escape required** |
-| Checksum (LRC) | 1 byte | Longitudinal redundancy check value | **Escape required** |
-| Frame tail | 1 byte | fixed `0xFD` | Do not escape |
+| Field              | Length   | Description                                                                         | Escaping            |
+| ------------------ | -------- | ----------------------------------------------------------------------------------- | ------------------- |
+| Request header     | 3 bytes  | Core header fixed at `FE EE EF`, preceded by at least one `0xFE` preamble byte (s). | Do not escape       |
+| Response header    | 3 bytes  | Core header fixed at `FE EF EE`, preceded by at least one `0xFE` preamble byte (s). | Do not escape       |
+| Command byte (CMD) | 1 byte   | Identifies the operation; see Section 5                                             | **Do not escape**   |
+| Payload            | Variable | Command parameters/data; see Section 5                                              | **Escape required** |
+| Checksum (LRC)     | 1 byte   | Longitudinal redundancy check value                                                 | **Escape required** |
+| Frame tail         | 1 byte   | fixed `0xFD`                                                                        | Do not escape       |
 
 ## 3. Byte Escaping Rules
 
@@ -81,6 +81,7 @@ while (data remains) { if (current\_byte != 0xFF) { // Case 1: normal byte. raw\
 - **Algorithm**: Perform an 8-bit sum (discarding carry), then take its two's complement.
 
   LRC = (unsigned char)(0x100 - (sum & 0xFF));
+
 - **The LRC byte**: The calculated LRC byte **must also be escaped** before being transmitted in the frame.
 - **verify**: The receiver sums the unescaped payload bytes plus the LRC; validation passes when the low 8 bits equal zero.
 
@@ -103,17 +104,17 @@ unsigned char lrc = 0x100 - 0xE1; // = 0x1F
 
 ### 5.1 Command Summary
 
-| Command | Function | Request payload (raw) | Success response | Key notes |
-| --- | --- | --- | --- | --- |
-| **0xE0** | Get device information | 7 bytesModel string | **0xE1** + 71Bdevice information | Handshake command; must send `"UVL-15W"` |
-| **0xE1** | Device information response | 71 bytedevice information | (None) | Response to 0xE0; see Section 5.2 for the format |
-| **0xE2** | Begin read session | 8 bytesAddress range | `"READ START OK"` | Requires read permission (`Clone_Read_Allow==true`) |
-| **0xE3** | Begin write session | 8 bytesAddress range | `"WRITE START OK"` | Requires write permission (`Clone_Write_Allow==true`) |
-| **0xE4** | Write one data block | 6+Nbytes (Address+Length+Data) | **0xE6** + `"WF OK"` +echoed address and length | Must be used after `0xE3` after |
-| **0xE5** | Complete read/write session | operation-specific string (see Section 5.7) | `"Reboot"` | **The radio reboots after this command** |
-| **0xE6** | Read a data block | 6 bytes (Address+Length) | **0xE4** + echoed address and length + Data | Supports fragmented transfer (when length > 128) |
-| **0xE7** | Password Verification | 9 bytes (type+Password) | password result string | Password Verification may be required |
-| **0xEE** | Generic Error | error-description string | (None) | frame/LRC/command errors; see Section 5.10 |
+| Command  | Function                    | Request payload (raw)                       | Success response                                | Key notes                                             |
+| -------- | --------------------------- | ------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------- |
+| **0xE0** | Get device information      | 7 bytesModel string                         | **0xE1** + 71Bdevice information                | Handshake command; must send `"UVL-15W"`              |
+| **0xE1** | Device information response | 71 bytedevice information                   | (None)                                          | Response to 0xE0; see Section 5.2 for the format      |
+| **0xE2** | Begin read session          | 8 bytesAddress range                        | `"READ START OK"`                               | Requires read permission (`Clone_Read_Allow==true`)   |
+| **0xE3** | Begin write session         | 8 bytesAddress range                        | `"WRITE START OK"`                              | Requires write permission (`Clone_Write_Allow==true`) |
+| **0xE4** | Write one data block        | 6+Nbytes (Address+Length+Data)              | **0xE6** + `"WF OK"` +echoed address and length | Must be used after `0xE3` after                       |
+| **0xE5** | Complete read/write session | operation-specific string (see Section 5.7) | `"Reboot"`                                      | **The radio reboots after this command**              |
+| **0xE6** | Read a data block           | 6 bytes (Address+Length)                    | **0xE4** + echoed address and length + Data     | Supports fragmented transfer (when length > 128)      |
+| **0xE7** | Password Verification       | 9 bytes (type+Password)                     | password result string                          | Password Verification may be required                 |
+| **0xEE** | Generic Error               | error-description string                    | (None)                                          | frame/LRC/command errors; see Section 5.10            |
 
 ### 5.2 CMD 0xE0: Get Device Information
 
@@ -124,21 +125,21 @@ unsigned char lrc = 0x100 - 0xE1; // = 0x1F
 
 Response to the CMD 0xE0 handshake. The raw device-information payload is defined by the following offsets and lengths:
 
-| Offset | Length | Field name | Description and valid range |
-| --- | --- | --- | --- |
-| 0 | 7 | Model string | `"UVL-15W"` (ASCII) |
-| 7 | 1 | Separator | `'_'` (0x5F) |
-| 8 | 1 | Sub-model identifier | Fixed at `0x01` |
-| 9 | 1 | Separator | `'_'` (0x5F) |
-| 10 | 1 | Read-protection flag | `0x00` =Read allowed, `0x01` =Password required |
-| 11 | 1 | Write-protection flag | `0x00` =Write allowed, `0x01` =Password required |
-| 12 | 8 | Firmware/software version | 8 bytesFirmware/software version information |
-| 20 | 1 | Separator | `'_'` (0x5F) |
-| 21 | 3 | Image-resource version | Format: {major, minor, revision}, Example: `{0x01, 0x00, 0x00}` |
-| 24 | 12 | CPU unique ID | 12 bytesCPU unique identifier |
-| 36 | 16 | Bootloader model information | 16 bytesModel information stored by the bootloader |
-| 52 | 9 | Hardware version (decrypted) | 9-byte decrypted hardware-version string |
-| 61 | 20 | Serial number (decrypted) | 20-byte decrypted serial-number string |
+| Offset | Length | Field name                   | Description and valid range                                     |
+| ------ | ------ | ---------------------------- | --------------------------------------------------------------- |
+| 0      | 7      | Model string                 | `"UVL-15W"` (ASCII)                                             |
+| 7      | 1      | Separator                    | `'_'` (0x5F)                                                    |
+| 8      | 1      | Sub-model identifier         | Fixed at `0x01`                                                 |
+| 9      | 1      | Separator                    | `'_'` (0x5F)                                                    |
+| 10     | 1      | Read-protection flag         | `0x00` =Read allowed, `0x01` =Password required                 |
+| 11     | 1      | Write-protection flag        | `0x00` =Write allowed, `0x01` =Password required                |
+| 12     | 8      | Firmware/software version    | 8 bytesFirmware/software version information                    |
+| 20     | 1      | Separator                    | `'_'` (0x5F)                                                    |
+| 21     | 3      | Image-resource version       | Format: {major, minor, revision}, Example: `{0x01, 0x00, 0x00}` |
+| 24     | 12     | CPU unique ID                | 12 bytesCPU unique identifier                                   |
+| 36     | 16     | Bootloader model information | 16 bytesModel information stored by the bootloader              |
+| 52     | 9      | Hardware version (decrypted) | 9-byte decrypted hardware-version string                        |
+| 61     | 20     | Serial number (decrypted)    | 20-byte decrypted serial-number string                          |
 
 **Note**: After receiving this response, the host should check the read/write protection flags at bytes 10 and 11 to determine whether password verification is required (`CMD 0xE7`).
 
@@ -152,7 +153,7 @@ Response to the CMD 0xE0 handshake. The raw device-information payload is define
   - Raw data: `{0x00, 0x00, 0x80, 0x00, 0x00, 0x02, 0x10, 0x00}`
   - Escaped: raw byte + 0x80 -> `{0x80, 0x80, 0x00, 0x80, 0x80, 0x82, 0x90, 0x80}`
   - LRC calculation (raw payload): `0x00+0x00+0x80+0x00+0x00+0x02+0x10+0x00=0x92`, two's complement `0x6E`, Escaped `0x6E+0x80=0xEE`.
-  - **Complete request-frame example (two 0xFE preamble bytes)**: *FE FE EE EF E2 80 80 00 80 80 82 90 80 EE FD*
+  - **Complete request-frame example (two 0xFE preamble bytes)**: _FE FE EE EF E2 80 80 00 80 80 82 90 80 EE FD_
 - **Response**: ASCII string `"READ START OK"` (escaped).
 
 ### 5.5 CMD 0xE3: Begin Write/Clone Session
@@ -165,7 +166,7 @@ Response to the CMD 0xE0 handshake. The raw device-information payload is define
   - Raw data: `{0x00, 0x00, 0x80, 0x00, 0x00, 0x02, 0x10, 0x00}`
   - Escaped: raw byte + 0x80 -> `{0x80, 0x80, 0x00, 0x80, 0x80, 0x82, 0x90, 0x80}`
   - LRC calculation (raw payload): `0x00+0x00+0x80+0x00+0x00+0x02+0x10+0x00=0x92`, two's complement `0x6E`, Escaped `0x6E+0x80=0xEE`.
-  - **Complete request-frame example (two 0xFE preamble bytes)**: *FE FE EE EF E3 80 80 00 80 80 82 90 80 EE FD*
+  - **Complete request-frame example (two 0xFE preamble bytes)**: _FE FE EE EF E3 80 80 00 80 80 82 90 80 EE FD_
 - **Response**: ASCII string `"WRITE START OK"` (escaped).
 
 ### 5.6 CMD 0xE4: Write a Data Block
@@ -187,8 +188,8 @@ Response to the CMD 0xE0 handshake. The raw device-information payload is define
     - LRC\_raw value: `LRC_raw = 0x100 - S`.
     - LRC escaping: `LRC_escaped = LRC_raw + 0x80` (if result <= 0xF9), or use `0xFF` escaping.
   - **Complete request-frame structure example**:
-    *[preamble 0xFE] [preamble 0xFE] 0xEE 0xEF E4 [escaped518 bytesPayload] [escaped LRC] FD*
-    *This is a structural example. Actual frame length is approximately 2(preamble) + 3(frame header) + 1(CMD) + 518(escaped payload; length may increase due to special escapes) + 1(LRC) + 1(Frame tail) = 526 bytesapproximately.*
+    _[preamble 0xFE] [preamble 0xFE] 0xEE 0xEF E4 [escaped518 bytesPayload] [escaped LRC] FD_
+    _This is a structural example. Actual frame length is approximately 2(preamble) + 3(frame header) + 1(CMD) + 518(escaped payload; length may increase due to special escapes) + 1(LRC) + 1(Frame tail) = 526 bytesapproximately._
 - **Response (0xE6)**: Payload is `"WF OK"` (5 bytes) + echoed address (4 bytes) + echoed length (2 bytes).
 
 Source revision note: corrected CMD 0xE5 description
@@ -203,13 +204,13 @@ Source revision note: corrected CMD 0xE5 description
   - Escaped: For the13 bytesapply `+0x80` operation.
   - Calculate LRC over the 13 raw bytes, then escape the LRC.
   - **Complete request-frame example (two 0xFE preamble bytes)**:
-    *FE FE EE EF E5 [escaped"Read Complete"] [escaped LRC] FD*
+    _FE FE EE EF E5 [escaped"Read Complete"] [escaped LRC] FD_
 - **Example2: Write complete (send"Write Complete")**:
   - Raw payload: `"Write Complete"` → ASCII: `{0x57, 0x72, 0x69, 0x74, 0x65, 0x20, 0x43, 0x6F, 0x6D, 0x70, 0x6C, 0x65, 0x74, 0x65}`
   - Escaped: For the14 bytesapply `+0x80` operation.
   - Calculate LRC over the 14 raw bytes, then escape the LRC.
   - **Complete request-frame example (two 0xFE preamble bytes)**:
-    *FE FE EE EF E5 [escaped"Write Complete"] [escaped LRC] FD*
+    _FE FE EE EF E5 [escaped"Write Complete"] [escaped LRC] FD_
 - **Response**: ASCII string `"Reboot"` (escaped). **After sending this response, the radio automatically reboots after approximately 400 ms**, The host should be prepared to reconnect.
 
 ### 5.8 CMD 0xE6: Read Data Block
@@ -245,15 +246,15 @@ Source revision note: corrected CMD 0xE5 description
 
 The radio returns CMD 0xEE when request parsing or execution fails. A robust CPS should handle these errors explicitly. **Error string (escaped)** and **Trigger condition** as follows:
 
-| Error message (raw ASCII) | Trigger condition | Recommended host handling |
-| --- | --- | --- |
-| `"Frame Head Error"` | The received frame core header (`FE EE EF`) is incorrect. | Verify the transmitted header and check the link for corruption. |
-| `"Frame Tail Error"` | The received frame does not end with `0xFD`. | Check frame integrity and whether the data stream was truncated. |
-| `"Frame Length Error"` | The received frame is too short (<5 bytes), not enough to form a valid frame. | Verify that the request was transmitted completely. |
-| `"Frame Lrc Error"` | The received frame failed LRC validation. | Check payload escaping and LRC calculation. **The host should retry the failed request**. This is a common transport/protocol error. |
-| `"Option Value Error"` | The command byte is unknown, or a CMD 0xE8 subfunction is unsupported. | Verify the command byte and whether the installed firmware supports it. |
+| Error message (raw ASCII) | Trigger condition                                                             | Recommended host handling                                                                                                            |
+| ------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `"Frame Head Error"`      | The received frame core header (`FE EE EF`) is incorrect.                     | Verify the transmitted header and check the link for corruption.                                                                     |
+| `"Frame Tail Error"`      | The received frame does not end with `0xFD`.                                  | Check frame integrity and whether the data stream was truncated.                                                                     |
+| `"Frame Length Error"`    | The received frame is too short (<5 bytes), not enough to form a valid frame. | Verify that the request was transmitted completely.                                                                                  |
+| `"Frame Lrc Error"`       | The received frame failed LRC validation.                                     | Check payload escaping and LRC calculation. **The host should retry the failed request**. This is a common transport/protocol error. |
+| `"Option Value Error"`    | The command byte is unknown, or a CMD 0xE8 subfunction is unsupported.        | Verify the command byte and whether the installed firmware supports it.                                                              |
 
-**Important**: All error responses use the standard response-frame format: *[preamble FE]... FE EF EE EE [escaped error information] [escaped LRC] FD*. When the host receives *CMD 0xEE* it should apply an appropriate **retry strategy** or error-handling strategy.e.g., if `"Frame Lrc Error"` causes a block read/write failure, retry the corresponding `0xE6` or `0xE4` command.
+**Important**: All error responses use the standard response-frame format: _[preamble FE]... FE EF EE EE [escaped error information] [escaped LRC] FD_. When the host receives _CMD 0xEE_ it should apply an appropriate **retry strategy** or error-handling strategy.e.g., if `"Frame Lrc Error"` causes a block read/write failure, retry the corresponding `0xE6` or `0xE4` command.
 
 ## 6. Typical Communication Flows
 

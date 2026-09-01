@@ -10,11 +10,13 @@ and select only the plain primary and secondary symbols unless a future radio
 comparison proves another storage field.
 
 The implemented picker uses the aprs.fi sprites from `hessu/aprs-symbols`, as
-selected for this project. Both high-DPI sheets are vendored at a pinned commit
-with the upstream README, complete copyright inventory, and checksums in
-`public/aprs-symbols/`. The inventory identifies mixed and sometimes unknown
-per-symbol provenance; that limitation remains explicit rather than presenting
-the artwork as one permissively licensed set.
+selected for this project. Both high-DPI sheets are vendored locally. Their
+exact upstream commit was not recorded, so
+[`public/aprs-symbols/NOTICE.md`](../../public/aprs-symbols/NOTICE.md) records
+that provenance gap, local checksums, and the upstream per-symbol copyright
+inventory. The inventory identifies mixed and sometimes unknown provenance;
+that limitation remains explicit rather than presenting the artwork as one
+permissively licensed set.
 
 ## Formal encoding
 
@@ -26,8 +28,7 @@ calls the Information-field form the preferred method and gives `/>` as the
 primary-table car example. [APRS Protocol Reference 1.0.1, Chapter 20, pp.
 90-93](https://www.aprs.org/doc/APRS101.PDF#page=99)
 
-The symbol-code space is the 94 printable ASCII characters from `!` (decimal
-33) through `~` (decimal 126). Appendix 2 numbers these `01` through `94` in
+The symbol-code space is the 94 printable ASCII characters from `!` (decimal 33) through `~` (decimal 126). Appendix 2 numbers these `01` through `94` in
 both tables. Therefore the mappings relevant to this repository are:
 
 ```text

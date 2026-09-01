@@ -1,4 +1,4 @@
-const CACHE_VERSION = "uvl15w-shell-v2"
+const CACHE_VERSION = "73kit-shell-v3"
 const SHELL_URLS = [
   "/tr",
   "/en",
@@ -10,7 +10,7 @@ const SHELL_URLS = [
   "/aprs-symbols/secondary@2x.png",
 ]
 
-const NEVER_CACHE_EXTENSIONS = [".uvl15cps", ".bin", ".dat", ".fir", ".json"]
+const NEVER_CACHE_EXTENSIONS = [".73kcps", ".bin", ".dat", ".fir", ".json"]
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -32,7 +32,10 @@ self.addEventListener("activate", (event) => {
         Promise.all(
           keys
             .filter(
-              (key) => key.startsWith("uvl15w-shell-") && key !== CACHE_VERSION
+              (key) =>
+                (key.startsWith("uvl15w-shell-") ||
+                  key.startsWith("73kit-shell-")) &&
+                key !== CACHE_VERSION
             )
             .map((key) => caches.delete(key))
         )

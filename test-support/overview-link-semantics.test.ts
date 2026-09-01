@@ -9,11 +9,11 @@ const source = readFileSync(
 
 test("renders Overview navigation as links instead of Base UI buttons", () => {
   assert.doesNotMatch(source, /<Button[^>]*render=\{<Link/)
-  for (const href of ["/channels", "/radio", "/backups"]) {
+  for (const href of ["channelsPath", "radioPath", "backupsPath"]) {
     assert.match(
       source,
       new RegExp(
-        `<Link[\\s\\S]{0,160}href="${href}"[\\s\\S]{0,160}buttonVariants`
+        `<Link[\\s\\S]{0,160}href=\\{${href}\\}[\\s\\S]{0,160}buttonVariants`
       )
     )
   }

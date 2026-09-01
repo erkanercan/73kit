@@ -238,7 +238,7 @@ E5, then reboot
    group. APRS and GPS already use standalone routes there
    ([sidebar, lines 75-96](../../components/app-sidebar.tsx#L75-L96)); the GPS
    route is a thin page that delegates to a workspace component
-   ([GPS page, lines 1-5](../../app/%5Blocale%5D/gps/page.tsx#L1-L5)).
+   ([GPS page](../../app/%5Blocale%5D/cps/%5BradioModel%5D/gps/page.tsx)).
 2. Follow the GPS desktop shell: read-required empty state, `PageHeader`, pending
    Bluetooth change count, and two-column cards
    ([GPS workspace, lines 49-89](../../components/gps/gps-workspace.tsx#L49-L89),

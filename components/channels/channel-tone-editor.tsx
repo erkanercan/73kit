@@ -204,9 +204,7 @@ function toneForType(
   const reverse = type.endsWith("-reverse")
   if (type.startsWith("ctcss")) {
     const frequencyHz =
-      current.kind === "ctcss"
-        ? current.frequencyHz
-        : CTCSS_FREQUENCIES_HZ[0]
+      current.kind === "ctcss" ? current.frequencyHz : CTCSS_FREQUENCIES_HZ[0]
     return { kind: "ctcss", frequencyHz, ...(reverse && { reverse: true }) }
   }
 
@@ -220,7 +218,11 @@ function toneForValue(
 ): Exclude<Tone, { readonly kind: "off" | "unknown" }> {
   const reverse = type.endsWith("-reverse")
   return type.startsWith("ctcss")
-    ? { kind: "ctcss", frequencyHz: Number(value), ...(reverse && { reverse: true }) }
+    ? {
+        kind: "ctcss",
+        frequencyHz: Number(value),
+        ...(reverse && { reverse: true }),
+      }
     : { kind: "dcs", code: value, ...(reverse && { reverse: true }) }
 }
 

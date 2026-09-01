@@ -2,14 +2,15 @@ import type { Messages } from "@/dictionaries/en"
 import { menuVisibilityMessagesTr } from "./menu-visibility.ts"
 
 const tr = {
-  historyControlsLabel: "Çalışma Codeplug'ı geçmişi",
+  historyControlsLabel: "Codeplug değişiklik geçmişi",
   undo: "Geri Al",
   redo: "Yinele",
   undoUnavailable: "Geri alınacak işlem yok",
   redoUnavailable: "Yinelenecek işlem yok",
   undoShortcut: "Ctrl/Command Z",
   redoShortcut: "Ctrl Y veya Ctrl/Command Shift Z",
-  serialPortSelectionRequired: "Devam etmek için Kaynak Telsiz portunu seçin.",
+  serialPortSelectionRequired:
+    "Devam etmek için Kaynak Telsizin seri portunu seçin.",
   radioWriteTitle: "Telsize Yazma",
   radioWriteDescription:
     "Kaynak Telsizi seçin, Değişiklik Kümesini inceleyin ve Codeplug'un tamamını yazın.",
@@ -25,7 +26,7 @@ const tr = {
   radioWriteNoChangesDescription:
     "Telsize Yazma işlemini başlatmadan önce Çalışma Codeplug'ını düzenleyin.",
   radioWriteStopped: "Telsize Yazma durdu",
-  radioWriteUnknownTitle: "Yazma Sonucu Bilinmiyor",
+  radioWriteUnknownTitle: "Yazmanın sonucu belirsiz",
   radioWriteUnknownDescription:
     "Telsiz yazmanın tamamlandığını onaylamadı. Yeniden denemeden önce USB bağlantısını ve Telsizin gücünü kontrol edin.",
   radioWriteCompletedTitle: "Telsize Yazma tamamlandı",
@@ -54,28 +55,29 @@ const tr = {
   radioWriteSubjectTwoToneSettings: "2-Tone ayarları",
   radioWriteSubjectFiveToneSettings: "5-Tone ayarları",
   radioWriteSubjectFmBroadcastSettings: "FM Radyo ayarları",
-  radioWriteSubjectWriteImagePreparation: "Yazma görüntüsü hazırlığı",
+  radioWriteSubjectWriteImagePreparation:
+    "Telsize yazılacak Codeplug'ın hazırlanması",
   radioWriteSubjectVfoScanEdge: "VFO tarama sınırı {number, number}",
-  radioWriteSubjectFmChannel: "FM preset {number, number}",
-  radioWriteSubjectBandZones: "Band {band} Bölge seçimi",
-  radioWriteSubjectBandScanLists: "Band {band} Tarama Listesi seçimi",
-  radioWriteSubjectBandScanEdges: "Band {band} VFO tarama sınırları",
+  radioWriteSubjectFmChannel: "FM hafızası {number, number}",
+  radioWriteSubjectBandZones: "Bant {band} Bölge seçimi",
+  radioWriteSubjectBandScanLists: "Bant {band} Tarama Listesi seçimi",
+  radioWriteSubjectBandScanEdges: "Bant {band} VFO tarama sınırları",
   radioWriteFieldChannel: "Kanal",
   radioWriteFieldWorkingCodeplug: "Çalışma Codeplug'ı",
-  radioWriteFieldOtherCodeplugData: "Diğer Codeplug verileri",
-  radioWriteFieldMirrorVfoChannels: "Geçici VFO kanallarını eşle",
+  radioWriteFieldOtherCodeplugData: "Açıklanamayan diğer Codeplug verileri",
+  radioWriteFieldMirrorVfoChannels: "Geçici VFO kanallarını güncelle",
   radioWriteFieldRestoreWeatherChannels: "Sabit WX kanallarını geri yükle",
   radioWriteValueWorkingCodeplug: "Çalışma Codeplug'ı",
   radioWriteValueBaselineBackup: "Temel Yedek",
   radioWriteValueFreshRadioRead: "Yeni Telsizden Okuma",
   radioWriteValueChangedBytes: "{count} değişen bayt",
-  radioWriteValueAppliedToWriteImage: "Yazma görüntüsüne uygulandı",
+  radioWriteValueAppliedToWriteImage: "Telsize yazılacak Codeplug'a uygulandı",
   radioOperationReport: "İşlem raporunu indir",
   radioWriteCloseStatus: "Durumu kapat",
   radioWriteReviewAndConfirm: "İncele ve onayla",
   radioWriteInProgress: "Telsize Yazma sürüyor",
-  radioWritePrepare: "Telsizi seç ve yazmayı hazırla",
-  radioWriteConfirmTitle: "Tam Telsize Yazmayı onayla",
+  radioWritePrepare: "Telsizi seçip yazmayı hazırla",
+  radioWriteConfirmTitle: "Codeplug'ın tamamının yazılmasını onaylayın",
   radioWriteConfirmDescription:
     "Seçilen port hazır. İncelenen {count} değişikliği onaylayın. Yazma başlamadan önce Telsiz kimliği ve firmware sürümü kontrol edilecektir.",
   radioWriteConfirmationWarning:
@@ -90,11 +92,41 @@ const tr = {
   cancel: "İptal",
   metadataDescription:
     "Tekser TR-UV15 ve TYT UVL-15W Codeplug'ını uyumlu bir masaüstü tarayıcıda yerel olarak programlayın, yedekleyin ve yönetin.",
+  kitMetadataDescription:
+    "Desteklenen telsizleri uyumlu bir masaüstü tarayıcıda programlayın ve yedekleyin.",
+  kitSidebarDescription: "73Kit ana menüsünü gösterir.",
+  kitNavigation: "73Kit",
+  kitHomeTitle: "Ana Sayfa",
+  kitToolsTitle: "Araçlar",
+  radioCpsTitle: "Telsiz CPS",
+  radioCpsDescription:
+    "Desteklenen bir Telsizi okuyun, programlayın, yedekleyin, geri yükleyin ve güncelleyin.",
+  openRadioCps: "Telsiz CPS'yi aç",
+  selectRadioTitle: "Telsizinizi seçin",
+  radioModelDescription:
+    "Bu seçim, telsiziniz için doğru bağlantı ve programlama yöntemini belirler.",
+  radioManufacturerAndModel: "Üretici ve model",
+  radioFirmwareDetectedLater:
+    "Bağlı bir telsiz için firmware seçmeniz gerekmez; sürüm, Telsizden Okuma başlamadan önce otomatik algılanır.",
+  selectRadioPlaceholder: "Bir telsiz modeli seçin",
+  continueToRadioCps: "Telsiz CPS'ye devam et",
+  firmwareSupportTitle: "Firmware desteği",
+  firmwareSupportDescription:
+    "Yalnızca Codeplug düzeni test edilip doğrulanmış firmware sürümleri programlanabilir.",
+  validated: "Test edildi",
+  otherFirmwareNotValidatedTitle:
+    "Diğer firmware sürümleri henüz test edilmedi",
+  otherFirmwareNotValidatedDescription:
+    "Telsizin sürümü tanınsa bile bu listede yoksa Codeplug okunmaz. Böylece doğrulanmamış bir bellek düzeni yanlışlıkla kullanılmaz.",
+  selectRadioForFirmware:
+    "Test edilmiş firmware sürümlerini görmek için önce bir telsiz modeli seçin.",
+  changeRadioModel: "Telsiz modelini değiştir",
+  firmwareDetected: "Firmware {version} · algılandı",
   languageSwitcherLabel: "Dil",
   languageTr: "Türkçe",
   languageEn: "English",
   sidebarTitle: "Gezinme",
-  sidebarDescription: "Mobil ekranda CPS gezinmesini gösterir.",
+  sidebarDescription: "Telsiz CPS menüsünü gösterir.",
   sidebarClose: "Gezinmeyi kapat",
   sidebarToggle: "Gezinmeyi aç veya kapat",
   navWorkspace: "Çalışma Alanı",
@@ -103,7 +135,7 @@ const tr = {
   navChannels: "Kanallar",
   navZones: "Bölgeler",
   navScanLists: "Tarama Listeleri",
-  navVfoScanEdges: "VFO Tarama Sınırı",
+  navVfoScanEdges: "VFO Tarama Sınırları",
   navSpectrum: "Spektrum",
   navConfiguration: "Programlama",
   navDevelopment: "Geliştirme",
@@ -141,7 +173,7 @@ const tr = {
   updatesPackageValidated: "Doğrulanmış paket",
   updatesPackageValidatedHint:
     "Bu dosya desteklenen resmî UVL-15W paketlerinden biriyle eşleşiyor. Desteklenmeyen dosyalar telsize bağlanamaz.",
-  updatesPrepareTitle: "Telsizi Hazırlayın",
+  updatesPrepareTitle: "Telsizi hazırlayın",
   updatesPrepareDescription:
     "Yazma işlemini başlatmadan önce tüm hazırlıkları tamamlayın.",
   updatesBrowserCheckingTitle: "Tarayıcı kontrol ediliyor",
@@ -166,7 +198,7 @@ const tr = {
     "Telsizi kapatın. Açarken PTT ve üst turuncu tuşa basılı tutun; USB bağlı kalsın.",
   updatesBetaTitle: "Beta güncelleme özelliği",
   updatesBetaDialogDescription:
-    "Firmware ve flash güncellemeleri telsizin normal açılmasını etkileyebilir. Devam etmeden önce bu riskleri okuyun.",
+    "Firmware, dil veya görsel paketi yüklemek telsizin açılmasını etkileyebilir. Devam etmeden önce aşağıdaki riskleri okuyun.",
   updatesBetaRiskInterruptTitle: "Yazma işlemini kesmeyin",
   updatesBetaRiskInterruptDescription:
     "USB bağlantısının kesilmesi, tarayıcının kapanması veya güç kaybı güncellemeyi yarım bırakabilir.",
@@ -175,7 +207,7 @@ const tr = {
     "Sonuç doğrulanamazsa telsizi kurtarmak için resmî TYT CPS'ye ve aynı pakete ihtiyacınız olabilir.",
   updatesBetaRiskPackageTitle: "Yalnız doğru resmî paketi kullanın",
   updatesBetaRiskPackageDescription:
-    "Başka model paketi, test firmware'i, özel dosya veya eski sürüm kullanmayın.",
+    "Başka bir modele ait paket, deneme firmware'i, değiştirilmiş dosya veya farklı sürüm kullanmayın.",
   updatesBetaLeave: "Telsiz sayfasına dön",
   updatesBetaContinue: "Riskleri anlıyorum - devam et",
   updatesNoCancelHint:
@@ -222,7 +254,7 @@ const tr = {
   updatesRecoveryPackage: "Paket",
   updatesRecoveryLastBlock: "Son onaylanan blok",
   updatesRecoveryTime: "Kaydedildi",
-  updatesRecoveryFingerprint: "Arındırılmış telsiz parmak izi",
+  updatesRecoveryFingerprint: "Kimlik bilgileri çıkarılmış telsiz özeti",
   updatesRecoveryInstructions:
     "Telsizi bir kez kapatıp normal şekilde açın. Açılmazsa aynı resmî TYT paketiyle resmî CPS kurtarma işlemini uygulayın. Başka model, sürüm, eski sürüm veya test firmware'i denemeyin.",
   updatesRecoveryCheckTitle: "Telsizi normal modda kontrol edin",
@@ -240,7 +272,7 @@ const tr = {
   updatesRecoveryOfficialComplete: "Resmî CPS ile kurtarmayı tamamladım",
   updatesSafetyTitle: "Güvenlik sınırı",
   updatesSafetyDescription:
-    "Bu araç, resmî CPS'deki toplu güncelleme özelliğinden daha sınırlı çalışır.",
+    "Bu araç yalnızca tek bir telsizi ve önceden doğrulanmış paketleri destekler; resmî CPS'deki toplu güncelleme özelliğinin yerini tutmaz.",
   updatesSafetyOfficial: "Yalnız bilinen paketler",
   updatesSafetyOfficialHint:
     "Dosyanın SHA-256 özeti, bütünlüğü, kayıt yapısı ve adres aralıkları kontrol edilir.",
@@ -450,7 +482,7 @@ const tr = {
   bluetoothRoleUnknown: "Bilinmeyen kayıtlı değer: {value}",
   bluetoothRoleHost: "Ana cihaz",
   bluetoothRolePeripheral: "Çevre birimi",
-  bluetoothHoldTime: "BT bekletme süresi",
+  bluetoothHoldTime: "Bluetooth bağlantı bekleme süresi",
   bluetoothHoldTimeHint:
     "Telsizin Bluetooth bekletme zamanlayıcısını ayarlar. Sonsuz seçeneği süre sınırını kaldırır.",
   bluetoothLocalAudioTitle: "Yerel Ses",
@@ -527,7 +559,7 @@ const tr = {
   functionSectionTrx: "TRX",
   functionSectionCit: "CI-T",
   functionSectionSte: "STE",
-  functionSectionToneBurst: "Tone Burst",
+  functionSectionToneBurst: "1750 Hz / Tone Burst",
   functionSectionScan: "Tarama",
   functionSectionPowerSave: "Güç Tasarrufu",
   functionSectionWeather: "WX CH",
@@ -546,14 +578,14 @@ const tr = {
   keyboardSectionMenuAndBack: "Menü ve Geri Tuşları",
   keyboardSectionLock: "Tuş ve Enkoder Kilidi",
   settingRxTxMode: "RX/TX modu",
-  settingCrossBandRepeaterMode: "Cross-band röle modu",
-  settingCrossBandRepeaterMonitoring: "Cross-band röle izleme",
+  settingCrossBandRepeaterMode: "Bantlar arası röle modu",
+  settingCrossBandRepeaterMonitoring: "Bantlar arası röle dinleme",
   settingSquelchLevel: "Squelch seviyesi",
   settingTransmitTimeout: "TX zaman aşımı sayacı",
   settingTransmitChannelSelection: "TX kanal seçimi",
-  settingCallHoldTime: "Call bekleme süresi",
-  settingBandAOperatingMode: "Band A çalışma modu",
-  settingBandBOperatingMode: "Band B çalışma modu",
+  settingCallHoldTime: "Çağrı kanalını bekletme süresi",
+  settingBandAOperatingMode: "Bant A çalışma modu",
+  settingBandBOperatingMode: "Bant B çalışma modu",
   settingAutoRepeater: "Otomatik Röle",
   settingAutoAmMode: "Otomatik AM Modu",
   settingCitUsbCdc: "USB CDC",
@@ -564,8 +596,8 @@ const tr = {
   settingDcsTailBehavior: "DCS kuyruk davranışı",
   settingTailSignalingDuration: "Kuyruk sinyal süresi",
   settingToneBurstFrequency: "Tone Burst frekansı",
-  settingToneBurstDuration: "Tone Burst süresi",
-  settingToneBurstSidetone: "Tone Burst yan tonu",
+  settingToneBurstDuration: "Tone Burst gönderim süresi",
+  settingToneBurstSidetone: "Tone Burst dinleme sesi",
   settingScanMode: "Tarama modu",
   settingMemoryScanType: "MR tarama tipi",
   settingCoResumeDelay: "CO Devam Gecikmesi",
@@ -576,7 +608,7 @@ const tr = {
   settingWeatherSquelchControl: "Squelch kontrolü",
   settingWeatherReceiveMode: "Alım modu",
   settingWeatherScanChannels: "WX taramasına dahil kanallar",
-  settingWeatherDecodeReset: "Decode sıfırlama süresi",
+  settingWeatherDecodeReset: "Uyarı çözümleme sıfırlama süresi",
   settingBacklightLevel: "Arka aydınlatma seviyesi",
   settingAutoDimmingMode: "Otomatik karartma",
   settingAutoDimDelay: "Otomatik karartma gecikmesi",
@@ -608,8 +640,8 @@ const tr = {
   settingLowBatteryBeep: "Düşük pil sesi",
   settingPowerOnBeep: "Açılış sesi",
   settingTxTimeoutBeep: "TX zaman aşımı sesi",
-  settingCallStartBeep: "Call başlangıç sesi",
-  settingCallEndBeep: "Call bitiş sesi",
+  settingCallStartBeep: "Çağrı başlangıç sesi",
+  settingCallEndBeep: "Çağrı bitiş sesi",
   settingScanStartBeep: "Tarama başlangıç sesi",
   settingScanPauseBeep: "Tarama duraklama sesi",
   settingScanStopBeep: "Tarama bitiş sesi",
@@ -636,9 +668,9 @@ const tr = {
   settingHintRxTxMode:
     "İki ekran bandının nasıl alım yapacağını ve hangi bandın gönderim yapabileceğini belirler.",
   settingHintCrossBandRepeaterMode:
-    "Cross-band röle modu açıkken tek yönlü veya çift yönlü aktarmayı seçer.",
+    "Bantlar arası röle açıkken aktarımın tek yönlü mü, çift yönlü mü olacağını seçer.",
   settingHintCrossBandRepeaterMonitoring:
-    "Telsiz cross-band röle olarak çalışırken alım tarafının duyulmasını sağlar.",
+    "Telsiz bantlar arası röle olarak çalışırken alıcı taraftaki sesi hoparlörden duyurur.",
   settingHintSquelchLevel:
     "Alıcı sesinin açılması için gereken sinyal gücünü belirler. Yüksek seviyeler daha güçlü sinyal gerektirir.",
   settingHintTransmitTimeout:
@@ -648,9 +680,9 @@ const tr = {
   settingHintCallHoldTime:
     "En son çağrı alınan kanalı bu süre boyunca yanıt vermeye hazır tutar.",
   settingHintBandAOperatingMode:
-    "Band A'nın Hafıza, VFO, CALL veya Hava Durumu modlarından hangisinde başlayacağını seçer.",
+    "Bant A'nın Hafıza, VFO, CALL veya Hava Durumu modlarından hangisinde başlayacağını seçer.",
   settingHintBandBOperatingMode:
-    "Band B'nin Hafıza, VFO, CALL veya Hava Durumu modlarından hangisinde başlayacağını seçer.",
+    "Bant B'nin Hafıza, VFO, CALL veya Hava Durumu modlarından hangisinde başlayacağını seçer.",
   settingHintAutoRepeater:
     "Desteklenen frekanslarda telsizin otomatik röle davranışını etkinleştirir.",
   settingHintAutoAmMode:
@@ -674,7 +706,7 @@ const tr = {
   settingHintToneBurstDuration:
     "Tone Burst sinyalini bir saniye boyunca veya atanmış kontrol basılı tutuldukça kesintisiz gönderir.",
   settingHintToneBurstSidetone:
-    "Gönderilen Tone Burst sinyalini operatörün duyabilmesi için telsiz hoparlöründen çalar.",
+    "Gönderilen Tone Burst sinyalini telsiz hoparlöründen duymanızı sağlar.",
   settingHintScanMode:
     "Taramanın etkinlik algıladığında ne zaman duracağını ve ne zaman devam edeceğini belirler.",
   settingHintMemoryScanType:
@@ -684,7 +716,7 @@ const tr = {
   settingHintToHoldTime:
     "Zaman kontrollü taramanın devam etmeden önce etkin kanalda ne kadar kalacağını belirler.",
   settingHintScanDwellTime:
-    "Tarayıcının her kanalı ne kadar süre dinleyeceğini belirler. Kısa değerler daha hızlı, uzun değerler daha uzun dinler.",
+    "Tarama sırasında her kanalın ne kadar süre dinleneceğini belirler. Kısa süre daha hızlı tarama, uzun süre daha dikkatli dinleme sağlar.",
   settingHintPowerSave:
     "Pil tüketimini azaltmak için telsiz boştayken alıcı etkinliğini düşürmesine izin verir.",
   settingHintPowerSaveDelay:
@@ -696,13 +728,13 @@ const tr = {
   settingHintWeatherScanChannels:
     "On sabit Hava Durumu Kanalından hangilerinin çoklu WX taramasına katılacağını seçer.",
   settingHintWeatherDecodeReset:
-    "Hava Durumu uyarı çözümlemesinin bir sonraki sinyal için sıfırlanmadan önce ne kadar etkin kalacağını belirler.",
+    "Hava Durumu uyarısı algılandıktan sonra çözümleyicinin yeni bir uyarıya hazır hâle gelmek için ne kadar bekleyeceğini belirler.",
   settingHintBacklightLevel:
     "LCD arka aydınlatmasının normal parlaklığını 1 ile 9 arasında ayarlar.",
   settingHintAutoDimmingMode:
     "Gecikme sonunda arka aydınlatmayı değiştirmez, tamamen kapatır veya seçilen seviyeye düşürür.",
   settingHintAutoDimDelay:
-    "Telsizin otomatik arka aydınlatma işlemini uygulamadan önce ne kadar süre etkinlik bekleyeceğini belirler.",
+    "Son tuş veya telsiz etkinliğinden sonra ekranın kararması için beklenecek süreyi belirler.",
   settingHintExitAutoDimOnReceive:
     "Telsiz sinyal aldığında arka aydınlatmayı normal parlaklığa döndürür.",
   settingHintExitAutoDimOnTransmit:
@@ -725,7 +757,7 @@ const tr = {
     "Enlem ve boylam koordinatlarının gösterim biçimini seçer.",
   settingHintSpeedUnit:
     "Telsizin hız gösteriminde kullanacağı birimleri seçer.",
-  settingHintAltitudeUnit: "Rakım değerleri için metre veya feet seçer.",
+  settingHintAltitudeUnit: "Rakım değerleri için metre veya fit seçer.",
   settingHintDistanceUnit:
     "Mesafe için metrik, kara mili veya deniz mili birimlerini seçer.",
   settingHintRainfallUnit: "Yağış değerleri için milimetre veya inç seçer.",
@@ -773,7 +805,7 @@ const tr = {
   settingHintAiVoxDelay:
     "Konuşma bittikten sonra gönderimi bu süre boyunca etkin tutar.",
   settingHintAiNoiseReduction:
-    "Alınan ses için telsiz firmware'inin AI gürültü azaltmasını kullanır.",
+    "Alınan sesteki arka plan gürültüsünü azaltmak için telsizin yapay zekâ tabanlı filtresini kullanır.",
   settingHintShortPressAssignment:
     "Bu kontrole kısa basıldığında etkinleşecek işlevi seçer.",
   settingHintLongPressAssignment:
@@ -791,13 +823,13 @@ const tr = {
   settingHintLockDelay:
     "Telsizin Otomatik Kilidi uygulamadan önce işlemsiz ne kadar bekleyeceğini belirler.",
   keyActionNone: "Yok",
-  keyActionVoiceControl: "Ses Kontrolü",
+  keyActionVoiceControl: "Sesle Kontrol",
   keyActionSendToneBurst: "Tone Burst Gönder",
   keyActionSendBeacon: "Beacon Gönder",
   keyActionSquelchOff: "Squelch Kapalı",
   keyActionScan: "Tarama",
   keyActionScrambler: "Karıştırıcı",
-  keyActionTalkAround: "Talk Around",
+  keyActionTalkAround: "Talk Around / Röleyi Atla",
   keyActionNoiseReduction: "Gürültü Azaltma",
   keyActionOneKeyFrequencyCopy: "Tek Tuşla Frekans Kopyalama",
   keyActionPowerLevel: "Güç Seviyesi",
@@ -816,7 +848,7 @@ const tr = {
   keyActionScanListSelection: "Tarama Listesi Seçimi",
   keyActionSpectrum: "Spektrum",
   keyActionCopyToMr: "MR'ye Kopyala",
-  keyActionMonitor: "Monitör",
+  keyActionMonitor: "Monitör (Squelch'i Aç)",
   keyActionDebugInformation: "Hata Ayıklama Bilgisi",
   lockTypeKeys: "Tuşlar",
   lockTypeEncoder: "Enkoder",
@@ -846,9 +878,9 @@ const tr = {
   valueDegreesMinutesSeconds: "Derece, dakika ve saniye (D°M′S″)",
   valueMetricSpeed: "m/sn ve km/sa",
   valueMph: "MPH",
-  valueKnots: "Knot",
+  valueKnots: "Deniz mili/sa (kt)",
   valueMeters: "Metre",
-  valueFeet: "Feet",
+  valueFeet: "Fit",
   valueMetricDistance: "Metre ve kilometre",
   valueMiles: "Mil",
   valueNauticalMiles: "Deniz mili",
@@ -871,7 +903,7 @@ const tr = {
   valueSingleRxTx: "Tek RX/TX",
   valueDualWatchSingleTx: "Çift izleme, tek TX",
   valueDualReceiveSingleTx: "Çift alım, tek TX",
-  valueCrossBandRepeater: "Cross-band röle",
+  valueCrossBandRepeater: "Bantlar arası röle",
   valueOneWay: "Tek yönlü röle",
   valueTwoWay: "Çift yönlü röle",
   valueMainChannel: "Ana kanal",
@@ -927,13 +959,13 @@ const tr = {
     "Tarayıcı depolamasının kullanılabilir olduğunu kontrol edip bu sayfayı yenileyin.",
   savedWorkingTitle: "Kayıtlı Çalışma Codeplug'ları",
   savedWorkingDescription:
-    "Adlandırılmış anlık görüntüler bu tarayıcıda kalır ({storage}). Taşınabilir yedek için CPS Dosyası dışa aktarın.",
-  savedWorkingPersistent: "kalıcı depolama izni verildi",
-  savedWorkingBestEffort: "garantisiz tarayıcı depolaması",
+    "Ad vererek kaydettiğiniz Codeplug'lar yalnızca bu tarayıcıda tutulur ({storage}). Başka bir yerde saklamak için CPS Dosyası dışa aktarın.",
+  savedWorkingPersistent: "tarayıcı kalıcı saklama izni verdi",
+  savedWorkingBestEffort: "tarayıcı gerektiğinde bu verileri temizleyebilir",
   savedWorkingSaveCopy: "Kopyayı Kaydet",
   savedWorkingSaveTitle: "Bu Çalışma Codeplug'ını kaydet",
   savedWorkingSaveDescription:
-    "Geçerli Temel Yedek ve Çalışma Codeplug'ının atomik, adlandırılmış bir anlık görüntüsünü oluşturun.",
+    "Temel Yedek ile düzenlediğiniz Codeplug'ı tek bir ad altında birlikte kaydedin.",
   savedWorkingRenameTitle: "Kayıtlı Çalışma Codeplug'ını yeniden adlandır",
   savedWorkingRenameDescription:
     "Kayıtlı baytlar ve Kaynak Telsiz bağlantısı değişmez.",
@@ -944,7 +976,7 @@ const tr = {
   savedWorkingRename: "Yeniden adlandır",
   savedWorkingDeleteTitle: "Bu kayıtlı Çalışma Codeplug'ı silinsin mi?",
   savedWorkingDeleteDescription:
-    "Adlandırılmış tarayıcı anlık görüntüsü silinir. Dışa aktarılan CPS Dosyaları ve Yedek Geçmişi etkilenmez.",
+    "Bu tarayıcıdaki kayıt silinir. Daha önce dışa aktardığınız CPS Dosyaları ve Yedek Geçmişi etkilenmez.",
   savedWorkingEmpty:
     "Bu tarayıcıda adlandırılmış Çalışma Codeplug'ı kayıtlı değil.",
   savedWorkingLocalOnly:
@@ -958,7 +990,7 @@ const tr = {
   rawImportReviewDescription:
     "Bu içe aktarıcı şimdilik yalnızca doğrulanmış firmware 3.07.23 düzenini kabul eder: tam olarak 102.400 bayt içeren bir .bin dosyası.",
   rawImportReviewSafety:
-    "Dosya, Kaynak Telsiz kimliği olmadan Bağsız Codeplug olarak açılır. Telsize Yazma, geri yükleme hazırlığı, CPS Dosyası dışa aktarma ve adlandırılmış tarayıcı anlık görüntüleri kullanılamaz.",
+    "Dosya, Kaynak Telsiz kimliği olmadan Bağsız Codeplug olarak açılır. Telsize Yazma, geri yükleme hazırlığı, CPS Dosyası dışa aktarma ve tarayıcıya ad vererek kaydetme kullanılamaz.",
   rawImportConfirm: "Bağsız Codeplug'ı Aç",
   rawImportFailed: "Ham Yedek içe aktarılamadı",
   rawImportReady: "Ham Yedek açık",
@@ -990,14 +1022,14 @@ const tr = {
   backupHistorySaveFailedTitle: "Codeplug Yedeği kaydedilemedi",
   navDiagnostics: "Tanılama",
   diagnosticsTitle: "Tanılama ve Destek",
-  diagnosticsReadinessTitle: "Ortam uygunluğu",
+  diagnosticsReadinessTitle: "Tarayıcı ve depolama durumu",
   diagnosticsReadinessDescription:
-    "Yerel Telsiz işlemleri ve rapor depolaması için kullanılan tarayıcı özellikleri.",
+    "Telsiz işlemleri ve tanılama raporları için gereken tarayıcı özelliklerini kontrol edin.",
   diagnosticsSecureContext: "Güvenli bağlam",
   diagnosticsOnline: "Ağ bağlantısı",
   diagnosticsWebSerial: "Web Serial",
   diagnosticsIndexedDb: "Yerel rapor depolaması",
-  diagnosticsServiceWorker: "Çevrimdışı uygulama worker'ı",
+  diagnosticsServiceWorker: "Çevrimdışı kullanım",
   diagnosticsPersistentStorage: "Kalıcı depolama",
   diagnosticsAvailable: "Kullanılabilir",
   diagnosticsUnavailable: "Kullanılamıyor",
@@ -1007,14 +1039,14 @@ const tr = {
   diagnosticsBestEffort: "Garanti edilmez",
   diagnosticsSuccessTitle: "Son başarılı işlemler",
   diagnosticsSuccessDescription:
-    "Yalnızca en son başarılı Telsiz ve Güncelleme özetleri tutulur.",
+    "Telsiz ve güncelleme işlemlerinin yalnızca en son başarılı özeti saklanır.",
   diagnosticsNoSuccess: "Henüz başarılı bir işlem kaydedilmedi.",
   diagnosticsIncidentsTitle: "Son olaylar",
   diagnosticsIncidentsDescription:
-    "Her kaynak için en fazla 10 olay bu tarayıcıda 30 gün tutulur.",
+    "Telsiz ve güncelleme işlemleri için en fazla 10'ar olay, bu tarayıcıda 30 gün saklanır.",
   diagnosticsEmptyTitle: "Tanılama olayı yok",
   diagnosticsEmptyHint:
-    "Başarısız veya sonucu belirsiz Telsiz ve Güncelleme işlemleri otomatik olarak burada görünür.",
+    "Başarısız olan veya sonucu belirsiz kalan telsiz ve güncelleme işlemleri burada görünür.",
   diagnosticsDate: "Tarih",
   diagnosticsSource: "Kaynak",
   diagnosticsOperation: "İşlem",
@@ -1022,9 +1054,9 @@ const tr = {
   diagnosticsOperationRadioWrite: "Telsize Yazma",
   diagnosticsOperationRestorePreparation: "Geri yükleme hazırlığı",
   diagnosticsOperationFirmwareUpdate: "Firmware güncellemesi",
-  diagnosticsOperationLanguageUpdate: "Dil Kaynağı güncellemesi",
-  diagnosticsOperationImageUpdate: "Görsel Kaynağı güncellemesi",
-  diagnosticsOperationCombinedUpdate: "Birleşik Kaynak güncellemesi",
+  diagnosticsOperationLanguageUpdate: "Dil paketi yükleme",
+  diagnosticsOperationImageUpdate: "Görsel paketi yükleme",
+  diagnosticsOperationCombinedUpdate: "Dil ve görsel paketi yükleme",
   diagnosticsOperationUpdate: "Telsiz güncellemesi",
   diagnosticsOutcome: "Sonuç",
   diagnosticsError: "Hata kodu",
@@ -1042,12 +1074,12 @@ const tr = {
     "Yerel rapor bu tarayıcıdan silinir. Bu işlem geri alınamaz.",
   diagnosticsDeleteAllTitle: "Tüm tanılama geçmişi temizlensin mi?",
   diagnosticsDeleteAllDescription:
-    "Tanılama tarafından bu tarayıcıda tutulan tüm olaylar ve başarılı işlem özetleri silinir.",
+    "Bu tarayıcıdaki tüm tanılama olayları ve başarılı işlem özetleri silinir.",
   diagnosticsStorageErrorTitle: "Tanılama geçmişi açılamadı",
   diagnosticsStorageErrorDescription:
     "Tarayıcı depolamasının kullanılabilir olduğunu kontrol edip bu sayfayı yenileyin.",
   diagnosticsPreviewDescription:
-    "Kopyalamadan, indirmeden veya desteğe e-posta göndermeden önce arındırılmış JSON içeriğini inceleyin.",
+    "Kopyalamadan, indirmeden veya desteğe e-posta göndermeden önce kişisel bilgilerden arındırılmış JSON raporunu inceleyin.",
   diagnosticsGuidanceTitle: "Sonraki adım",
   diagnosticsGuidanceUnknown:
     "Sonucu belirsiz bir yazma veya güncellemeyi tekrarlamayın. Telsizin gücünü ve bağlantısını koruyup ilgili kurtarma yönlendirmesini izleyin.",
@@ -1057,10 +1089,10 @@ const tr = {
     "Bu raporu indirip destek e-postasına ekleyin. Ne yaptığınızı ve Telsiz ekranında ne gördüğünüzü yazın.",
   diagnosticsIncluded: "Dahil edilenler",
   diagnosticsIncludedDescription:
-    "İşlem aşaması, hata kodu, güvenli protokol olay özetleri, tarayıcı özellikleri ve biliniyorsa genel Telsiz sürümleri.",
+    "İşlem aşaması, hata kodu, güvenli iletişim özetleri, tarayıcı özellikleri ve biliniyorsa telsizin sürüm bilgileri.",
   diagnosticsExcluded: "Asla dahil edilmeyenler",
   diagnosticsExcludedDescription:
-    "Seri numarası, CPU ID, ham çerçeveler, Codeplug baytları, güncelleme paketi baytları, serbest hata metni, tam URL veya user-agent verisi.",
+    "Seri numarası, CPU kimliği, ham iletişim çerçeveleri, Codeplug ve güncelleme paketi içeriği, işlenmemiş hata metni, tam adres veya tarayıcı kimlik bilgisi.",
   diagnosticsEvents: "{count} olay",
   diagnosticsCopy: "JSON'u kopyala",
   diagnosticsCopied: "Kopyalandı",
@@ -1070,27 +1102,24 @@ const tr = {
     "E-posta uygulamanız güvenli bir özetle açılır. İndirilen JSON raporunu kendiniz ekleyin.",
   navAbout: "Hakkında",
   aboutTitle: "73Kit Hakkında",
-  aboutScopeTitle: "Doğrulanmış Telsiz kapsamı",
+  aboutScopeTitle: "Test edilmiş telsiz kapsamı",
   aboutScopeDescription:
-    "Üretim Codeplug desteği; TYT UVL-15W, firmware 3.07.23, masaüstü Chromium, USB CDC üzerinden Web Serial ve Kaynak Telsize bağlı tam yazma işlemlerini hedefler.",
+    "Codeplug programlama desteği; TYT UVL-15W, firmware 3.07.23, masaüstü Chromium tarayıcılar, USB bağlantısı ve yalnızca Codeplug'ın okunduğu Kaynak Telsize tam yazma ile sınırlıdır.",
   aboutSafetyTitle: "Codeplug güvenliği",
   aboutSafetyDescription:
     "Telsizden Okuma, değiştirilemez bir Temel Yedek ve düzenlenebilir Çalışma Codeplug'ı oluşturur. Telsize Yazma, incelenebilir bir Değişiklik Kümesi gerektirir ve bilinmeyen baytları korur.",
-  aboutPlatformTitle: "Önce yerel uygulama",
+  aboutPlatformTitle: "Verileriniz bu bilgisayarda kalır",
   aboutPlatformDescription:
     "Telsiz iletişimi, düzenleme, adlandırılmış Çalışma Codeplug'ları, yedekler ve destek raporları bu bilgisayarda kalır. Taşınabilir CPS Dosyaları önerilen harici yedektir.",
-  aboutUpdaterTitle: "Updater beta sınırı",
+  aboutUpdaterTitle: "Güncelleme aracının beta kapsamı",
   aboutUpdaterDescription:
-    "Firmware ve Kaynak güncellemeleri beta kalır. Otomatik hata işleme doğrulandı; kararlı sürüme geçiş için ikinci uyumlu Telsiz ve kontrollü fiziksel kesinti/kurtarma kanıtı gerekir.",
+    "Firmware, dil ve görsel paketi yükleme özelliği betadır. Kararlı sürüme geçmeden önce ikinci bir uyumlu telsizde bağlantı kesilmesi ve kurtarma senaryoları fiziksel olarak test edilmelidir.",
   planned: "Planlandı",
   plannedUnavailable: "{item} planlandı; henüz kullanılamıyor.",
-  localRadioWorkspace: "Yerel telsiz programlama",
   workingCodeplugReady: "Çalışma Codeplug'ı hazır",
   noWorkingCodeplug: "Çalışma Codeplug'ı yok",
   workingCodeplug: "Çalışma Codeplug'ı",
-  noCodeplug: "Codeplug yok",
   radioReadInProgress: "Telsiz okuma sürüyor",
-  sessionStorage: "Bu oturumda saklanıyor",
   ready: "Hazır",
   empty: "Boş",
   readingRadio: "Telsiz okunuyor…",
@@ -1124,13 +1153,13 @@ const tr = {
   readEnabled: "Telsizden okuma hazır",
   overviewTitle: "Genel Bakış",
   overviewDescription:
-    "Telsizin kimliğini doğrulayın ve Codeplug'ın eksiksiz, değişmemiş bir yedeğini alın. Telsiz haberleşmesi yalnızca bu tarayıcı ile telsiziniz arasında kalır.",
+    "Telsizin kimliğini doğrulayın ve Codeplug'ın eksiksiz, değiştirilmemiş bir yedeğini alın. Telsiz verileri bu tarayıcı ile telsiziniz arasında kalır.",
   overviewStartTitle: "Telsizden tam okuma ile başlayın",
   overviewStartDescription:
-    "TYT UVL-15W'yi USB ile bağlayıp programlamadan önce Codeplug'ın tamamını okuyun. Başarılı okuma, değişmemiş bir Temel Yedek ve düzenlemeleriniz için ayrı bir Çalışma Codeplug'ı oluşturur.",
+    "TYT UVL-15W'yi programlamadan önce USB ile bağlayıp Codeplug'ın tamamını okuyun. Başarılı okuma, dokunulmamış bir Temel Yedek ile düzenleyebileceğiniz ayrı bir Çalışma Codeplug'ı oluşturur.",
   overviewStepReadTitle: "Oku ve yedekle",
   overviewStepReadDescription:
-    "Codeplug'ın tamamını okuyun ve değişmemiş bir Temel Yedek saklayın.",
+    "Codeplug'ın tamamını okuyun ve dokunulmamış bir Temel Yedek saklayın.",
   overviewStepProgramTitle: "Codeplug'ı programla",
   overviewStepProgramDescription:
     "Çalışma Codeplug'ında Kanalları, Bölgeleri, Tarama Listelerini, APRS'yi ve Telsiz Ayarlarını düzenleyin.",
@@ -1139,12 +1168,12 @@ const tr = {
     "Değişiklik Kümesini inceleyip Codeplug'ın tamamını Kaynak Telsize yazın.",
   overviewLocalTitle: "Telsiz programlama bu bilgisayarda kalır",
   overviewLocalDescription:
-    "Telsizden Okuma, Codeplug düzenleme, yedekler ve Telsize Yazma işlemleri bu tarayıcı ile Telsiz arasında yerel olarak yürütülür.",
+    "Telsizden Okuma, Codeplug düzenleme, yedekleme ve Telsize Yazma işlemleri doğrudan bu tarayıcı ile telsiz arasında yapılır.",
   continueToChannels: "Kanallara Devam Et",
   continueProgramming: "Programlamaya Devam Et",
   continueProgrammingTitle: "Programlamaya devam edin",
   latestBackupTitle: "Son Codeplug Yedeği",
-  latestBackupEmpty: "Henüz kalıcı bir Codeplug Yedeği kaydedilmedi.",
+  latestBackupEmpty: "Henüz tarayıcıya bir Codeplug Yedeği kaydedilmedi.",
   latestBackupUnavailable: "Yedek Geçmişine bu tarayıcıda erişilemiyor.",
   openBackupHistory: "Yedek Geçmişini Aç",
   sourceRadio: "Kaynak Telsiz",
@@ -1164,7 +1193,7 @@ const tr = {
     "Bağlantı kurulurken telsizin doğrudan bildirdiği kimlik bilgileri.",
   noRadioInformation: "Telsiz kimliği bulunmuyor",
   noRadioInformationDescription:
-    "Kaynak Telsizi doğrulamak ve değiştirilemez bir Temel Yedekten Çalışma Codeplug'ı oluşturmak için telsizi okuyun.",
+    "Kaynak Telsizi doğrulamak, dokunulmamış bir Temel Yedek almak ve düzenlenebilir Codeplug'ı oluşturmak için telsizi okuyun.",
   serialNumber: "Seri numarası",
   firmware: "Firmware sürümü",
   hardware: "Donanım sürümü",
@@ -1180,7 +1209,7 @@ const tr = {
   on: "Açık",
   off: "Kapalı",
   workingCodeplugDescription:
-    "Son eksiksiz telsiz okumadan oluşturulan, düzenlenebilir Codeplug.",
+    "Son eksiksiz telsiz okumasından oluşturulan düzenlenebilir Codeplug.",
   readingCodeplug: "Codeplug okunuyor",
   baselineBackup: "Temel Yedek",
   notCreated: "Oluşturulmadı",
@@ -1211,15 +1240,15 @@ const tr = {
   radioProtocolError:
     "Telsiz geçersiz veri gönderdi. Codeplug Yedeği oluşturulmadı; telsizi yeniden bağlayıp okumayı tekrar deneyin.",
   incompatibleRadio: "Bağlı telsiz TYT UVL-15W değil; bu CPS ile okunamaz.",
-  firmwareCompatibilityStopped: "Firmware desteklenmiyor",
+  firmwareCompatibilityStopped: "Bu firmware henüz doğrulanmadı",
   firmwareTooOld:
     "Firmware {detectedVersion} desteklenmiyor. Telsizi {validatedVersion} sürümüne güncelleyip yeniden bağlayın. Telsiz verileri okunmadı veya değiştirilmedi.",
   firmwareUnvalidated:
-    "Firmware {detectedVersion} bu CPS ile doğrulanmadı. Doğrulanmış sürümlerden biri {validatedVersion}. Telsiz verileri okunmadı veya değiştirilmedi.",
+    "Firmware {detectedVersion} bu CPS ile henüz test edilmedi. Test edilmiş sürüm: {validatedVersion}. Telsiz verileri okunmadı veya değiştirilmedi.",
   firmwareNewerUnvalidated:
-    "Firmware {detectedVersion} henüz bu CPS ile doğrulanmadı. Doğrulanmış sürüm {validatedVersion}. Telsiz verileri okunmadı veya değiştirilmedi.",
+    "Yeni firmware {detectedVersion} henüz test edilmedi. Test edilmiş sürüm: {validatedVersion}. Telsiz verileri okunmadı veya değiştirilmedi.",
   firmwareUnrecognized:
-    "Bildirilen firmware sürümü ({detectedVersion}) doğrulanamadı. Bu CPS {validatedVersion} sürümü için doğrulanmıştır. Telsiz verileri okunmadı veya değiştirilmedi.",
+    "Telsizin bildirdiği firmware sürümü ({detectedVersion}) tanınmadı. Bu CPS yalnızca {validatedVersion} sürümüyle test edilmiştir. Telsiz verileri okunmadı veya değiştirilmedi.",
   firmwareDemoTitle: "Firmware uyumluluk simülatörü",
   firmwareDemoDescription:
     "E1 el sıkışmasının bildirdiği firmware değerini simüle edin ve gerçek telsiz bağlantısının kullandığı uyumluluk kararını inceleyin.",
@@ -1327,7 +1356,7 @@ const tr = {
     "Yalnızca bellekte simülasyon. Web Serial hiçbir zaman açılmaz.",
   firmwareDemoSupportedTitle: "Telsiz Okuma izinli",
   firmwareDemoSupportedDescription:
-    "Firmware {detectedVersion}, doğrulanmış bir Codeplug yerleşimiyle eşleşiyor. Gerçek bağlantı E2 komutuna devam edebilir.",
+    "Firmware {detectedVersion}, test edilmiş bir Codeplug düzeniyle eşleşiyor. Gerçek bağlantı E2 okuma komutuna devam edebilir.",
   firmwareDemoStateSnapshot: "Uyumluluk durumu",
   firmwareDemoStateDescription:
     "Üretim uyumluluk değerlendiricisinin döndürdüğü tam sonuç.",
@@ -1339,7 +1368,7 @@ const tr = {
   firmwareDemoPipelineTitle: "Simüle edilen telsiz el sıkışması",
   firmwareDemoPipelineDescription:
     "Komut sırasını izleyin ve desteklenmeyen firmware'in tam olarak nerede durduğunu görün.",
-  firmwareDemoSimulatedRadio: "Firmware kontrollü bağlantı",
+  firmwareDemoSimulatedRadio: "Firmware kontrolü yapılan bağlantı",
   firmwareDemoStageHandshake: "Telsiz kimliğini iste",
   firmwareDemoStageInformation: "Kaynak Telsiz bilgisini ayrıştır",
   firmwareDemoStageDecision: "Uyumluluk",
@@ -1355,8 +1384,8 @@ const tr = {
   firmwareDemoAction: "İşlem",
   firmwareDemoSimulate: "Simüle et",
   firmwareDemoCustomVersion: "Özel senaryo",
-  firmwareDemoPreviousVariant: "Önceki prototip varyantı",
-  firmwareDemoNextVariant: "Sonraki prototip varyantı",
+  firmwareDemoPreviousVariant: "Önceki prototip görünümü",
+  firmwareDemoNextVariant: "Sonraki prototip görünümü",
   readPasswordRequired:
     "Bu telsizde okuma koruması açık. Parola korumalı telsiz okuma henüz desteklenmiyor.",
   writePasswordRequired:
@@ -1366,7 +1395,7 @@ const tr = {
   unknownRadioError: "Bilinmeyen bir telsiz hatası oluştu.",
   channelsTitle: "Kanallar",
   channelsReadRequiredTitle: "Kanalları incelemek için telsizi okuyun",
-  memoryChannels: "Hafıza",
+  memoryChannels: "Hafıza Kanalları",
   vfoChannels: "VFO",
   callChannels: "Call",
   channelsUsedCount:
@@ -1388,7 +1417,7 @@ const tr = {
     "Alınan sinyal bu CTCSS veya DCS tonunu içermediğinde ses kapalı kalır. RX tonu, TX tonundan bağımsızdır.",
   txBandAdvisoryTitle: "Gönderim yetkisini doğrulayın",
   txBandAdvisoryDescription:
-    "Bu TX frekansı, bu Telsiz için yayımlanmış AB/FCC amatör bantlarının dışındadır. Gönderimden önce Telsiz varyantını, yerel kuralları, lisansı ve frekans yetkisini doğrulayın.",
+    "Bu TX frekansı, bu telsiz için yayımlanmış AB/FCC amatör bantlarının dışındadır. Gönderimden önce telsizinizin bölgesel sürümünü, yerel kuralları, lisansınızı ve bu frekanstaki gönderim yetkinizi doğrulayın.",
   membershipConsistencyWarningTitle:
     "Bölge veya Tarama Listesi verileri tutarsız",
   membershipConsistencyWarningDescription:
@@ -1413,36 +1442,36 @@ const tr = {
     "Hedef kanal numarasını kesinleştirmek için sıralamadan önce aramayı temizleyin.",
   moveChannel: "Taşı",
   channelNumber: "KN",
-  used: "Aktif",
-  unused: "Pasif",
+  used: "Kullanımda",
+  unused: "Boş",
   channelName: "Ad",
   rxFrequency: "RX frekansı",
   txFrequency: "TX frekansı",
   duplex: "Dupleks",
   simplex: "Simpleks",
-  offset: "Offset",
+  offset: "Frekans farkı",
   channelMode: "Kanal Modu",
   txPower: "TX Gücü",
   txTone: "TX Tonu",
   rxTone: "RX Tonu",
   editChannelTone: "{tone} düzenle",
-  toneType: "Tone Tipi",
-  toneValue: "Tone Değeri",
-  scanFlag: "Tarama Flag",
+  toneType: "Ton türü",
+  toneValue: "Ton değeri",
+  scanFlag: "Tarama durumu",
   channelZones: "Bölgeler",
   channelScanLists: "Tarama Listeleri",
   channelDetails: "Ayrıntılar",
   closeChannelDetails: "Kanal ayrıntılarını kapat",
-  frequencyStep: "Step",
+  frequencyStep: "Frekans adımı",
   talkAroundReverse: "Talk-around / Reverse",
-  rxOnly: "RX Only",
-  busyChannelLockout: "BCLO",
+  rxOnly: "Yalnız alım",
+  busyChannelLockout: "Meşgul kanal kilidi (BCLO)",
   squelch: "Squelch",
   dcsPolarity: "DCS Polaritesi",
   compander: "Kompander",
-  optionalSignaling: "Opsiyonel Sinyal",
+  optionalSignaling: "İsteğe bağlı sinyalleme",
   optionalSignalingEntry: "Sinyalleşme Kaydı",
-  scrambler: "Scrambler",
+  scrambler: "Ses karıştırıcı",
   pttId: "PTT ID",
   aprsReceive: "APRS RX",
   inspectChannel: "Kanal {number, number} ayrıntılarını incele",
@@ -1464,7 +1493,7 @@ const tr = {
   valuePositive: "+",
   valueSplit: "Split",
   valueTalkAround: "Talk-around",
-  valueReverse: "Ters(Reverse)",
+  valueReverse: "Ters (Reverse)",
   valueReserved: "Rezerve",
   valueFm: "FM",
   valueFmNarrow: "FM-N",
@@ -1483,9 +1512,9 @@ const tr = {
   valueRepeater: "Röle",
   valueCarrier: "Taşıyıcı",
   valueTone: "CTCSS/DCS Tonu",
-  valueOptionalSignaling: "Opsiyonel Sinyal",
-  valueToneAndOptional: "Ton VE Opsiyonel Sinyal",
-  valueToneOrOptional: "Tone YA DA Opsiyonel Sinyal",
+  valueOptionalSignaling: "İsteğe bağlı sinyalleme",
+  valueToneAndOptional: "Ton VE isteğe bağlı sinyalleme",
+  valueToneOrOptional: "Ton YA DA isteğe bağlı sinyalleme",
   valueTransmit: "TX",
   valueReceive: "RX",
   valueTransmitAndReceive: "TX + RX",
@@ -1495,15 +1524,15 @@ const tr = {
   valueOnMuted: "Açık (Sessiz)",
   valueOff: "Kapalı",
   valueOn: "Açık",
-  dcsReverseSuffix: "Ters(Reverse)",
+  dcsReverseSuffix: "Ters (Reverse)",
   channelMoveAnnouncement:
     "Kanal {from, number}, kanal {to, number} konumuna taşındı.",
   channelMoveCancelled: "Kanal taşıma iptal edildi.",
   channelNameTooLong: "Kanal adı en fazla 24 UTF-8 bayt olabilir.",
   invalidChannelFrequency: "MHz cinsinden geçerli bir frekans girin.",
   zonesTitle: "Bölgeler",
-  bandAZones: "Band A Bölgeleri",
-  bandBZones: "Band B Bölgeleri",
+  bandAZones: "Bant A Bölgeleri",
+  bandBZones: "Bant B Bölgeleri",
   allZones: "Tüm Bölgeler",
   selectedZonesCount: "{count, number} Bölge",
   zonesReadRequiredTitle: "Bölge ayarlarını düzenlemek için telsizi okuyun",
@@ -1520,12 +1549,12 @@ const tr = {
   removeChannelFromZone: "Kanal {number, number}, bölgeden çıkar",
   dragZoneMember: "Kanal {number, number} sırasını bölge içinde değiştir",
   scanListsTitle: "Tarama Listeleri",
-  bandAScanLists: "Band A Tarama Listeleri",
-  bandBScanLists: "Band B Tarama Listeleri",
+  bandAScanLists: "Bant A Tarama Listeleri",
+  bandBScanLists: "Bant B Tarama Listeleri",
   allScanLists: "Tüm Hafıza Kanalları",
   selectedScanListsCount: "{count, number} Tarama Listesi",
   scanListsReadRequiredTitle:
-    "Tarama List ayarlarını düzenlemek için telsizi okuyun",
+    "Tarama Listelerini düzenlemek için telsizi okuyun",
   scanListSlots: "Tarama Listeleri",
   scanListNumber: "Tarama Listesi {number, number}",
   scanListName: "Tarama Listesi adı",
@@ -1558,8 +1587,8 @@ const tr = {
   vfoScanEdgeRangeInvalid: "Üst frekans alt frekanstan düşük olamaz.",
   aprsTitle: "APRS",
   aprsReadRequiredTitle: "APRS ayarlarını düzenlemek için telsizi okuyun",
-  aprsTabStationBeacon: "İstasyon ve Beacon",
-  aprsTabReceive: "RX Decode",
+  aprsTabStationBeacon: "İstasyon ve Beacon Gönderimi",
+  aprsTabReceive: "Alım ve Kod Çözme",
   aprsTabTxChannels: "TX Kanalları",
   aprsTabTnc: "TNC",
   aprsIdentityTitle: "İstasyon",
@@ -1626,7 +1655,7 @@ const tr = {
   aprsManualBeaconMode: "Mod",
   aprsManualBeaconModeHint:
     "PTT'ye basıldığında veya bırakıldığında beacon gönderir. Kapalı seçeneği devre dışı bırakır.",
-  aprsManualBeaconBand: "Band",
+  aprsManualBeaconBand: "Bant",
   aprsManualBeaconBandHint:
     "Manuel beacon gönderimini tetikleyecek bandı seçer.",
   aprsManualBeaconInterval: "Aralık",
@@ -1644,7 +1673,7 @@ const tr = {
   aprsCommentHint:
     "Gönderilen APRS paketine eklenen metin. {count, number} / 64 karakter.",
   aprsCommentInvalid: "En fazla 64 standart karakter girin.",
-  aprsDecodeTitle: "Paket Doğrulama",
+  aprsDecodeTitle: "Alınan Paketler",
   aprsDecodeCrc: "CRC doğrulaması",
   aprsDecodeCrcHint: "CRC değeri uyuşmayan APRS paketlerini reddeder.",
   aprsReportMicE: "MIC-E",
@@ -1654,7 +1683,7 @@ const tr = {
   aprsReportItem: "Öğe",
   aprsReportStatus: "Durum",
   aprsReportOther: "Diğer",
-  aprsReportDecode: "Decode",
+  aprsReportDecode: "Kod çöz",
   aprsReportDecodeHint: "Bu türde alınan APRS paketlerini çözer.",
   aprsReportPopup: "Açılır pencere süresi",
   aprsReportPopupHint: "Bu türde alınan raporun ekranda kalacağı süre.",
@@ -1690,9 +1719,9 @@ const tr = {
   aprsTncRxTxBeacons: "RX + TX beacon paketleri",
   aprsTncUiText: "UI metni",
   valueAlways: "Her zaman",
-  valueBandA: "Band A",
-  valueBandB: "Band B",
-  valueBandAB: "Band A + B",
+  valueBandA: "Bant A",
+  valueBandB: "Bant B",
+  valueBandAB: "Bant A + B",
   valueWide: "Geniş",
   valueNarrow: "Dar",
   valueNone: "Yok",
@@ -1700,7 +1729,7 @@ const tr = {
   position: "Sıra",
   add: "Ekle",
   close: "Kapat",
-  sqlType: "SQL Tipi",
+  sqlType: "Squelch türü",
 } satisfies Messages
 
 export default tr

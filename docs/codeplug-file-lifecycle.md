@@ -1,6 +1,6 @@
 # Codeplug file lifecycle
 
-The CPS treats a saved Codeplug as a durable work item, not merely a byte download. A user can read a Radio, edit or leave it unchanged, export a `.uvl15cps` CPS File, reopen it later without hardware, and restore its desired state only after the Radio is freshly read and verified.
+Radio CPS treats a saved Codeplug as a durable work item, not merely a byte download. A user can read a Radio, edit or leave it unchanged, export a `.73kcps` CPS File, reopen it later without hardware, and restore its desired state only after the Radio is freshly read and verified.
 
 Browser-local Backup History entries can also start this same verified restore flow directly. The user does not need to download and reopen a backup first; selecting Restore on a saved entry performs the fresh Radio Read, source identity check, and Restore Plan preparation before the existing Radio Write confirmation.
 
@@ -13,7 +13,7 @@ Backup, Working Codeplug, Source Radio and layout binding.
 ## CPS File contents
 
 ```text
-radio-name-date.uvl15cps
+radio-name-date.73kcps
 ├── manifest.json   format, schema, creation time, layout and Source Radio
 ├── baseline.bin    exact immutable Codeplug originally read or imported
 └── working.bin     desired Codeplug, including edits made before export

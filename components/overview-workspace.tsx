@@ -20,6 +20,7 @@ import { useFormatter, useTranslations } from "next-intl"
 import { createIndexedDbBackupHistoryStore } from "@/adapters/indexed-db-backup-history-store/index"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
 import { PageHeader } from "@/components/page-header"
+import { useRadioCpsPath } from "@/components/radio-model-provider"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -209,6 +210,8 @@ function ReadyOverview({
 }) {
   const format = useFormatter()
   const t = useTranslations()
+  const channelsPath = useRadioCpsPath("channels")
+  const radioPath = useRadioCpsPath("radio")
 
   return (
     <div className="grid items-start gap-6 xl:grid-cols-2">
@@ -258,7 +261,7 @@ function ReadyOverview({
               ? t("rawWorkingExport")
               : t("rawBackup")}
           </Button>
-          <Link href="/channels" className={buttonVariants({ size: "sm" })}>
+          <Link href={channelsPath} className={buttonVariants({ size: "sm" })}>
             {changeCount === 0
               ? t("continueToChannels")
               : t("continueProgramming")}
@@ -306,7 +309,7 @@ function ReadyOverview({
         {sourceRadio && (
           <CardFooter className="justify-end">
             <Link
-              href="/radio"
+              href={radioPath}
               className={buttonVariants({ variant: "outline", size: "sm" })}
             >
               {t("viewRadioDetails")}
@@ -346,15 +349,19 @@ function WorkflowStep({
 
 function ProgrammingDestinationsCard() {
   const t = useTranslations()
+  const channelsPath = useRadioCpsPath("channels")
+  const zonesPath = useRadioCpsPath("zones")
+  const settingsPath = useRadioCpsPath("radio-settings/functions")
+  const aprsPath = useRadioCpsPath("aprs")
   const destinations = [
-    { href: "/channels", label: t("navChannels"), icon: ListIcon },
-    { href: "/zones", label: t("navZones"), icon: MapIcon },
+    { href: channelsPath, label: t("navChannels"), icon: ListIcon },
+    { href: zonesPath, label: t("navZones"), icon: MapIcon },
     {
-      href: "/radio-settings/functions",
+      href: settingsPath,
       label: t("navSettings"),
       icon: Settings2Icon,
     },
-    { href: "/aprs", label: t("navAprs"), icon: WaypointsIcon },
+    { href: aprsPath, label: t("navAprs"), icon: WaypointsIcon },
   ] as const
 
   return (
@@ -384,6 +391,7 @@ function ProgrammingDestinationsCard() {
 function LatestBackupCard({ state }: { state: LatestBackupState }) {
   const format = useFormatter()
   const t = useTranslations()
+  const backupsPath = useRadioCpsPath("backups")
 
   return (
     <Card>
@@ -432,7 +440,7 @@ function LatestBackupCard({ state }: { state: LatestBackupState }) {
       </CardContent>
       <CardFooter className="justify-end">
         <Link
-          href="/backups"
+          href={backupsPath}
           className={buttonVariants({ variant: "outline", size: "sm" })}
         >
           {t("openBackupHistory")}

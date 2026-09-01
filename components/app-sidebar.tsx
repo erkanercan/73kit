@@ -13,7 +13,6 @@ import {
   RadioTowerIcon,
   RadioIcon,
   SatelliteIcon,
-  ScanLineIcon,
   BetweenHorizontalStartIcon,
   BluetoothIcon,
   Settings2Icon,
@@ -27,11 +26,11 @@ import { useTranslations } from "next-intl"
 import { NavMain, type NavigationSection } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
+import { useRadioModel } from "@/components/radio-model-provider"
 import { useUpdateCoordinator } from "@/components/update-coordinator-provider"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -39,11 +38,15 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { Link, usePathname } from "@/i18n/navigation"
+import { radioCpsPath } from "@/modules/radio-support/index"
 
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { completedRead, phase } = useCpsWorkspace()
+  const { sourceRadio } = useCpsWorkspace()
   const { busy: updateBusy } = useUpdateCoordinator()
   const pathname = usePathname()
+  const radioModel = useRadioModel()
+  const basePath = radioCpsPath(radioModel.id)
+  const route = (suffix = "") => radioCpsPath(radioModel.id, suffix)
   const t = useTranslations()
   const navigation: NavigationSection[] = [
     {
@@ -51,39 +54,44 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [
         {
           title: t("navOverview"),
-          href: "/",
+          href: basePath,
           icon: HouseIcon,
-          active: pathname === "/",
+          active: pathname === basePath,
         },
         {
           title: t("navRadio"),
-          href: "/radio",
+          href: route("radio"),
           icon: RadioIcon,
-          active: pathname === "/radio",
+          capability: "radio-information",
+          active: pathname === route("radio"),
         },
         {
           title: t("navChannels"),
-          href: "/channels",
+          href: route("channels"),
           icon: ListIcon,
-          active: pathname === "/channels",
+          capability: "channels",
+          active: pathname === route("channels"),
         },
         {
           title: t("navZones"),
-          href: "/zones",
+          href: route("zones"),
           icon: MapIcon,
-          active: pathname === "/zones",
+          capability: "zones",
+          active: pathname === route("zones"),
         },
         {
           title: t("navScanLists"),
-          href: "/scan-lists",
+          href: route("scan-lists"),
           icon: ListChecksIcon,
-          active: pathname === "/scan-lists",
+          capability: "scan-lists",
+          active: pathname === route("scan-lists"),
         },
         {
           title: t("navVfoScanEdges"),
-          href: "/vfo-scan-edges",
+          href: route("vfo-scan-edges"),
           icon: BetweenHorizontalStartIcon,
-          active: pathname === "/vfo-scan-edges",
+          capability: "vfo-scan-edges",
+          active: pathname === route("vfo-scan-edges"),
         },
       ],
     },
@@ -92,45 +100,52 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [
         {
           title: t("navSettings"),
-          href: "/radio-settings/functions",
+          href: route("radio-settings/functions"),
           icon: Settings2Icon,
-          active: pathname.startsWith("/radio-settings"),
+          capability: "radio-settings",
+          active: pathname.startsWith(route("radio-settings")),
         },
         {
           title: t("navAprs"),
-          href: "/aprs",
+          href: route("aprs"),
           icon: WaypointsIcon,
-          active: pathname === "/aprs",
+          capability: "aprs",
+          active: pathname === route("aprs"),
         },
         {
           title: t("navGps"),
-          href: "/gps",
+          href: route("gps"),
           icon: SatelliteIcon,
-          active: pathname === "/gps",
+          capability: "gps",
+          active: pathname === route("gps"),
         },
         {
           title: t("navSpectrum"),
-          href: "/spectrum",
+          href: route("spectrum"),
           icon: ChartNoAxesColumnIncreasingIcon,
-          active: pathname === "/spectrum",
+          capability: "spectrum",
+          active: pathname === route("spectrum"),
         },
         {
           title: t("navBluetooth"),
-          href: "/bluetooth",
+          href: route("bluetooth"),
           icon: BluetoothIcon,
-          active: pathname === "/bluetooth",
+          capability: "bluetooth-settings",
+          active: pathname === route("bluetooth"),
         },
         {
           title: t("navFmRadio"),
-          href: "/fm-radio",
+          href: route("fm-radio"),
           icon: RadioTowerIcon,
-          active: pathname === "/fm-radio",
+          capability: "fm-radio",
+          active: pathname === route("fm-radio"),
         },
         {
           title: t("navSignalSystem"),
-          href: "/signal-system",
+          href: route("signal-system"),
           icon: AudioLinesIcon,
-          active: pathname === "/signal-system",
+          capability: "signal-system",
+          active: pathname === route("signal-system"),
         },
       ],
     },
@@ -141,9 +156,9 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             items: [
               {
                 title: t("navFirmwareSimulator"),
-                href: "/prototype/firmware-compatibility",
+                href: route("prototype/firmware-compatibility"),
                 icon: FlaskConicalIcon,
-                active: pathname === "/prototype/firmware-compatibility",
+                active: pathname === route("prototype/firmware-compatibility"),
               },
             ],
           },
@@ -152,25 +167,32 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   ]
   const guardedNavigation = navigation.map((section) => ({
     ...section,
-    items: section.items.map((item) => ({
-      ...item,
-      disabled: updateBusy && item.href !== "/updates",
-      disabledDescription: updateBusy ? t("updatesStayOnPage") : undefined,
-    })),
+    items: section.items
+      .filter(
+        (item) =>
+          !item.capability || radioModel.capabilities.includes(item.capability)
+      )
+      .map((item) => ({
+        ...item,
+        disabled: updateBusy && item.href !== route("updates"),
+        disabledDescription: updateBusy ? t("updatesStayOnPage") : undefined,
+      })),
   }))
   const secondaryNavigation = [
     {
       title: t("navBackups"),
-      href: "/backups",
+      href: route("backups"),
       icon: ArchiveIcon,
-      active: pathname === "/backups",
+      capability: "backups" as const,
+      active: pathname === route("backups"),
       planned: false,
     },
     {
       title: t("navUpdates"),
-      href: "/updates",
+      href: route("updates"),
       icon: HardDriveUploadIcon,
-      active: pathname === "/updates",
+      capability: "firmware-updates" as const,
+      active: pathname === route("updates"),
       planned: false,
     },
     {
@@ -207,12 +229,30 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 className="size-8 rounded-lg"
                 priority
               />
+              <span className="truncate font-heading font-semibold tracking-tight">
+                73Kit
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              tooltip={t("changeRadioModel")}
+              render={<Link href="/cps" />}
+            >
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-accent-foreground">
+                <RadioIcon />
+              </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-heading font-semibold tracking-tight">
-                  73Kit
+                <span className="truncate font-medium">
+                  {radioModel.displayName}
                 </span>
                 <span className="truncate text-xs">
-                  {t("localRadioWorkspace")}
+                  {sourceRadio
+                    ? t("firmwareDetected", {
+                        version: sourceRadio.firmwareVersion,
+                      })
+                    : t("footerRadioDisconnected")}
                 </span>
               </div>
             </SidebarMenuButton>
@@ -222,40 +262,15 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain sections={guardedNavigation} plannedLabel={t("planned")} />
         <NavSecondary
-          items={secondaryNavigation}
+          items={secondaryNavigation.filter(
+            (item) =>
+              item.capability === undefined ||
+              radioModel.capabilities.includes(item.capability)
+          )}
           plannedLabel={t("planned")}
           className="mt-auto"
         />
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              tooltip={
-                completedRead
-                  ? t("workingCodeplugReady")
-                  : t("noWorkingCodeplug")
-              }
-              render={<div />}
-            >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-accent-foreground">
-                <ScanLineIcon />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">
-                  {completedRead ? t("workingCodeplug") : t("noCodeplug")}
-                </span>
-                <span className="truncate text-xs">
-                  {phase === "reading"
-                    ? t("radioReadInProgress")
-                    : t("sessionStorage")}
-                </span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   )

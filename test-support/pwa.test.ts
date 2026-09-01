@@ -22,7 +22,7 @@ test("service worker excludes user and update artifacts from caches", async () =
     "utf8"
   )
 
-  for (const extension of [".uvl15cps", ".bin", ".dat", ".fir", ".json"]) {
+  for (const extension of [".73kcps", ".bin", ".dat", ".fir", ".json"]) {
     assert.match(source, new RegExp(extension.replace(".", "\\."), "i"))
   }
   assert.match(source, /request\.method !== "GET"/)

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
-import { OverviewWorkspace } from "@/components/overview-workspace"
+import { KitHome } from "@/components/kit/kit-home"
 import { isLocale } from "@/i18n/routing"
 import { createPageMetadata, serializeJsonLd } from "@/lib/seo"
 import { absoluteUrl, localizedPath, SITE_LAST_REVIEWED } from "@/lib/site"
@@ -16,15 +16,10 @@ export async function generateMetadata({
   if (!isLocale(locale)) return {}
 
   const t = await getTranslations({ locale })
-  const title =
-    locale === "tr"
-      ? "Tekser TR-UV15 / TYT UVL-15W Tarayıcı CPS"
-      : "TYT UVL-15W Browser CPS"
-
   return createPageMetadata({
     locale,
-    title,
-    description: t("metadataDescription"),
+    title: "73Kit",
+    description: t("kitMetadataDescription"),
   })
 }
 
@@ -43,13 +38,10 @@ export default async function Page({
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: "73Kit",
-    alternateName: ["TYT UVL-15W Browser CPS", "Tekser TR-UV15 Tarayıcı CPS"],
     url: canonicalUrl,
-    description: t("metadataDescription"),
+    description: t("kitMetadataDescription"),
     applicationCategory: "UtilitiesApplication",
     operatingSystem: "Windows, macOS, Linux, ChromeOS",
-    browserRequirements:
-      "Desktop Chromium browser with Web Serial in a secure context",
     isAccessibleForFree: true,
     offers: {
       "@type": "Offer",
@@ -72,7 +64,7 @@ export default async function Page({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
-      <OverviewWorkspace />
+      <KitHome />
     </>
   )
 }

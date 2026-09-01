@@ -91,6 +91,35 @@ const en = {
   cancel: "Cancel",
   metadataDescription:
     "Program, back up, and manage a TYT UVL-15W Codeplug locally in a compatible desktop browser.",
+  kitMetadataDescription:
+    "Program and back up supported Radios in a compatible desktop browser.",
+  kitSidebarDescription: "Shows the main 73Kit navigation.",
+  kitNavigation: "73Kit",
+  kitHomeTitle: "Home",
+  kitToolsTitle: "Tools",
+  radioCpsTitle: "Radio CPS",
+  radioCpsDescription:
+    "Read, program, back up, restore, and update a supported Radio.",
+  openRadioCps: "Open Radio CPS",
+  selectRadioTitle: "Select your Radio",
+  radioModelDescription:
+    "The Radio Model selects the correct protocol and programming implementation.",
+  radioManufacturerAndModel: "Manufacturer and model",
+  radioFirmwareDetectedLater:
+    "You do not need to select firmware for a live Radio. It is detected before Radio Read.",
+  selectRadioPlaceholder: "Select a Radio Model",
+  continueToRadioCps: "Continue to Radio CPS",
+  firmwareSupportTitle: "Firmware support",
+  firmwareSupportDescription:
+    "Only exact firmware versions with validated Codeplug layouts can be programmed.",
+  validated: "Validated",
+  otherFirmwareNotValidatedTitle: "Other versions are not validated",
+  otherFirmwareNotValidatedDescription:
+    "A detected version that is not listed as validated is shown but blocked before Codeplug data is read.",
+  selectRadioForFirmware:
+    "Select a Radio Model to see its validated firmware versions.",
+  changeRadioModel: "Change Radio Model",
+  firmwareDetected: "Firmware {version} · Detected",
   languageSwitcherLabel: "Language",
   languageTr: "Türkçe",
   languageEn: "English",
@@ -1075,13 +1104,10 @@ const en = {
     "Firmware and Resource updates remain beta. Automated fault handling is verified, but stable promotion still requires a second compatible Radio and controlled physical interruption and recovery evidence.",
   planned: "Planned",
   plannedUnavailable: "{item} is planned and not yet available.",
-  localRadioWorkspace: "Local radio programming",
   workingCodeplugReady: "Working Codeplug ready",
   noWorkingCodeplug: "No Working Codeplug",
   workingCodeplug: "Working Codeplug",
-  noCodeplug: "No Codeplug",
   radioReadInProgress: "Radio Read in progress",
-  sessionStorage: "Stored for this session",
   ready: "Ready",
   empty: "Empty",
   readingRadio: "Reading Radio…",

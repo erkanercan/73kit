@@ -7,14 +7,17 @@ import {
   type CodeplugLayoutId,
 } from "../codeplug/index.ts"
 import type { SourceRadio } from "../uvl15w-radio/index.ts"
+import { TYT_UVL15W } from "../radio-support/index.ts"
 
-const CPS_FILE_FORMAT = "tyt-uvl15-cps"
+const CPS_FILE_FORMAT = "73kit-cps"
 const CPS_FILE_SCHEMA_VERSION = 1
 
 interface CpsFileManifest {
   readonly format: typeof CPS_FILE_FORMAT
   readonly schemaVersion: typeof CPS_FILE_SCHEMA_VERSION
   readonly createdAt: string
+  readonly radioModelId: typeof TYT_UVL15W.id
+  readonly supportProfileId: "tyt-uvl15w-3.07.23"
   readonly layout: {
     readonly id: CodeplugLayoutId
     readonly firmwareVersion: string
@@ -59,12 +62,23 @@ class CpsFileError extends Error {
 }
 
 async function createCpsFile(input: CreateCpsFileInput) {
+  if (
+    input.sourceRadio.model !== "UVL-15W" ||
+    input.sourceRadio.firmwareVersion !==
+      CODEPLUG_LAYOUT_3_07_23.firmwareVersion
+  ) {
+    throw new CpsFileError(
+      "The Source Radio does not match the selected Radio support profile"
+    )
+  }
   const baselineBytes = input.baseline.toBytes()
   const workingBytes = input.working.toBytes()
   const manifest: CpsFileManifest = Object.freeze({
     format: CPS_FILE_FORMAT,
     schemaVersion: CPS_FILE_SCHEMA_VERSION,
     createdAt: (input.createdAt ?? new Date()).toISOString(),
+    radioModelId: TYT_UVL15W.id,
+    supportProfileId: "tyt-uvl15w-3.07.23",
     layout: Object.freeze({
       id: CODEPLUG_LAYOUT_3_07_23.id,
       firmwareVersion: input.sourceRadio.firmwareVersion,
@@ -158,7 +172,7 @@ function validateManifest(value: unknown): CpsFileManifest {
   if (!isRecord(value))
     throw new CpsFileError("The CPS File manifest is invalid")
   if (value.format !== CPS_FILE_FORMAT) {
-    throw new CpsFileError("The selected archive is not a TYT UVL-15 CPS File")
+    throw new CpsFileError("The selected archive is not a 73Kit CPS File")
   }
   if (value.schemaVersion !== CPS_FILE_SCHEMA_VERSION) {
     throw new CpsFileError(
@@ -167,10 +181,12 @@ function validateManifest(value: unknown): CpsFileManifest {
   }
   if (
     typeof value.createdAt !== "string" ||
+    value.radioModelId !== TYT_UVL15W.id ||
+    value.supportProfileId !== "tyt-uvl15w-3.07.23" ||
     !isRecord(value.layout) ||
-    typeof value.layout.id !== "string" ||
-    typeof value.layout.firmwareVersion !== "string" ||
-    typeof value.layout.byteLength !== "number" ||
+    value.layout.id !== CODEPLUG_LAYOUT_3_07_23.id ||
+    value.layout.firmwareVersion !== CODEPLUG_LAYOUT_3_07_23.firmwareVersion ||
+    value.layout.byteLength !== CODEPLUG_LAYOUT_3_07_23.byteLength ||
     !isSourceRadio(value.sourceRadio)
   ) {
     throw new CpsFileError("The CPS File manifest metadata is invalid")
@@ -181,6 +197,8 @@ function validateManifest(value: unknown): CpsFileManifest {
     format: CPS_FILE_FORMAT,
     schemaVersion: CPS_FILE_SCHEMA_VERSION,
     createdAt: value.createdAt,
+    radioModelId: value.radioModelId,
+    supportProfileId: value.supportProfileId,
     layout: Object.freeze({
       id: value.layout.id as CodeplugLayoutId,
       firmwareVersion: value.layout.firmwareVersion,
@@ -233,7 +251,7 @@ function isSourceRadio(value: unknown) {
   return (
     value.model === "UVL-15W" &&
     typeof value.subModel === "number" &&
-    typeof value.firmwareVersion === "string" &&
+    value.firmwareVersion === CODEPLUG_LAYOUT_3_07_23.firmwareVersion &&
     typeof value.imageResourceVersion === "string" &&
     typeof value.cpuId === "string" &&
     typeof value.bootloaderModel === "string" &&

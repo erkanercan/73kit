@@ -1,8 +1,12 @@
-# TYT UVL-15W Browser CPS - Feature & Capability Reference
+# 73Kit Radio CPS — TYT UVL-15W Feature & Capability Reference
 
 > **Purpose:** Canonical feature reference for implementation planning and Codex-assisted development.
 >
-> **Project:** Browser-based CPS for the TYT UVL-15W
+> **Product:** Radio CPS, the first tool within 73Kit
+>
+> **Current Radio Model:** TYT UVL-15W, including the Tekser TR-UV15 alias
+>
+> **Current validated Support Profile:** firmware `3.07.23`, Codeplug Layout `uvl15w-3.07.23`
 >
 > **Primary stack:** Next.js + React + TypeScript + Web Serial
 >
@@ -20,7 +24,9 @@
 
 ## 1. What This Project Is
 
-This project is a modern, browser-based **CPS (Customer Programming Software)** for the **TYT UVL-15W** handheld radio.
+This document covers the browser-based **Radio CPS**, specifically the current
+**TYT UVL-15W** integration. **Tekser TR-UV15** is an alias of that same Radio
+Model and uses the same route, driver, profiles, and capabilities.
 
 The goal is to provide a cross-platform alternative to traditional Windows-only programming software while keeping radio communication local to the user's computer.
 
@@ -44,6 +50,17 @@ TYT UVL-15W
 
 The Next.js server is **not** part of the radio communication path. Core CPS operation should not require a backend.
 
+The operator chooses a Radio Model at `/{locale}/cps`, then works under the
+shared dynamic route `/{locale}/cps/{radioModel}`. Live firmware is detected
+from the Radio, not selected by the operator. Only an exact validated Support
+Profile authorizes Codeplug interpretation. Adding another Radio therefore
+adds registry, driver, profile, persistence, and test work—not another copy of
+the route tree.
+
+See
+[`docs/architecture/73kit-radio-cps-platform.md`](architecture/73kit-radio-cps-platform.md)
+for the canonical multi-Radio architecture and extension procedure.
+
 ---
 
 ## 2. Scope Boundary: CPS vs Firmware
@@ -56,11 +73,14 @@ The documented CPS memory region is:
 0x00008000 → 0x00021000
 ```
 
-Total size:
+Total size for the validated **firmware `3.07.23` Support Profile only**:
 
 ```text
 102,400 bytes
 ```
+
+This byte length must not be applied to another firmware version until that
+version is independently validated and registered.
 
 This includes Channels, VFOs, Call Channels, Zones, Scan Lists, radio settings, APRS, GPS, Bluetooth, DTMF, 2-Tone, 5-Tone and related Codeplug data.
 
@@ -302,7 +322,7 @@ Metadata such as model, firmware, date/time and SHA-256 belongs in a CPS Export 
 
 ### CPS File export and import - P0 / IMPLEMENTED PRODUCT
 
-Export a `.uvl15cps` ZIP package containing `manifest.json`, `baseline.bin`, and
+Export a `.73kcps` ZIP package containing `manifest.json`, `baseline.bin`, and
 `working.bin`. The manifest preserves Source Radio identity, layout and firmware
 metadata, creation time, byte lengths, and SHA-256 hashes. Import verifies every
 member before opening the Baseline Backup and Working Codeplug for offline
@@ -1148,7 +1168,7 @@ responsibility.
 The Backups workspace can save an explicitly named immutable copy of the active
 Baseline Backup and Working Codeplug in IndexedDB. Names are unique, copies
 retain Source Radio/layout binding and CPS File integrity metadata, and entries
-can be opened, exported, renamed or deleted. Opening reuses normal `.uvl15cps`
+can be opened, exported, renamed or deleted. Opening reuses normal `.73kcps`
 verification. Saving never silently overwrites or autosaves the active document;
 each save creates a new snapshot. The UI reports whether browser storage is
 persistent or best-effort.
@@ -1184,7 +1204,7 @@ and write protection before E3. A mismatch stops before the first write block.
 Potential formats and binding rules:
 
 - raw `.bin`: implemented for the validated firmware 3.07.23 102,400-byte layout; imports as an Unbound Codeplug and re-exports edited raw bytes
-- `.uvl15cps`: implemented; preserves baseline and working bytes, Source Radio identity, layout metadata, and integrity hashes
+- `.73kcps`: implemented; preserves Radio Model, support profile, baseline and working bytes, Source Radio identity, layout metadata, and integrity hashes
 - CSV: imports as an Unbound Codeplug
 - CHIRP-compatible CSV: imports as an Unbound Codeplug
 
@@ -1195,7 +1215,7 @@ JSON must not become the canonical Codeplug representation. JSON metadata may be
 The application publishes a standalone web app manifest and a same-origin
 service worker. The worker caches the localized application shell, visited
 pages, Next static assets, the app icon and APRS symbol sprites. It never caches
-`.uvl15cps`, `.bin`, `.Fir`, `.DAT` or JSON artifacts, and it does not force a
+`.73kcps`, `.bin`, `.Fir`, `.DAT` or JSON artifacts, and it does not force a
 new worker to take over an active session. Offline use is limited to previously
 cached application routes/assets; first-time routes and browser/Radio APIs still
 depend on the browser environment.
@@ -1205,28 +1225,37 @@ depend on the browser environment.
 # 9. Current Product Navigation
 
 ```text
-Radio
-Channels
-Zones
-Scan Lists
-VFO Scan Edges
-Radio Settings
-  Function Settings
-  Display Settings
-  Sound Settings
-  Keyboard Settings
-  Menu Visibility
-APRS
-GPS
-Spectrum
-Bluetooth
-FM Radio
-Signal System
-Backups
-Updates (beta)
-Diagnostics
-About
+73Kit
+├── Home
+├── Radio CPS
+│   ├── Select Radio Model
+│   └── TYT UVL-15W / Tekser TR-UV15
+│       ├── Overview
+│       ├── Radio
+│       ├── Channels
+│       ├── Zones
+│       ├── Scan Lists
+│       ├── VFO Scan Edges
+│       ├── Radio Settings
+│       │   ├── Function Settings
+│       │   ├── Display Settings
+│       │   ├── Sound Settings
+│       │   ├── Keyboard Settings
+│       │   └── Menu Visibility
+│       ├── APRS
+│       ├── GPS
+│       ├── Spectrum
+│       ├── Bluetooth
+│       ├── FM Radio
+│       ├── Signal System
+│       ├── Backups
+│       └── Firmware and Resources (Beta)
+├── Diagnostics
+└── About
 ```
+
+All selected-model entries share `/{locale}/cps/{radioModel}/...`. The model
+registry filters capabilities; it does not duplicate route files.
 
 ---
 

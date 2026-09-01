@@ -7,7 +7,7 @@ import {
   setRequestLocale,
 } from "next-intl/server"
 
-import { CpsAppShell } from "@/components/cps-app-shell"
+import { ApplicationShell } from "@/components/application-shell"
 import { DocumentLocale } from "@/components/document-locale"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { isLocale, routing } from "@/i18n/routing"
@@ -55,7 +55,7 @@ export default async function LocaleLayout({
     <NextIntlClientProvider locale={locale} messages={messages}>
       <DocumentLocale locale={locale} />
       <TooltipProvider>
-        <CpsAppShell>{children}</CpsAppShell>
+        <ApplicationShell>{children}</ApplicationShell>
       </TooltipProvider>
     </NextIntlClientProvider>
   )

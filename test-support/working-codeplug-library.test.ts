@@ -63,9 +63,11 @@ test("rejects empty and oversized Working Codeplug names", () => {
 
 function manifest(): CpsFileManifest {
   return {
-    format: "tyt-uvl15-cps",
+    format: "73kit-cps",
     schemaVersion: 1,
     createdAt: "2026-08-31T12:00:00.000Z",
+    radioModelId: "tyt-uvl15w",
+    supportProfileId: "tyt-uvl15w-3.07.23",
     layout: {
       id: "uvl15w-3.07.23",
       firmwareVersion: "3.07.23",

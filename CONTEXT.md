@@ -1,15 +1,43 @@
-# UVL-15W Programming
+# 73Kit Radio Programming
 
-This context covers safely inspecting and managing the persistent programmable configuration of a TYT UVL-15W radio.
+This context covers 73Kit and the safe inspection and management of a supported Radio's persistent programmable configuration.
 
 ## Language
 
+**73Kit**:
+The local-first amateur-radio toolkit that contains Radio CPS and other independent operator tools.
+_Avoid_: CPS, UVL-15W app
+
+**73Kit Tool**:
+A top-level operator capability within 73Kit, such as Radio CPS, whose domain may or may not require a selected Radio.
+_Avoid_: Page, module, feature card
+
+**Radio Model**:
+A canonical supported Radio product identity that owns aliases, capabilities, protocol support, and firmware support profiles. Marketing aliases that use the same hardware and protocol remain one Radio Model.
+_Avoid_: Route, driver, connected Radio
+
+**Radio Model Alias**:
+An alternate manufacturer or marketing name for the same Radio Model, not a separate compatibility or storage identity.
+_Avoid_: Separate Radio Model, clone
+
+**Firmware Release**:
+The exact firmware version reported by a Radio. A release is known independently of whether 73Kit has validated its Codeplug layout.
+_Avoid_: Support Profile, selected firmware
+
+**Support Profile**:
+The evidence-backed compatibility contract joining one Radio Model, one exact Firmware Release, one Codeplug Layout, and the operations 73Kit may safely perform.
+_Avoid_: Preset, closest version, firmware choice
+
+**Codeplug Layout**:
+The complete interpretation contract for one Codeplug binary organization, including byte length, addresses, encodings, protected values, and Radio-managed regions.
+_Avoid_: File size, firmware guess, schema
+
 **Radio**:
-A physical TYT UVL-15W handheld transceiver whose programmable configuration can be inspected or changed.
+A physical supported handheld transceiver whose programmable configuration can be inspected or changed.
 _Avoid_: Device, unit
 
 **CPS**:
-The customer programming software through which a user reads, backs up, edits, and writes a radio's programmable configuration.
+The Radio CPS tool through which a user selects a Radio Model and reads, backs up, edits, and writes a Radio's programmable configuration.
 _Avoid_: App, host, programming tool
 
 **Codeplug**:
@@ -21,7 +49,7 @@ An immutable, unchanged Codeplug retained after a successful Radio Read, complet
 _Avoid_: Export, copy
 
 **Working Codeplug**:
-An editable Codeplug derived from a Baseline Backup or future import. It holds the user's intended configuration without altering its source.
+An editable Codeplug derived from a Baseline Backup or import. It holds the user's intended configuration without altering its source.
 _Avoid_: Draft, working copy, edited backup
 
 **Baseline Backup**:
@@ -89,7 +117,7 @@ A portable Codeplug package that preserves its Source Radio identity and the inf
 _Avoid_: Raw Backup Export, config file
 
 **CPS File**:
-A `.uvl15cps` package containing an immutable Baseline Backup, an editable Working Codeplug, Source Radio identity, Codeplug layout metadata, and integrity hashes. It may be reopened without a Radio, but its Source Radio binding must be verified by a fresh Radio Read before restore.
+A `.73kcps` package containing Radio Model and Support Profile identity, an immutable Baseline Backup, an editable Working Codeplug, Source Radio identity, Codeplug Layout metadata, and integrity hashes. It may be reopened without a Radio, but its Source Radio binding must be verified by a fresh Radio Read before restore.
 _Avoid_: Project file, Raw Backup Export, firmware backup
 
 **Radio Restore**:

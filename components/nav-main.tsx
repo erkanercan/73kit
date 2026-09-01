@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/tooltip"
 import { Link } from "@/i18n/navigation"
 import { getNavigationItemState } from "@/modules/update-presentation/index"
+import type { RadioCapability } from "@/modules/radio-support/index"
 
 interface NavigationItem {
   readonly title: string
@@ -27,6 +28,7 @@ interface NavigationItem {
   readonly planned?: boolean
   readonly disabled?: boolean
   readonly disabledDescription?: string
+  readonly capability?: RadioCapability
 }
 
 interface NavigationSection {

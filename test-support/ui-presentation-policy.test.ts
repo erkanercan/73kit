@@ -46,6 +46,11 @@ test("page content does not use gray title-description components", () => {
       /<\/PageHeader>\s*<p[^>]*text-muted-foreground/,
       path
     )
+    assert.doesNotMatch(
+      source,
+      /<\/PageHeader>\s*<div[^>]*>\s*<p[^>]*text-muted-foreground/,
+      path
+    )
   }
 })
 

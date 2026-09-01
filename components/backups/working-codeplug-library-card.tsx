@@ -148,9 +148,9 @@ function WorkingCodeplugLibraryCard() {
       await openCpsFile(
         new File(
           [current.cpsFileBytes.slice().buffer],
-          `${current.name}.uvl15cps`,
+          `${current.name}.73kcps`,
           {
-            type: "application/vnd.tyt.uvl15-cps+zip",
+            type: "application/vnd.73kit.cps+zip",
           }
         )
       )
@@ -449,12 +449,12 @@ function NameDialog({
 
 function downloadEntry(entry: SavedWorkingCodeplug) {
   const blob = new Blob([entry.cpsFileBytes.slice().buffer], {
-    type: "application/vnd.tyt.uvl15-cps+zip",
+    type: "application/vnd.73kit.cps+zip",
   })
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement("a")
   anchor.href = url
-  anchor.download = `${safeFilename(entry.name)}.uvl15cps`
+  anchor.download = `${safeFilename(entry.name)}.73kcps`
   anchor.click()
   setTimeout(() => URL.revokeObjectURL(url), 0)
 }

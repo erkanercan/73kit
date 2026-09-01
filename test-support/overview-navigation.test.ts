@@ -3,11 +3,11 @@ import { readFileSync } from "node:fs"
 import test from "node:test"
 
 const overviewPageSource = readFileSync(
-  new URL("../app/[locale]/page.tsx", import.meta.url),
+  new URL("../app/[locale]/cps/[radioModel]/page.tsx", import.meta.url),
   "utf8"
 )
 const radioPageSource = readFileSync(
-  new URL("../app/[locale]/radio/page.tsx", import.meta.url),
+  new URL("../app/[locale]/cps/[radioModel]/radio/page.tsx", import.meta.url),
   "utf8"
 )
 const sidebarSource = readFileSync(
@@ -48,7 +48,7 @@ const fullPageEmptyWorkspacePaths = [
   "../components/vfo-scan-edges/vfo-scan-edges-workspace.tsx",
 ] as const
 
-test("uses Overview as home and keeps Radio on its own route", () => {
+test("uses Overview as the selected Radio CPS home and keeps Radio separate", () => {
   assert.match(overviewPageSource, /<OverviewWorkspace \/>/)
   assert.match(radioPageSource, /<RadioWorkspace \/>/)
 
@@ -60,8 +60,14 @@ test("uses Overview as home and keeps Radio on its own route", () => {
     workspaceNavigation.indexOf('title: t("navOverview")') <
       workspaceNavigation.indexOf('title: t("navRadio")')
   )
-  assert.match(workspaceNavigation, /title: t\("navOverview"\),\s*href: "\/"/)
-  assert.match(workspaceNavigation, /title: t\("navRadio"\),\s*href: "\/radio"/)
+  assert.match(
+    workspaceNavigation,
+    /title: t\("navOverview"\),\s*href: basePath/
+  )
+  assert.match(
+    workspaceNavigation,
+    /title: t\("navRadio"\),\s*href: route\("radio"\)/
+  )
 })
 
 test("maps every operator route to the correct breadcrumb", () => {
