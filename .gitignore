@@ -38,3 +38,7 @@ pnpm-debug.log*
 next-env.d.ts
 
 *.bin
+/dist/
+.vinext/
+.wrangler/
+.pnpm-store/

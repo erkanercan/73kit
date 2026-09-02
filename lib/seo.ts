@@ -43,10 +43,10 @@ function createPageMetadata({
       alternateLocale: locale === "tr" ? ["en_US"] : ["tr_TR"],
       images: [
         {
-          url: "/opengraph-image",
+          url: "/opengraph-image.png",
           width: 1200,
           height: 630,
-          alt: "73Kit Radio CPS",
+          alt: "73Kit browser tools",
         },
       ],
     },
@@ -54,7 +54,7 @@ function createPageMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: ["/opengraph-image"],
+      images: ["/opengraph-image.png"],
     },
     robots: {
       index,

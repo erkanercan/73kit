@@ -10,9 +10,14 @@ export default getRequestConfig(async ({ requestLocale }) => {
     notFound()
   }
 
+  const messages =
+    locale === "en"
+      ? (await import("@/dictionaries/en")).default
+      : (await import("@/dictionaries/tr")).default
+
   return {
     locale,
-    messages: (await import(`@/dictionaries/${locale}`)).default,
+    messages,
     timeZone: "Europe/Istanbul",
   }
 })

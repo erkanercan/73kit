@@ -1,6 +1,10 @@
 packages: []
 
 allowBuilds:
+  "@parcel/watcher": true
+  "@swc/core": true
+  esbuild: true
+  msw: false
   sharp: true
   unrs-resolver: true
-  msw: false
+  workerd: true

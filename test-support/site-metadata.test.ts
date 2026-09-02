@@ -11,13 +11,13 @@ import {
 } from "../lib/site.ts"
 
 test("site URLs resolve against the canonical production origin", () => {
-  assert.equal(SITE_ORIGIN.toString(), "https://cps.erkan.dev/")
-  assert.equal(absoluteUrl("/tr"), "https://cps.erkan.dev/tr")
+  assert.equal(SITE_ORIGIN.toString(), "https://73kit.erkan.dev/")
+  assert.equal(absoluteUrl("/tr"), "https://73kit.erkan.dev/tr")
   assert.equal(localizedPath("en"), "/en")
   assert.deepEqual(localizedAlternates(), {
-    en: "https://cps.erkan.dev/en",
-    tr: "https://cps.erkan.dev/tr",
-    "x-default": "https://cps.erkan.dev/tr",
+    en: "https://73kit.erkan.dev/en",
+    tr: "https://73kit.erkan.dev/tr",
+    "x-default": "https://73kit.erkan.dev/tr",
   })
 })
 
@@ -33,8 +33,8 @@ test("robots allows discovery and advertises the canonical sitemap", () => {
         disallow: "/",
       },
     ],
-    sitemap: "https://cps.erkan.dev/sitemap.xml",
-    host: "cps.erkan.dev",
+    sitemap: "https://73kit.erkan.dev/sitemap.xml",
+    host: "73kit.erkan.dev",
   })
 })
 
@@ -45,20 +45,20 @@ test("sitemap contains the localized 73Kit and Radio CPS entry URLs", () => {
   assert.deepEqual(
     entries.map(({ url }) => url),
     [
-      "https://cps.erkan.dev/tr",
-      "https://cps.erkan.dev/en",
-      "https://cps.erkan.dev/tr/cps",
-      "https://cps.erkan.dev/en/cps",
-      "https://cps.erkan.dev/tr/cps/tyt-uvl15w",
-      "https://cps.erkan.dev/en/cps/tyt-uvl15w",
+      "https://73kit.erkan.dev/tr",
+      "https://73kit.erkan.dev/en",
+      "https://73kit.erkan.dev/tr/cps",
+      "https://73kit.erkan.dev/en/cps",
+      "https://73kit.erkan.dev/tr/cps/tyt-uvl15w",
+      "https://73kit.erkan.dev/en/cps/tyt-uvl15w",
     ]
   )
 
   for (const entry of entries) {
-    assert.equal(entry.url.startsWith("https://cps.erkan.dev/"), true)
+    assert.equal(entry.url.startsWith("https://73kit.erkan.dev/"), true)
     assert.equal(
       entry.alternates?.languages?.["x-default"]?.startsWith(
-        "https://cps.erkan.dev/tr"
+        "https://73kit.erkan.dev/tr"
       ),
       true
     )

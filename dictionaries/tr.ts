@@ -111,9 +111,9 @@ const tr = {
   after: "Sonra",
   cancel: "İptal",
   metadataDescription:
-    "Tekser TR-UV15 ve TYT UVL-15W Codeplug'ını uyumlu bir masaüstü tarayıcıda yerel olarak programlayın, yedekleyin ve yönetin.",
+    "Telsiz CPS ile başlayan, giderek büyüyen yerel öncelikli tarayıcı araçları koleksiyonu.",
   kitMetadataDescription:
-    "Desteklenen telsizleri uyumlu bir masaüstü tarayıcıda programlayın ve yedekleyin.",
+    "Telsiz CPS ile başlayan, giderek büyüyen yerel öncelikli tarayıcı araçları koleksiyonu.",
   kitSidebarDescription: "73Kit ana menüsünü gösterir.",
   kitNavigation: "73Kit",
   kitHomeTitle: "Ana Sayfa",

@@ -1,7 +1,8 @@
 # 73Kit
 
-73Kit includes Radio CPS, which reads, backs up, edits, reviews, and writes a
-Radio's complete Codeplug directly through Web Serial.
+73Kit is a home for local-first browser tools. Its first tool is Radio CPS,
+which reads, backs up, edits, reviews, and writes a Radio's complete Codeplug
+directly through Web Serial.
 
 ## Current validated scope
 

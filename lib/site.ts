@@ -1,13 +1,13 @@
 import type { Locale } from "@/i18n/routing"
 
-const SITE_ORIGIN = new URL("https://cps.erkan.dev")
+const SITE_ORIGIN = new URL("https://73kit.erkan.dev")
 const SITE_NAME = "73Kit"
 const SITE_LAST_REVIEWED = new Date("2026-08-31T00:00:00.000Z")
 const PUBLIC_INDEXABLE_PATHS = ["", "cps", "cps/tyt-uvl15w"] as const
 
 const SITE_DESCRIPTIONS: Record<Locale, string> = {
-  en: "Program and back up supported Radios in a compatible desktop browser.",
-  tr: "Desteklenen telsizleri uyumlu bir masaüstü tarayıcıda programlayın ve yedekleyin.",
+  en: "A growing collection of local-first browser tools, starting with Radio CPS.",
+  tr: "Telsiz CPS ile başlayan, giderek büyüyen yerel öncelikli tarayıcı araçları koleksiyonu.",
 }
 
 function absoluteUrl(pathname = "/") {

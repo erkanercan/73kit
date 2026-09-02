@@ -23,6 +23,6 @@ test("73Kit brand assets use the approved mark and wordmark", async () => {
   assert.doesNotMatch(logo, /<text\b/)
   assert.doesNotMatch(logo, /@font-face|font-family/)
   assert.match(sidebar, />\s*73Kit\s*</)
-  assert.match(seo, /images: \["\/opengraph-image"\]/)
+  assert.match(seo, /images: \["\/opengraph-image\.png"\]/)
   assert.match(proxy, /favicon\.ico\|opengraph-image/)
 })
