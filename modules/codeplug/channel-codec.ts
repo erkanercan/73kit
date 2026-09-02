@@ -36,6 +36,8 @@ import {
   VALIDITY_BITMAP_OFFSET,
   VFO_RECORDS_OFFSET,
 } from "./memory-map.ts"
+import { CODEPLUG_MEMORY_MAP_3_07_23 } from "./layout.ts"
+import type { CodeplugMemoryMap } from "./layout.ts"
 
 const DUPLEX = [
   "off",
@@ -244,22 +246,29 @@ const DCS_CODES = [
   "754",
 ] as const
 
-function decodeChannels(bytes: Uint8Array) {
+function decodeChannels(
+  bytes: Uint8Array,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
+) {
   return Object.freeze(
     Array.from({ length: CHANNEL_COUNT }, (_, index) =>
-      decodeChannel(bytes, index)
+      decodeChannel(bytes, index, memoryMap)
     )
   )
 }
 
-function decodeChannel(bytes: Uint8Array, index: number): Channel {
+function decodeChannel(
+  bytes: Uint8Array,
+  index: number,
+  memoryMap: CodeplugMemoryMap
+): Channel {
   const offset = CHANNEL_RECORDS_OFFSET + index * CHANNEL_RECORD_SIZE
   return Object.freeze({
     number: index + 1,
     valid: readValidity(bytes, index),
     scan: readScan(bytes, index),
-    zoneNames: decodeChannelZoneNames(bytes, index),
-    scanListNames: decodeChannelScanListNames(bytes, index),
+    zoneNames: decodeChannelZoneNames(bytes, index, memoryMap),
+    scanListNames: decodeChannelScanListNames(bytes, index, memoryMap),
     ...decodeChannelRecord(bytes, offset),
   })
 }

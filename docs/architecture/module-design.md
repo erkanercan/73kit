@@ -66,10 +66,12 @@ model-specific behavior. It owns stable model IDs, aliases, capabilities, exact
 firmware support profiles, and route construction. The workspace factory must
 fail for an unregistered driver; it must never use a default Radio implementation.
 
-A support profile binds an exact firmware version to a Codeplug Layout. Unknown
-or unvalidated versions have no layout and cannot authorize a Radio Read or
-write. The current 102,400-byte size belongs only to the UVL-15W `3.07.23`
-profile.
+A support profile binds an exact firmware version to a Codeplug Layout and a
+release status. Unknown versions have no layout and cannot authorize a Radio
+Read or write. The official 2.07.03 through 3.05.26 profiles share the
+legacy-v1 metadata layout; 3.07.15 and 3.07.23 share the current layout. Every
+known profile uses the complete 102,400-byte range, but size alone never selects
+a profile.
 
 ## CPS Workspace
 
@@ -158,7 +160,8 @@ Interface invariants:
 - `read` returns only a complete, validated Codeplug.
 - Interrupted or invalid read data is discarded.
 - Read completion includes the required protocol termination.
-- `write` accepts only the complete materialized firmware-`3.07.23` image,
+- `write` accepts only a complete materialized image matching the exact Source
+  Radio support profile,
   validates every block acknowledgement and the final E5 `Reboot` response,
   then reports Radio Write completion.
 - Neither the Radio module nor the CPS Workspace reconnects or reads the Radio

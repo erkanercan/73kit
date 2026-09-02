@@ -8,7 +8,10 @@ import {
   type ValidatedFirmwarePackage,
   type ValidatedResourcePackage,
 } from "../modules/update-package/index.ts"
-import { findCatalogPackageBySha256 } from "../modules/update-catalog/index.ts"
+import {
+  findCatalogPackageBySha256,
+  getNormalModeFirmwareVersions,
+} from "../modules/update-catalog/index.ts"
 import { createUpdateDiagnosticReport } from "../modules/update-diagnostics/index.ts"
 import { isUpdatePreparationConfirmed } from "../modules/update-policy/index.ts"
 import {
@@ -44,6 +47,21 @@ test("publishes the validated Firmware package through catalog release state", (
 
   assert.equal(updatePackage?.id, "firmware-3.7.23")
   assert.equal(updatePackage?.releaseStatus, "beta")
+  assert.deepEqual(updatePackage?.sourceFirmwareVersions, [
+    "2.07.03",
+    "2.11.18",
+    "2.12.27",
+    "3.03.16",
+    "3.03.18",
+    "3.03.31",
+    "3.05.26",
+    "3.07.15",
+    "3.07.23",
+  ])
+  assert.deepEqual(
+    getNormalModeFirmwareVersions(),
+    updatePackage?.sourceFirmwareVersions
+  )
 })
 
 test("requires explicit beta acknowledgement in addition to normal preparation", () => {

@@ -6,7 +6,7 @@
 >
 > **Current Radio Model:** TYT UVL-15W, including the Tekser TR-UV15 alias
 >
-> **Current validated Support Profile:** firmware `3.07.23`, Codeplug Layout `uvl15w-3.07.23`
+> **Support Profiles:** firmware `3.07.23` validated; official `2.07.03` through `3.07.15` profiles available as Beta
 >
 > **Primary stack:** Next.js + React + TypeScript + Web Serial
 >
@@ -52,7 +52,7 @@ The Next.js server is **not** part of the radio communication path. Core CPS ope
 
 The operator chooses a Radio Model at `/{locale}/cps`, then works under the
 shared dynamic route `/{locale}/cps/{radioModel}`. Live firmware is detected
-from the Radio, not selected by the operator. Only an exact validated Support
+from the Radio, not selected by the operator. Only an exact released Support
 Profile authorizes Codeplug interpretation. Adding another Radio therefore
 adds registry, driver, profile, persistence, and test work—not another copy of
 the route tree.
@@ -73,14 +73,14 @@ The documented CPS memory region is:
 0x00008000 → 0x00021000
 ```
 
-Total size for the validated **firmware `3.07.23` Support Profile only**:
+Total size for every currently registered official firmware profile:
 
 ```text
 102,400 bytes
 ```
 
-This byte length must not be applied to another firmware version until that
-version is independently validated and registered.
+This shared byte length does not select a profile. Exact firmware detection or
+PF structural markers select the legacy-v1 or current layout.
 
 This includes Channels, VFOs, Call Channels, Zones, Scan Lists, radio settings, APRS, GPS, Bluetooth, DTMF, 2-Tone, 5-Tone and related Codeplug data.
 
@@ -139,13 +139,13 @@ The `E1` response exposes:
 ### Firmware compatibility gate
 
 The current Codeplug memory map is validated for UVL-15W firmware `3.07.23`.
-After the `E1` response, the UVL-15W Radio module validates the reported
-firmware before allowing a Radio Read. It normalizes `3.07.23` and `V3.07.23`
-representations of that version. Older, newer-unvalidated, blank or malformed
-versions are disconnected before any `E2` command is sent, so no Codeplug Backup
-or Working Codeplug is created.
+Official firmware versions `2.07.03` through `3.07.15` have exact Beta profiles
+mapped to the observed legacy-v1 or current layout. After `E1`, the Radio module
+normalizes numeric version components and requires an exact profile before any
+`E2` command. Unknown, newer-unvalidated, blank, or malformed versions are
+disconnected, so no Codeplug Backup or Working Codeplug is created.
 
-Firmware support is an exact validated-version allowlist rather than a minimum
+Firmware support is an exact released-version allowlist rather than a minimum
 comparison: a future release may retain the same address range while changing
 field offsets or meanings. Add a newer version only after controlled Codeplug
 comparisons, protocol/address validation, fixtures and physical Radio testing.
@@ -311,7 +311,7 @@ Read `0x8000 → 0x21000` into a complete 102,400-byte Codeplug. A successful Ra
 
 ### Raw Backup Export - P0 / IMPLEMENTED PRODUCT
 
-For the validated firmware 3.07.23 layout, the Radio workspace downloads the
+For every registered profile, the Radio workspace downloads the
 immutable Baseline Backup as an exact 102,400-byte `.bin` file. It does not
 export the edited Working Codeplug. A Raw Backup Export contains no Source Radio
 identity or interpretation metadata. An imported Unbound Codeplug is the sole
@@ -328,12 +328,31 @@ metadata, creation time, byte lengths, and SHA-256 hashes. Import verifies every
 member before opening the Baseline Backup and Working Codeplug for offline
 inspection, editing, and re-export.
 
+The manifest accepts every exact registered support profile and preserves the
+legacy or current layout without migrating bytes.
+
 An imported file is not live proof of its Source Radio. “Read Radio & Prepare
 Restore” performs a fresh complete Radio Read, saves the current Radio backup,
 verifies permanent Source Radio identity and the validated layout, and creates a
 Restore Plan from the fresh read to the imported Working Codeplug. Radio Write
 remains blocked until that preparation succeeds. See
 [`codeplug-file-lifecycle.md`](codeplug-file-lifecycle.md).
+
+### TYT PF open and save - P0 / IMPLEMENTED PRODUCT
+
+The persistent **Open** action accepts official `.PF` files. The parser requires
+all 3,200 contiguous 32-byte hexadecimal records covering `0x8000..0x20FFF`.
+It detects the legacy-v1 or 3.07 generation from official versioned markers;
+the known markerless TYT factory defaults are recognized by their decoded
+SHA-256. A markerless edited PF with no known provenance is rejected instead of
+being assigned a layout by guesswork. The result opens as an Unbound Codeplug.
+**Save** exports the editable Working Codeplug in the same official PF record
+syntax. A PF file never supplies Source Radio identity and cannot authorize
+Radio Write without a fresh Radio Read.
+
+When the current Working Codeplug has a Change Set, persistent **Open** asks for
+confirmation before replacing it. Open is unavailable while a Radio Write is
+prepared, active, or has an unknown outcome.
 
 Restore materialization preserves the fresh Radio's observed opaque,
 Radio-managed tail at `0x20BC0–0x20FFF`. Its 8-byte internal records can be
@@ -343,10 +362,9 @@ an older CPS File.
 
 ### Raw import for offline inspection/editing - P1 / IMPLEMENTED PRODUCT
 
-Backups provides a separate **Import Raw Backup** action and explicit review.
-The current import profile accepts only a case-insensitive `.bin` extension and
-exactly 102,400 bytes, which identifies the currently validated firmware
-3.07.23 layout; this is not a universal size rule for future firmware layouts.
+The persistent **Open** action and Backups workspace accept a case-insensitive
+`.bin` extension and exactly 102,400 bytes. Because raw bytes have no layout
+marker, `.bin` uses the current layout and remains explicitly Unbound.
 The size is checked before and after reading, and the imported bytes become an
 immutable Baseline Backup plus a distinct editable Working Codeplug.
 
@@ -1203,8 +1221,9 @@ and write protection before E3. A mismatch stops before the first write block.
 
 Potential formats and binding rules:
 
-- raw `.bin`: implemented for the validated firmware 3.07.23 102,400-byte layout; imports as an Unbound Codeplug and re-exports edited raw bytes
-- `.73kcps`: implemented; preserves Radio Model, support profile, baseline and working bytes, Source Radio identity, layout metadata, and integrity hashes
+- raw `.bin`: implemented as a current-layout Unbound Codeplug and re-exports edited raw bytes
+- TYT `.PF`: implemented; strict legacy/current detection, Unbound open, and official-syntax save
+- `.73kcps`: implemented for all exact registered profiles; preserves Radio Model, support profile, baseline and working bytes, Source Radio identity, layout metadata, and integrity hashes
 - CSV: imports as an Unbound Codeplug
 - CHIRP-compatible CSV: imports as an Unbound Codeplug
 
@@ -1314,9 +1333,11 @@ registry filters capabilities; it does not duplicate route files.
 - [x] Change Set review
 - [x] document-wide, bounded undo/redo with standard desktop shortcuts
 
-Radio Write is implemented and released for the firmware-`3.07.23`, USB CDC,
-Source-Radio-bound, unprotected-Radio production scope. It always writes the
-complete materialized Codeplug and ends at the validated reboot response.
+Radio Write is validated for firmware `3.07.23` and available as Beta for the
+exact official `2.07.03` through `3.07.15` profiles over USB CDC. It remains
+Source-Radio-bound, requires an unprotected Radio, writes the complete matching
+layout, and ends only at the validated reboot response. Legacy profiles preserve
+the full source image and do not apply 3.07.23-only derived-byte normalization.
 
 ## Epic 6 - Zones & scan lists
 
@@ -1390,7 +1411,7 @@ Partial or changed-block writes are excluded until hardware-verified.
 ## Epic 14 - PWA / saved Working Codeplugs / import-export
 
 - [x] exact immutable Baseline Backup Raw Backup Export
-- [x] firmware-3.07.23 Raw Backup import as an Unbound Codeplug with edited raw re-export
+- [x] raw `.bin` and official TYT `.PF` import as Unbound Codeplugs with edited re-export
 - [x] identity-bound CPS File export, verified import, offline reopen/edit/re-export, direct Backup History restore, and same-layout restore preparation
 - [x] durable Backup History
 - [x] named immutable IndexedDB Working Codeplug snapshots
@@ -1483,7 +1504,7 @@ firmware update commands
 - [x] complete Radio Write through validated reboot response
 - [x] durable interrupted-write `Write Outcome Unknown` handling
 - [x] imported CPS File binding requires a fresh same-Source-Radio read before restore
-- [x] firmware-3.07.23 Raw Backup import and Unbound Codeplug enforcement
+- [x] raw `.bin` and official TYT `.PF` import with Unbound Codeplug enforcement
 
 ## P2 - Extended Codeplug Settings
 

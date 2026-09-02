@@ -1,6 +1,16 @@
 {
   "schemaVersion": 2,
-  "normalModeFirmwareVersions": ["3.07.23"],
+  "normalModeFirmwareVersions": [
+    "2.07.03",
+    "2.11.18",
+    "2.12.27",
+    "3.03.16",
+    "3.03.18",
+    "3.03.31",
+    "3.05.26",
+    "3.07.15",
+    "3.07.23"
+  ],
   "radioProfiles": [
     {
       "id": "uvl15w-production-2026-07",
@@ -24,7 +34,17 @@
       "releaseStatus": "beta",
       "sha256": "3b4bc8f8feff871e0ea082a31f99488f411eaefd879903f13bbb7c30d385f6b4",
       "radioProfileId": "uvl15w-production-2026-07",
-      "sourceFirmwareVersions": ["3.07.23"],
+      "sourceFirmwareVersions": [
+        "2.07.03",
+        "2.11.18",
+        "2.12.27",
+        "3.03.16",
+        "3.03.18",
+        "3.03.31",
+        "3.05.26",
+        "3.07.15",
+        "3.07.23"
+      ],
       "targets": { "firmware": "3.07.23" },
       "prerequisites": [
         { "kind": "language", "version": "1.01.05", "relation": "exact" }
@@ -38,7 +58,17 @@
       "releaseStatus": "beta",
       "sha256": "bcf6c1f19233518d7bb7fde970a1062843f3868b5876d3ea6c3e6ed5e291e1e6",
       "radioProfileId": "uvl15w-production-2026-07",
-      "sourceFirmwareVersions": ["3.07.23"],
+      "sourceFirmwareVersions": [
+        "2.07.03",
+        "2.11.18",
+        "2.12.27",
+        "3.03.16",
+        "3.03.18",
+        "3.03.31",
+        "3.05.26",
+        "3.07.15",
+        "3.07.23"
+      ],
       "targets": { "language": "1.01.05" },
       "prerequisites": [],
       "resource": {
@@ -56,7 +86,17 @@
       "releaseStatus": "beta",
       "sha256": "0164e952aca45c345f152936fd57b54744be5aff78f6ef0b9ec5f63c2abbb5d2",
       "radioProfileId": "uvl15w-production-2026-07",
-      "sourceFirmwareVersions": ["3.07.23"],
+      "sourceFirmwareVersions": [
+        "2.07.03",
+        "2.11.18",
+        "2.12.27",
+        "3.03.16",
+        "3.03.18",
+        "3.03.31",
+        "3.05.26",
+        "3.07.15",
+        "3.07.23"
+      ],
       "targets": { "image": "1.01.00" },
       "prerequisites": [],
       "resource": {
@@ -75,7 +115,17 @@
       "releaseStatus": "beta",
       "sha256": "56213735761983aefd5ea6e9e449c1cbb0d998ebe851857102a02275fdf80934",
       "radioProfileId": "uvl15w-production-2026-07",
-      "sourceFirmwareVersions": ["3.07.23"],
+      "sourceFirmwareVersions": [
+        "2.07.03",
+        "2.11.18",
+        "2.12.27",
+        "3.03.16",
+        "3.03.18",
+        "3.03.31",
+        "3.05.26",
+        "3.07.15",
+        "3.07.23"
+      ],
       "targets": { "language": "1.01.05", "image": "1.01.00" },
       "prerequisites": [],
       "resource": {

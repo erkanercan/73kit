@@ -1,4 +1,7 @@
-import { CODEPLUG_LAYOUT_3_07_23 } from "../codeplug/index.ts"
+import {
+  CODEPLUG_LAYOUT_3_07_23,
+  CODEPLUG_LAYOUT_LEGACY,
+} from "../codeplug/index.ts"
 
 const RADIO_CAPABILITIES = [
   "radio-information",
@@ -18,14 +21,15 @@ const RADIO_CAPABILITIES = [
 ] as const
 
 type RadioCapability = (typeof RADIO_CAPABILITIES)[number]
-type FirmwareSupportStatus = "validated" | "not-validated"
+type FirmwareSupportStatus = "validated" | "beta" | "not-validated"
 type RadioModelId = "tyt-uvl15w"
 
 interface FirmwareSupportProfile {
   readonly id: string
   readonly version: string
   readonly status: FirmwareSupportStatus
-  readonly codeplugLayoutId: string | null
+  readonly codeplugLayoutId:
+    typeof CODEPLUG_LAYOUT_LEGACY.id | typeof CODEPLUG_LAYOUT_3_07_23.id | null
 }
 
 interface RadioModelDefinition {
@@ -48,6 +52,28 @@ const TYT_UVL15W = Object.freeze({
   driverId: "uvl15w-normal-mode-v3",
   capabilities: RADIO_CAPABILITIES,
   firmwareProfiles: Object.freeze([
+    ...[
+      "2.07.03",
+      "2.11.18",
+      "2.12.27",
+      "3.03.16",
+      "3.03.18",
+      "3.03.31",
+      "3.05.26",
+    ].map((version) =>
+      Object.freeze({
+        id: `tyt-uvl15w-${version}`,
+        version,
+        status: "beta" as const,
+        codeplugLayoutId: CODEPLUG_LAYOUT_LEGACY.id,
+      })
+    ),
+    Object.freeze({
+      id: "tyt-uvl15w-3.07.15",
+      version: "3.07.15",
+      status: "beta" as const,
+      codeplugLayoutId: CODEPLUG_LAYOUT_3_07_23.id,
+    }),
     Object.freeze({
       id: "tyt-uvl15w-3.07.23",
       version: CODEPLUG_LAYOUT_3_07_23.firmwareVersion,
@@ -81,7 +107,11 @@ function evaluateFirmwareSupport(
   radioModelId: RadioModelId,
   firmwareVersion: string
 ): FirmwareSupportProfile {
-  const normalizedVersion = firmwareVersion.trim().replace(/^[vV]/, "")
+  const trimmedVersion = firmwareVersion.trim().replace(/^[vV]/, "")
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(trimmedVersion)
+  const normalizedVersion = match
+    ? [match[1], match[2].padStart(2, "0"), match[3].padStart(2, "0")].join(".")
+    : trimmedVersion
   const profile = getRadioModel(radioModelId).firmwareProfiles.find(
     (candidate) => candidate.version === normalizedVersion
   )
@@ -94,6 +124,12 @@ function evaluateFirmwareSupport(
       status: "not-validated" as const,
       codeplugLayoutId: null,
     })
+  )
+}
+
+function listSupportedFirmwareProfiles(radioModelId: RadioModelId) {
+  return getRadioModel(radioModelId).firmwareProfiles.filter(
+    (profile) => profile.status !== "not-validated"
   )
 }
 
@@ -111,6 +147,7 @@ export {
   findRadioModel,
   getRadioModel,
   isRadioModelId,
+  listSupportedFirmwareProfiles,
   listRadioModels,
   radioCpsPath,
 }

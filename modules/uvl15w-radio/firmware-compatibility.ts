@@ -1,6 +1,8 @@
-import { getNormalModeFirmwareVersions } from "../update-catalog/index.ts"
+import { listSupportedFirmwareProfiles } from "../radio-support/index.ts"
 
-const VALIDATED_FIRMWARE_VERSIONS = getNormalModeFirmwareVersions()
+const SUPPORTED_FIRMWARE_VERSIONS = listSupportedFirmwareProfiles(
+  "tyt-uvl15w"
+).map((profile) => profile.version)
 
 type UnsupportedFirmwareReason =
   "older" | "unvalidated" | "newer-unvalidated" | "unrecognized"
@@ -29,7 +31,7 @@ interface FirmwareVersion {
 const VALIDATED_FIRMWARE: readonly {
   readonly label: string
   readonly parsed: FirmwareVersion
-}[] = VALIDATED_FIRMWARE_VERSIONS.flatMap((label) => {
+}[] = SUPPORTED_FIRMWARE_VERSIONS.flatMap((label) => {
   const parsed = parseFirmwareVersion(label)
   return parsed ? [{ label, parsed }] : []
 }).sort((left, right) => compareFirmwareVersions(left.parsed, right.parsed))

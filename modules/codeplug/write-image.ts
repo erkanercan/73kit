@@ -52,8 +52,8 @@ async function materializeCodeplugWriteImage(
   source: Uint8Array,
   layoutId: CodeplugLayoutId
 ) {
-  if (layoutId !== "uvl15w-3.07.23") {
-    throw new RangeError(`Unsupported Codeplug layout: ${String(layoutId)}`)
+  if (layoutId === "uvl15w-legacy-v1") {
+    return new CodeplugWriteImage(source, layoutId, await digestHex(source), [])
   }
 
   const bytes = source.slice()

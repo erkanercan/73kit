@@ -96,6 +96,7 @@ interface CpsWorkspaceContextValue {
   discardRadioWriteStatus(): Promise<void>
   downloadRadioOperationReport(): void
   downloadRawBackup(): void
+  downloadPfFile(): void
   downloadCpsFile(): Promise<void>
   openCpsFile(file: File): Promise<void>
   openRawCodeplug(file: File): Promise<void>

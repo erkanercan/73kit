@@ -24,6 +24,17 @@ test("rejects a saved backup whose bytes no longer match its stored hash", async
   )
 })
 
+test("rehydrates a legacy backup with its exact profile layout", async () => {
+  const entry = await backupEntry(
+    new Uint8Array(CODEPLUG_SIZE),
+    sourceRadio({ firmwareVersion: "3.05.26" })
+  )
+
+  const target = await restoreTargetFromBackup(entry)
+
+  assert.equal(target.target.layoutId, "uvl15w-legacy-v1")
+})
+
 test("rejects restore preparation for a different Source Radio", () => {
   const bytes = new Uint8Array(CODEPLUG_SIZE)
   const freshRead = completedRadioRead(
@@ -82,12 +93,8 @@ test("creates a restore Change Set for desired bytes outside the managed tail", 
 
 test("reviews a known restored setting as its semantic change", () => {
   const initial = createCodeplug(new Uint8Array(CODEPLUG_SIZE))
-  const current = initial
-    .editDisplaySettings({ backlightLevel: 8 })
-    .toBytes()
-  const desired = initial
-    .editDisplaySettings({ backlightLevel: 9 })
-    .toBytes()
+  const current = initial.editDisplaySettings({ backlightLevel: 8 }).toBytes()
+  const desired = initial.editDisplaySettings({ backlightLevel: 9 }).toBytes()
 
   const prepared = prepareRestoreDocument(
     restoreSource(),
@@ -102,12 +109,8 @@ test("reviews a known restored setting as its semantic change", () => {
 
 test("keeps unexplained restore bytes beside semantic changes", () => {
   const initial = createCodeplug(new Uint8Array(CODEPLUG_SIZE))
-  const current = initial
-    .editDisplaySettings({ backlightLevel: 8 })
-    .toBytes()
-  const desired = initial
-    .editDisplaySettings({ backlightLevel: 9 })
-    .toBytes()
+  const current = initial.editDisplaySettings({ backlightLevel: 8 }).toBytes()
+  const desired = initial.editDisplaySettings({ backlightLevel: 9 }).toBytes()
   desired[100] = 0x42
 
   const prepared = prepareRestoreDocument(
@@ -156,12 +159,15 @@ test("keeps the fresh Radio-managed tail in the prepared restore document", () =
   })
 })
 
-async function backupEntry(bytes: Uint8Array): Promise<BackupHistoryEntry> {
+async function backupEntry(
+  bytes: Uint8Array,
+  radio = sourceRadio()
+): Promise<BackupHistoryEntry> {
   return {
     schemaVersion: 1,
     id: "backup:test",
     origin: "radio-read",
-    sourceRadio: sourceRadio(),
+    sourceRadio: radio,
     createdAt: "2026-08-30T12:00:00.000Z",
     sha256: await digestBytes(bytes),
     byteLength: bytes.byteLength,

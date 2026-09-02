@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import { CODEPLUG_SIZE } from "../modules/codeplug/index.ts"
+import { CODEPLUG_SIZE, serializePfFile } from "../modules/codeplug/index.ts"
 import {
   RawCodeplugImportError,
   canExportCpsFile,
@@ -47,6 +47,22 @@ test("imports an exact-size .bin as an unbound document with distinct copies", a
   assert.equal(canPrepareRadioWrite(document), false)
   assert.equal(canPrepareImportedRestore(document), false)
   assert.equal(canExportCpsFile(document), false)
+})
+
+test("imports a TYT PF file as an unbound version-aware document", async () => {
+  const bytes = new Uint8Array(CODEPLUG_SIZE).fill(0xff)
+  bytes.set([0x45, 0x44, 0x47, 0x31, 0x02, 0x00], 0x16b00)
+  const encoded = new TextEncoder().encode(serializePfFile(bytes))
+  const document = await importRawCodeplugFile(
+    rawFile("Default_EN.PF", encoded)
+  )
+
+  assert.equal(document.binding, "unbound")
+  assert.equal(document.rawImport.format, "pf")
+  assert.equal(document.rawImport.pfGeneration, "3.07")
+  assert.equal(document.rawImport.layoutId, "uvl15w-3.07.23")
+  assert.deepEqual(document.workingCodeplug.codeplug.toBytes(), bytes)
+  assert.equal(canPrepareRadioWrite(document), false)
 })
 
 test("rejects the extension and every wrong declared size before reading", async () => {

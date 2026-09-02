@@ -2,6 +2,23 @@ import type { Messages } from "@/dictionaries/en"
 import { menuVisibilityMessagesTr } from "./menu-visibility.ts"
 
 const tr = {
+  fileOpen: "Aç",
+  fileSave: "Kaydet",
+  fileSavePf: "TYT PF dosyası",
+  fileSaveBin: "Ham yedek (.bin)",
+  fileSave73Kit: "73Kit CPS Dosyası",
+  fileOpenReplaceTitle: "Başka bir Codeplug açılsın mı?",
+  fileOpenUnsavedTitle: "Kaydedilmemiş değişiklikler",
+  fileOpenReplaceDescription:
+    "Geçerli Çalışma Codeplug'ında kaydedilmemiş değişiklikler var. Başka bir dosya açmak bu değişiklikleri silecektir.",
+  fileOpenReplaceAction: "Değişiklikleri sil ve aç",
+  beta: "Beta",
+  updatesLegacyPlanTitle: "{version} donanım yazılımı algılandı",
+  updatesLegacyPlanDescription:
+    "Önerilen sıra: resmi Dil 1.01.05 + Görsel 1.01.00 Flash Data paketini, ardından 3.07.23 donanım yazılımını yükleyin. Her güncellemeden sonra telsizi yeniden okuyun.",
+  updatesReadFirstTitle: "Önce telsizi okuyun",
+  updatesReadFirstDescription:
+    "Telsizi Okuma güvenlik yedeğini oluşturur ve 73Kit'in algılanan sürüm için önerilen güncelleme sırasını göstermesini sağlar.",
   historyControlsLabel: "Codeplug değişiklik geçmişi",
   undo: "Geri Al",
   redo: "Yinele",
@@ -12,6 +29,9 @@ const tr = {
   serialPortSelectionRequired:
     "Devam etmek için Kaynak Telsizin seri portunu seçin.",
   radioWriteTitle: "Telsize Yazma",
+  radioWriteBetaTitle: "Donanım yazılımı {version} · Beta Telsize Yazma",
+  radioWriteBetaDescription:
+    "Bu sürüm profili resmi TYT verileriyle desteklenir ancak 3.07.23'e göre daha az fiziksel telsiz kanıtına sahiptir. Otomatik yedeği saklayın ve yazma sonrasında telsizi doğrulayın.",
   radioWriteDescription:
     "Kaynak Telsizi seçin, Değişiklik Kümesini inceleyin ve Codeplug'un tamamını yazın.",
   radioWriteControlled: "Kullanılabilir",
@@ -985,23 +1005,26 @@ const tr = {
   savedWorkingNotFound: "Kayıtlı Çalışma Codeplug'ı artık mevcut değil.",
   loading: "Yükleniyor…",
   cpsFileOpen: "CPS Dosyası Aç",
-  rawImportAction: "Ham Yedeği İçe Aktar",
-  rawImportReviewTitle: "Ham Yedek içe aktarımını incele",
+  rawImportAction: "PF veya Ham Yedek Aç",
+  rawImportReviewTitle: "Codeplug dosyasını incele",
   rawImportReviewDescription:
-    "Bu içe aktarıcı şimdilik yalnızca doğrulanmış firmware 3.07.23 düzenini kabul eder: tam olarak 102.400 bayt içeren bir .bin dosyası.",
+    "Çevrimdışı inceleme ve düzenleme için resmi bir TYT PF dosyası veya 102.400 baytlık tam ham yedek açın.",
   rawImportReviewSafety:
     "Dosya, Kaynak Telsiz kimliği olmadan Bağsız Codeplug olarak açılır. Telsize Yazma, geri yükleme hazırlığı, CPS Dosyası dışa aktarma ve tarayıcıya ad vererek kaydetme kullanılamaz.",
   rawImportConfirm: "Bağsız Codeplug'ı Aç",
-  rawImportFailed: "Ham Yedek içe aktarılamadı",
-  rawImportReady: "Ham Yedek açık",
+  rawImportFailed: "Codeplug dosyası açılamadı",
+  rawImportReady: "Codeplug dosyası açık",
   rawImportUnboundTitle: "Bağsız Codeplug",
   rawImportUnboundDescription:
-    "Bu Codeplug bir Kaynak Telsize bağlı değil. İnceleyip düzenleyebilir ve düzenlenen ham .bin dosyasını indirebilirsiniz; Telsize Yazma veya geri yükleme için kullanılamaz.",
+    "Bu Codeplug bir Kaynak Telsize bağlı değil. İnceleyebilir, düzenleyebilir ve kaydedebilirsiniz; doğrudan Telsize Yazma veya geri yükleme için kullanılamaz.",
   rawImportNoRadioTitle: "Kaynak Telsiz kimliği yok",
   rawImportFile: "İçe aktarılan dosya",
-  rawImportLayout: "Doğrulanmış düzen",
+  rawImportLayout: "Algılanan biçim",
+  pfGenerationCurrent: "TYT PF · 3.07 nesli",
+  pfGenerationLegacy: "TYT PF · Eski nesil · Beta",
+  rawCurrentLayout: "Ham yedek · Güncel düzen",
   rawImportSize: "Dosya boyutu",
-  rawWorkingExport: "Düzenlenmiş Ham Codeplug'ı İndir",
+  rawWorkingExport: "Düzenlenmiş Codeplug'ı Kaydet",
   bytes: "bayt",
   cpsFileExport: "CPS Dosyası Dışa Aktar",
   cpsFileOpenReady: "CPS Dosyası açık",
@@ -1143,7 +1166,8 @@ const tr = {
   footerRadioDisconnected: "Bağlı değil",
   footerRadioConnecting: "Bağlanılıyor…",
   footerRadioReading: "Okunuyor… {progress}",
-  footerRadioReady: "{model} · Okuma tamamlandı",
+  footerRadioReady: "{model} · donanım yazılımı {version} · Okuma tamamlandı",
+  footerRadioReadyBeta: "{model} · donanım yazılımı {version} · Beta desteği",
   footerCodeplugReady: "Hazır",
   footerCodeplugUnavailable: "Yüklenmedi",
   footerNoPendingChanges: "Yok",

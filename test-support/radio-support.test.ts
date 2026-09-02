@@ -17,11 +17,23 @@ test("registers UVL-15W and its Tekser alias as one Radio Model", () => {
   assert.equal(findRadioModel("tekser-tr-uv15"), undefined)
 })
 
-test("resolves exact validated firmware without accepting newer versions", () => {
+test("resolves exact validated and beta firmware without accepting unknown versions", () => {
   assert.deepEqual(evaluateFirmwareSupport("tyt-uvl15w", "V3.07.23"), {
     id: "tyt-uvl15w-3.07.23",
     version: "3.07.23",
     status: "validated",
+    codeplugLayoutId: "uvl15w-3.07.23",
+  })
+  assert.deepEqual(evaluateFirmwareSupport("tyt-uvl15w", "3.5.26"), {
+    id: "tyt-uvl15w-3.05.26",
+    version: "3.05.26",
+    status: "beta",
+    codeplugLayoutId: "uvl15w-legacy-v1",
+  })
+  assert.deepEqual(evaluateFirmwareSupport("tyt-uvl15w", "3.07.15"), {
+    id: "tyt-uvl15w-3.07.15",
+    version: "3.07.15",
+    status: "beta",
     codeplugLayoutId: "uvl15w-3.07.23",
   })
   assert.deepEqual(evaluateFirmwareSupport("tyt-uvl15w", "3.08.00"), {

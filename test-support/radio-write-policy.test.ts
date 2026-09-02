@@ -10,7 +10,7 @@ import {
 } from "../modules/cps-workspace/index.ts"
 import type { SourceRadio } from "../modules/uvl15w-radio/index.ts"
 
-test("scopes the current Radio Write layout to firmware 3.07.23", () => {
+test("selects the exact Radio Write layout for current and beta firmware", () => {
   const result = evaluateRadioWriteSource(sourceRadio())
 
   assert.deepEqual(result, {
@@ -21,6 +21,8 @@ test("scopes the current Radio Write layout to firmware 3.07.23", () => {
       cpuId: "00112233445566778899aabb",
       serialNumber: "UVL15W-TEST-0001",
     },
+    supportProfileId: "tyt-uvl15w-3.07.23",
+    firmwareVersion: "3.07.23",
     layout: {
       id: "uvl15w-3.07.23",
       firmwareVersion: "3.07.23",
@@ -30,6 +32,14 @@ test("scopes the current Radio Write layout to firmware 3.07.23", () => {
       writeBlockSize: 512,
     },
   })
+
+  const legacy = evaluateRadioWriteSource(
+    sourceRadio({ firmwareVersion: "3.05.26" })
+  )
+  assert.equal(legacy.status, "eligible")
+  if (legacy.status === "eligible") {
+    assert.equal(legacy.layout.id, "uvl15w-legacy-v1")
+  }
 
   assert.deepEqual(
     evaluateRadioWriteSource(sourceRadio({ firmwareVersion: "3.08.00" })),

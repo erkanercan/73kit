@@ -21,6 +21,8 @@ import {
   VALIDITY_BITMAP_OFFSET,
   ZONE_MEMBER_LISTS_OFFSET,
 } from "./memory-map.ts"
+import { CODEPLUG_MEMORY_MAP_3_07_23 } from "./layout.ts"
+import type { CodeplugMemoryMap } from "./layout.ts"
 
 const DEFAULT_FREQUENCY_HZ = 145_500_000
 const CHANNEL_NAME_SIZE = 24
@@ -70,7 +72,11 @@ function deleteMemoryChannelBytes(source: Uint8Array, number: number) {
   return result
 }
 
-function duplicateMemoryChannelBytes(source: Uint8Array, number: number) {
+function duplicateMemoryChannelBytes(
+  source: Uint8Array,
+  number: number,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
+) {
   const sourceIndex = assertChannelNumber(number)
   if (readBit(source, VALIDITY_BITMAP_OFFSET, sourceIndex) === 0) {
     throw new RangeError("Only used Memory Channels can be copied")
@@ -85,27 +91,31 @@ function duplicateMemoryChannelBytes(source: Uint8Array, number: number) {
   const sourceNumber = unusedIndex > sourceIndex ? number : number - 1
   const copyNumber = sourceNumber + 1
   const reordered = moveMemoryChannelBytes(source, unusedNumber, copyNumber)
-  const sourceChannel = decodeChannels(reordered)[sourceNumber - 1]
-  const zoneNumbers = decodeZones(reordered)
+  const sourceChannel = decodeChannels(reordered, memoryMap)[sourceNumber - 1]
+  const zoneNumbers = decodeZones(reordered, memoryMap)
     .filter((zone) => zone.channelNumbers.includes(sourceNumber))
     .map((zone) => zone.number)
-  const scanListNumbers = decodeScanLists(reordered)
+  const scanListNumbers = decodeScanLists(reordered, memoryMap)
     .filter((scanList) => scanList.channelNumbers.includes(sourceNumber))
     .map((scanList) => scanList.number)
 
-  let result = editChannelMembershipsBytes(reordered, copyNumber, {
-    zoneNumbers: [],
-    scanListNumbers: [],
-  })
+  let result = editChannelMembershipsBytes(
+    reordered,
+    copyNumber,
+    { zoneNumbers: [], scanListNumbers: [] },
+    memoryMap
+  )
   copyMemoryChannelRecord(result, sourceNumber - 1, copyNumber - 1)
   result = editMemoryChannelBytes(result, copyNumber, {
     name: copyChannelName(sourceChannel.name),
   })
 
-  return editChannelMembershipsBytes(result, copyNumber, {
-    zoneNumbers,
-    scanListNumbers,
-  })
+  return editChannelMembershipsBytes(
+    result,
+    copyNumber,
+    { zoneNumbers, scanListNumbers },
+    memoryMap
+  )
 }
 
 function findUnusedChannelIndexForInsert(

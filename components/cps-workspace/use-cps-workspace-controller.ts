@@ -73,7 +73,7 @@ import {
   restoreTargetFromBackup,
   type RestoreSource,
 } from "@/modules/cps-workspace/restore-workflow"
-import { createCodeplug } from "@/modules/codeplug/index"
+import { createCodeplug, serializePfFile } from "@/modules/codeplug/index"
 import type { RadioDebugEvent, SourceRadio } from "@/modules/uvl15w-radio/index"
 
 const RADIO_WRITE_RELEASED = isRadioWriteReleased({
@@ -406,6 +406,19 @@ function useCpsWorkspaceController() {
       : `${safeFilename(completedRead.sourceRadio?.serialNumber || "codeplug")}-codeplug-backup.bin`
     anchor.click()
     setTimeout(() => URL.revokeObjectURL(url), 0)
+  }, [completedRead])
+
+  const downloadPfFile = React.useCallback(() => {
+    if (!completedRead) return
+    const baseName =
+      completedRead.sourceRadio?.serialNumber ||
+      completedRead.rawImport?.fileName.replace(/\.(?:bin|pf)$/i, "") ||
+      "codeplug"
+    downloadText(
+      `${safeFilename(baseName)}-${new Date().toISOString().slice(0, 10)}.PF`,
+      serializePfFile(completedRead.workingCodeplug.codeplug.toBytes()),
+      "text/plain;charset=utf-8"
+    )
   }, [completedRead])
 
   const downloadCpsFile = React.useCallback(async () => {
@@ -748,6 +761,7 @@ function useCpsWorkspaceController() {
       discardRadioWriteStatus,
       downloadRadioOperationReport,
       downloadRawBackup,
+      downloadPfFile,
       downloadCpsFile,
       openCpsFile,
       openRawCodeplug,
@@ -808,6 +822,7 @@ function useCpsWorkspaceController() {
       discardRadioWriteStatus,
       downloadRadioOperationReport,
       downloadRawBackup,
+      downloadPfFile,
       downloadCpsFile,
       openCpsFile,
       openRawCodeplug,

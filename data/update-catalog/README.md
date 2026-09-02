@@ -54,3 +54,18 @@ The catalog is intentionally allowlisted. The TYT integrity tag detects damage,
 but its key is present in the public CPS and therefore is not a publisher
 signature. A structurally valid unknown package must remain unable to open the
 serial port.
+
+## Legacy beta path
+
+The exact official firmware versions from 2.07.03 through 3.07.15 are enabled
+as beta source versions for TYT's official 3.07.23 firmware and matching
+Language 1.01.05 / Image 1.01.00 packages. This exception is based on the
+official package timeline, exact package allowlist, shared UVL-15W update
+protocol, and exact normal-mode support profiles. It is not stable-validation
+evidence.
+
+The updater must still match the selected file hash, captured update-mode Radio
+identity, exact source version, prerequisites, and explicit beta confirmation
+before Web Serial starts. Any identity mismatch stops before transfer. Promote
+none of these legacy source combinations to stable until the physical Radio and
+controlled interruption matrix in step 7 is complete.

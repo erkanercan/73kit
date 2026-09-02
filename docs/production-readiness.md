@@ -1,6 +1,6 @@
 # Production readiness
 
-Last reviewed: 2026-09-01
+Last reviewed: 2026-09-02
 
 ## Decision
 
@@ -14,7 +14,8 @@ firmware version, transport, or firmware/resource update scenario.
 - desktop Chrome, Edge, or another Chromium browser with Web Serial;
 - HTTPS or localhost secure context;
 - USB CDC only;
-- TYT UVL-15W firmware `3.07.23` only;
+- TYT UVL-15W firmware `3.07.23` as the validated profile;
+- exact official firmware `2.07.03` through `3.07.15` as clearly labelled Beta profiles;
 - a complete Working Codeplug created by this CPS from the Source Radio;
 - `.73kcps` export, verified offline import/reopen/edit/re-export, and
   same-layout restore preparation after a fresh Source Radio read;
@@ -23,7 +24,7 @@ firmware version, transport, or firmware/resource update scenario.
   and portable export;
 - installable application shell and previously visited-route offline fallback,
   excluding every Codeplug, report and updater package artifact from caches;
-- complete 102,400-byte writes for the validated `3.07.23` profile only;
+- complete 102,400-byte writes for the exact detected profile and matching legacy/current layout;
 - Radios with write protection disabled;
 - permanent Source Radio identity containing model, sub-model, CPU ID, and
   serial number.
@@ -75,7 +76,7 @@ Any interruption after writing may have begun remains durable
   offsets, encodings, indexes, round trips, and unrelated-byte preservation;
 - local Web Audio Tone Preview for DTMF, 2-Tone, and all 15 supported 5-Tone
   plans; preview never opens Web Serial or mutates the Codeplug;
-- source verification: 291 tests, typecheck, lint, and production build passed
+- source verification: 296 tests, typecheck, lint, and production build passed
   on 2026-09-01;
 - production-mode browser smoke test passed with no console warnings or errors;
 - automated production-mode Chromium smoke coverage verifies both locales, the
@@ -91,7 +92,7 @@ Source-Radio-bound Radio Write contract.
 
 ## Validation still required before broader claims
 
-- every additional firmware or hardware profile;
+- physical Radio Read, Write, reboot, and restore evidence for every Beta firmware profile;
 - E7 write-password support;
 - Bluetooth, BLE, Node serial, or desktop transports;
 - partial or changed-block writes.
@@ -99,7 +100,8 @@ Source-Radio-bound Radio Write contract.
 ## Updater release status
 
 The four exact catalogued Firmware, Language, Image, and combined Resource
-packages remain beta. The scripted transport now verifies first, middle and
+packages remain beta and accept the exact official 2.07.03 through 3.07.23
+source versions. The scripted transport now verifies first, middle and
 final-block disconnect classification for both Firmware and Resource Flash,
 alongside timeout, malformed acknowledgement and bounded retry behavior.
 Stable updater promotion still requires the same physical success and

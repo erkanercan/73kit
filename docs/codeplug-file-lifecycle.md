@@ -72,7 +72,10 @@ flowchart TD
   H --> J[Keep opaque and reserved bytes from current Radio]
 ```
 
-For the current release, `uvl15w-3.07.23` is the only available Codeplug layout. A CPS File recorded with that layout can use the normal restore path even when opened later. Future layouts must retain their old decoder for offline opening and add an explicit pairwise migration adapter before cross-layout restore becomes available.
+The current release retains both `uvl15w-legacy-v1` and
+`uvl15w-3.07.23`. A CPS File recorded with either layout can reopen and edit
+offline. Normal restore still requires an exact same-layout Source Radio after
+a fresh read; no legacy-to-current migration adapter is claimed.
 
 ## Old-firmware examples
 
@@ -81,7 +84,7 @@ For the current release, `uvl15w-3.07.23` is the only available Codeplug layout.
 | Different firmware label, explicitly validated same layout | Matching Source Radio                             | Normal restore after fresh read                            |
 | Older validated layout, migration adapter exists           | Matching Source Radio with newer validated layout | Migrate understood settings; preserve current opaque bytes |
 | Older layout, no adapter                                   | Any Radio                                         | Inspect only; restore blocked                              |
-| Raw `.bin` backup                                          | Any Radio                                         | Unbound inspection only; no Radio Write                    |
+| Raw `.bin` or TYT `.PF` backup                             | Any Radio                                         | Unbound inspection only; no direct Radio Write             |
 | `.Fir` Firmware Package                                    | Any Radio                                         | Firmware Update workflow, never Codeplug import            |
 
 ## Safety invariants
@@ -90,6 +93,10 @@ For the current release, `uvl15w-3.07.23` is the only available Codeplug layout.
 - Export uses the active Baseline Backup and Working Codeplug, so unedited files retain identical members and edited files retain both states.
 - Named local snapshots use the same verified CPS File representation, have
   unique names, and never silently overwrite or autosave the active document.
+- Replacing a Working Codeplug with **Open** requires confirmation when a Change
+  Set exists and is blocked while a Radio Write is unresolved.
+- Radio Write confirmation rechecks the exact firmware support profile reported
+  during preparation, even when two releases share one Codeplug Layout.
 - The imported Working Codeplug is always the desired restore target.
 - Restore always reads first and retains that read as the immediate recovery backup.
 - Source Radio identity must match exactly before normal restore.

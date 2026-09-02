@@ -1,7 +1,8 @@
 import { evaluateFirmwareCompatibility } from "../uvl15w-radio/index.ts"
 import type { SourceRadio } from "../uvl15w-radio/index.ts"
-import { CODEPLUG_LAYOUT_3_07_23 } from "../codeplug/index.ts"
+import { getCodeplugLayout } from "../codeplug/index.ts"
 import type { CodeplugLayout as RadioWriteLayout } from "../codeplug/index.ts"
+import { evaluateFirmwareSupport } from "../radio-support/index.ts"
 
 interface SourceRadioIdentity {
   readonly model: SourceRadio["model"]
@@ -16,6 +17,8 @@ type RadioWriteSourceEvaluation =
   | {
       readonly status: "eligible"
       readonly identity: SourceRadioIdentity
+      readonly supportProfileId: string
+      readonly firmwareVersion: string
       readonly layout: RadioWriteLayout
     }
   | {
@@ -59,6 +62,8 @@ interface RadioWriteArtifactReference {
 interface PreparedRadioWrite {
   readonly schemaVersion: 1
   readonly sourceRadioIdentity: SourceRadioIdentity
+  readonly supportProfileId: string
+  readonly firmwareVersion: string
   readonly layout: RadioWriteLayout
   readonly baselineBackup: RadioWriteArtifactReference
   readonly recoveryBackup: RadioWriteArtifactReference
@@ -107,10 +112,11 @@ function evaluateRadioWriteSource(
     sourceRadio.firmwareVersion
   )
 
-  if (
-    compatibility.status !== "supported" ||
-    compatibility.normalizedVersion !== CODEPLUG_LAYOUT_3_07_23.firmwareVersion
-  ) {
+  const profile = evaluateFirmwareSupport(
+    "tyt-uvl15w",
+    sourceRadio.firmwareVersion
+  )
+  if (compatibility.status !== "supported" || !profile.codeplugLayoutId) {
     return Object.freeze({
       status: "unsupported-firmware",
       detectedVersion: sourceRadio.firmwareVersion,
@@ -133,7 +139,9 @@ function evaluateRadioWriteSource(
   return Object.freeze({
     status: "eligible",
     identity: sourceRadioIdentity(sourceRadio),
-    layout: CODEPLUG_LAYOUT_3_07_23,
+    supportProfileId: profile.id,
+    firmwareVersion: profile.version,
+    layout: getCodeplugLayout(profile.codeplugLayoutId),
   })
 }
 

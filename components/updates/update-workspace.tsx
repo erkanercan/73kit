@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CheckIcon } from "lucide-react"
+import { CheckIcon, RadioTowerIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import {
@@ -19,13 +19,22 @@ import {
   VerifyInstallation,
 } from "@/components/updates/verification"
 import { PageHeader } from "@/components/page-header"
+import { useCpsWorkspace } from "@/components/cps-workspace-provider"
+import { useRadioModel } from "@/components/radio-model-provider"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
+import { evaluateFirmwareSupport } from "@/modules/radio-support/index"
 import { getUpdateStepState } from "@/modules/update-presentation/index"
 
 function UpdateWorkspace() {
   const coordinator = useUpdateCoordinator()
+  const { sourceRadio } = useCpsWorkspace()
+  const radioModel = useRadioModel()
   const t = useTranslations()
   const [betaAcknowledged, setBetaAcknowledged] = React.useState(false)
+  const supportProfile = sourceRadio
+    ? evaluateFirmwareSupport(radioModel.id, sourceRadio.firmwareVersion)
+    : null
 
   return (
     <>
@@ -35,6 +44,31 @@ function UpdateWorkspace() {
       />
       <main className="flex min-w-0 flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8">
         <PageHeader title={t("updatesTitle")} />
+        {!sourceRadio && (
+          <Alert>
+            <RadioTowerIcon aria-hidden="true" />
+            <AlertTitle>{t("updatesReadFirstTitle")}</AlertTitle>
+            <AlertDescription>
+              {t("updatesReadFirstDescription")}
+            </AlertDescription>
+          </Alert>
+        )}
+        {sourceRadio && supportProfile?.status === "beta" && (
+          <Alert>
+            <RadioTowerIcon aria-hidden="true" />
+            <AlertTitle className="flex items-center gap-2">
+              {t("updatesLegacyPlanTitle", {
+                version: sourceRadio.firmwareVersion,
+              })}
+              <span className="text-xs font-normal text-muted-foreground">
+                {t("beta")}
+              </span>
+            </AlertTitle>
+            <AlertDescription>
+              {t("updatesLegacyPlanDescription")}
+            </AlertDescription>
+          </Alert>
+        )}
         <UpdateSteps phase={coordinator.phase} />
 
         {coordinator.recoveryRecord && !coordinator.recoveryRetryPrepared ? (

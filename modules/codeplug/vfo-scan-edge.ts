@@ -1,10 +1,7 @@
 import { decodeNullPaddedUtf8 } from "./binary.ts"
-import {
-  VFO_SCAN_EDGE_COUNT,
-  VFO_SCAN_EDGE_HEADER_OFFSET,
-  VFO_SCAN_EDGE_RECORD_SIZE,
-  VFO_SCAN_EDGE_RECORDS_OFFSET,
-} from "./memory-map.ts"
+import { VFO_SCAN_EDGE_RECORD_SIZE } from "./memory-map.ts"
+import { CODEPLUG_MEMORY_MAP_3_07_23 } from "./layout.ts"
+import type { CodeplugMemoryMap } from "./layout.ts"
 import type { ChannelModulation, ChannelStepKHz } from "./channel.ts"
 import type { RadioBand } from "./band-zone-selection.ts"
 
@@ -45,12 +42,15 @@ interface VfoScanEdgeSelections {
   readonly B: readonly number[]
 }
 
-function decodeVfoScanEdges(bytes: Uint8Array): readonly VfoScanEdge[] {
+function decodeVfoScanEdges(
+  bytes: Uint8Array,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
+): readonly VfoScanEdge[] {
   const view = dataView(bytes)
   return Object.freeze(
-    Array.from({ length: VFO_SCAN_EDGE_COUNT }, (_, index) => {
+    Array.from({ length: memoryMap.vfoScanEdgeCount }, (_, index) => {
       const offset =
-        VFO_SCAN_EDGE_RECORDS_OFFSET + index * VFO_SCAN_EDGE_RECORD_SIZE
+        memoryMap.vfoScanEdgeRecordsOffset + index * VFO_SCAN_EDGE_RECORD_SIZE
       const lowFrequencyHz = view.getUint32(offset + 0x18, true)
       const highFrequencyHz = view.getUint32(offset + 0x1c, true)
       const stepIndex = bytes[offset + 0x20]
@@ -85,35 +85,52 @@ function decodeVfoScanEdges(bytes: Uint8Array): readonly VfoScanEdge[] {
   )
 }
 
-function decodeVfoScanEdgeSelections(bytes: Uint8Array): VfoScanEdgeSelections {
-  if (!hasMagic(bytes)) return Object.freeze({ A: [], B: [] })
+function decodeVfoScanEdgeSelections(
+  bytes: Uint8Array,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
+): VfoScanEdgeSelections {
+  if (!hasMagic(bytes, memoryMap)) return Object.freeze({ A: [], B: [] })
   const view = dataView(bytes)
-  const version = view.getUint16(VFO_SCAN_EDGE_HEADER_OFFSET + 4, true)
+  const version = view.getUint16(memoryMap.vfoScanEdgeHeaderOffset + 4, true)
 
   if (version >= CURRENT_VERSION) {
     return Object.freeze({
-      A: decodeMask(view.getUint32(VFO_SCAN_EDGE_HEADER_OFFSET + 8, true)),
-      B: decodeMask(view.getUint32(VFO_SCAN_EDGE_HEADER_OFFSET + 12, true)),
+      A: decodeMask(
+        view.getUint32(memoryMap.vfoScanEdgeHeaderOffset + 8, true),
+        memoryMap.vfoScanEdgeCount
+      ),
+      B: decodeMask(
+        view.getUint32(memoryMap.vfoScanEdgeHeaderOffset + 12, true),
+        memoryMap.vfoScanEdgeCount
+      ),
     })
   }
 
   return Object.freeze({
-    A: decodeLegacySelection(bytes[VFO_SCAN_EDGE_HEADER_OFFSET + 6]),
-    B: decodeLegacySelection(bytes[VFO_SCAN_EDGE_HEADER_OFFSET + 7]),
+    A: decodeLegacySelection(
+      bytes[memoryMap.vfoScanEdgeHeaderOffset + 6],
+      memoryMap.vfoScanEdgeCount
+    ),
+    B: decodeLegacySelection(
+      bytes[memoryMap.vfoScanEdgeHeaderOffset + 7],
+      memoryMap.vfoScanEdgeCount
+    ),
   })
 }
 
 function editVfoScanEdgeBytes(
   source: Uint8Array,
   number: number,
-  patch: VfoScanEdgePatch
+  patch: VfoScanEdgePatch,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
 ) {
-  assertNumber(number)
-  const current = decodeVfoScanEdges(source)[number - 1]
+  assertNumber(number, memoryMap.vfoScanEdgeCount)
+  const current = decodeVfoScanEdges(source, memoryMap)[number - 1]
   const result = source.slice()
-  ensureV2Header(result)
+  ensureHeader(result, memoryMap)
   const offset =
-    VFO_SCAN_EDGE_RECORDS_OFFSET + (number - 1) * VFO_SCAN_EDGE_RECORD_SIZE
+    memoryMap.vfoScanEdgeRecordsOffset +
+    (number - 1) * VFO_SCAN_EDGE_RECORD_SIZE
   const next = {
     name: patch.name ?? current.name,
     lowFrequencyHz: patch.lowFrequencyHz ?? current.lowFrequencyHz,
@@ -154,55 +171,88 @@ function editVfoScanEdgeBytes(
 function editVfoScanEdgeSelectionBytes(
   source: Uint8Array,
   band: RadioBand,
-  numbers: readonly number[]
+  numbers: readonly number[],
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
 ) {
   const result = source.slice()
-  ensureV2Header(result)
-  const mask = encodeMask(numbers)
+  ensureHeader(result, memoryMap)
+  if (memoryMap.vfoScanEdgeVersion === 1) {
+    if (numbers.length > 1) {
+      throw new RangeError(
+        "Legacy firmware can select one VFO Scan Edge per band"
+      )
+    }
+    result[memoryMap.vfoScanEdgeHeaderOffset + (band === "A" ? 6 : 7)] =
+      numbers.length === 0 ? 0xff : numbers[0] - 1
+    return result
+  }
+  const mask = encodeMask(numbers, memoryMap.vfoScanEdgeCount)
   dataView(result).setUint32(
-    VFO_SCAN_EDGE_HEADER_OFFSET + (band === "A" ? 8 : 12),
+    memoryMap.vfoScanEdgeHeaderOffset + (band === "A" ? 8 : 12),
     mask,
     true
   )
   return result
 }
 
-function ensureV2Header(bytes: Uint8Array) {
-  const previous = decodeVfoScanEdgeSelections(bytes)
-  bytes.set(MAGIC, VFO_SCAN_EDGE_HEADER_OFFSET)
+function ensureHeader(bytes: Uint8Array, memoryMap: CodeplugMemoryMap) {
+  const previous = decodeVfoScanEdgeSelections(bytes, memoryMap)
+  bytes.set(MAGIC, memoryMap.vfoScanEdgeHeaderOffset)
   const view = dataView(bytes)
-  view.setUint16(VFO_SCAN_EDGE_HEADER_OFFSET + 4, CURRENT_VERSION, true)
-  bytes[VFO_SCAN_EDGE_HEADER_OFFSET + 6] = 0xff
-  bytes[VFO_SCAN_EDGE_HEADER_OFFSET + 7] = 0xff
-  view.setUint32(VFO_SCAN_EDGE_HEADER_OFFSET + 8, encodeMask(previous.A), true)
-  view.setUint32(VFO_SCAN_EDGE_HEADER_OFFSET + 12, encodeMask(previous.B), true)
+  view.setUint16(
+    memoryMap.vfoScanEdgeHeaderOffset + 4,
+    memoryMap.vfoScanEdgeVersion,
+    true
+  )
+  if (memoryMap.vfoScanEdgeVersion >= CURRENT_VERSION) {
+    bytes[memoryMap.vfoScanEdgeHeaderOffset + 6] = 0xff
+    bytes[memoryMap.vfoScanEdgeHeaderOffset + 7] = 0xff
+    view.setUint32(
+      memoryMap.vfoScanEdgeHeaderOffset + 8,
+      encodeMask(previous.A, memoryMap.vfoScanEdgeCount),
+      true
+    )
+    view.setUint32(
+      memoryMap.vfoScanEdgeHeaderOffset + 12,
+      encodeMask(previous.B, memoryMap.vfoScanEdgeCount),
+      true
+    )
+  } else {
+    bytes[memoryMap.vfoScanEdgeHeaderOffset + 6] =
+      previous.A.length === 0 ? 0xff : previous.A[0] - 1
+    bytes[memoryMap.vfoScanEdgeHeaderOffset + 7] =
+      previous.B.length === 0 ? 0xff : previous.B[0] - 1
+  }
 }
 
-function hasMagic(bytes: Uint8Array) {
+function hasMagic(bytes: Uint8Array, memoryMap: CodeplugMemoryMap) {
   return MAGIC.every(
-    (byte, index) => bytes[VFO_SCAN_EDGE_HEADER_OFFSET + index] === byte
+    (byte, index) => bytes[memoryMap.vfoScanEdgeHeaderOffset + index] === byte
   )
 }
 
-function decodeLegacySelection(value: number | undefined): readonly number[] {
-  return value === undefined || value === 0xff || value >= VFO_SCAN_EDGE_COUNT
+function decodeLegacySelection(
+  value: number | undefined,
+  count: number
+): readonly number[] {
+  return value === undefined || value === 0xff || value >= count
     ? Object.freeze([])
     : Object.freeze([value + 1])
 }
 
-function decodeMask(mask: number): readonly number[] {
+function decodeMask(mask: number, count: number): readonly number[] {
   return Object.freeze(
-    Array.from({ length: VFO_SCAN_EDGE_COUNT }, (_, index) => index + 1).filter(
+    Array.from({ length: count }, (_, index) => index + 1).filter(
       (number) => (mask & (1 << (number - 1))) !== 0
     )
   )
 }
 
-function encodeMask(numbers: readonly number[]) {
+function encodeMask(numbers: readonly number[], count: number) {
   const unique = new Set<number>()
   let mask = 0
   for (const number of numbers) {
-    assertNumber(number)
+    assertNumber(number, count)
     if (unique.has(number))
       throw new RangeError(
         "A VFO Scan Edge selection cannot contain duplicates"
@@ -213,11 +263,9 @@ function encodeMask(numbers: readonly number[]) {
   return mask
 }
 
-function assertNumber(number: number) {
-  if (!Number.isInteger(number) || number < 1 || number > VFO_SCAN_EDGE_COUNT) {
-    throw new RangeError(
-      `VFO Scan Edge number must be between 1 and ${VFO_SCAN_EDGE_COUNT}`
-    )
+function assertNumber(number: number, count: number) {
+  if (!Number.isInteger(number) || number < 1 || number > count) {
+    throw new RangeError(`VFO Scan Edge number must be between 1 and ${count}`)
   }
 }
 

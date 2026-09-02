@@ -3,11 +3,12 @@ import { strFromU8, strToU8, unzipSync, zipSync } from "fflate"
 import {
   CODEPLUG_LAYOUT_3_07_23,
   createCodeplug,
+  getCodeplugLayout,
   type Codeplug,
   type CodeplugLayoutId,
 } from "../codeplug/index.ts"
 import type { SourceRadio } from "../uvl15w-radio/index.ts"
-import { TYT_UVL15W } from "../radio-support/index.ts"
+import { evaluateFirmwareSupport, TYT_UVL15W } from "../radio-support/index.ts"
 
 const CPS_FILE_FORMAT = "73kit-cps"
 const CPS_FILE_SCHEMA_VERSION = 1
@@ -17,7 +18,7 @@ interface CpsFileManifest {
   readonly schemaVersion: typeof CPS_FILE_SCHEMA_VERSION
   readonly createdAt: string
   readonly radioModelId: typeof TYT_UVL15W.id
-  readonly supportProfileId: "tyt-uvl15w-3.07.23"
+  readonly supportProfileId: string
   readonly layout: {
     readonly id: CodeplugLayoutId
     readonly firmwareVersion: string
@@ -62,10 +63,15 @@ class CpsFileError extends Error {
 }
 
 async function createCpsFile(input: CreateCpsFileInput) {
+  const profile = evaluateFirmwareSupport(
+    TYT_UVL15W.id,
+    input.sourceRadio.firmwareVersion
+  )
   if (
     input.sourceRadio.model !== "UVL-15W" ||
-    input.sourceRadio.firmwareVersion !==
-      CODEPLUG_LAYOUT_3_07_23.firmwareVersion
+    !profile.codeplugLayoutId ||
+    input.baseline.layoutId !== profile.codeplugLayoutId ||
+    input.working.layoutId !== profile.codeplugLayoutId
   ) {
     throw new CpsFileError(
       "The Source Radio does not match the selected Radio support profile"
@@ -78,11 +84,11 @@ async function createCpsFile(input: CreateCpsFileInput) {
     schemaVersion: CPS_FILE_SCHEMA_VERSION,
     createdAt: (input.createdAt ?? new Date()).toISOString(),
     radioModelId: TYT_UVL15W.id,
-    supportProfileId: "tyt-uvl15w-3.07.23",
+    supportProfileId: profile.id,
     layout: Object.freeze({
-      id: CODEPLUG_LAYOUT_3_07_23.id,
-      firmwareVersion: input.sourceRadio.firmwareVersion,
-      byteLength: CODEPLUG_LAYOUT_3_07_23.byteLength,
+      id: profile.codeplugLayoutId,
+      firmwareVersion: profile.version,
+      byteLength: getCodeplugLayout(profile.codeplugLayoutId).byteLength,
     }),
     sourceRadio: Object.freeze({ ...input.sourceRadio }),
     baseline: Object.freeze({
@@ -148,8 +154,8 @@ async function parseCpsFile(bytes: Uint8Array): Promise<ParsedCpsFile> {
     )
   }
 
-  const baseline = createCodeplug(baselineBytes)
-  const working = createCodeplug(workingBytes)
+  const baseline = createCodeplug(baselineBytes, compatibility.layoutId)
+  const working = createCodeplug(workingBytes, compatibility.layoutId)
   return Object.freeze({
     manifest,
     baseline,
@@ -160,8 +166,11 @@ async function parseCpsFile(bytes: Uint8Array): Promise<ParsedCpsFile> {
 }
 
 function evaluateCpsFileCompatibility(layoutId: string): CpsFileCompatibility {
-  if (layoutId === CODEPLUG_LAYOUT_3_07_23.id) {
-    return Object.freeze({ status: "same-layout", layoutId })
+  if (layoutId === "uvl15w-3.07.23" || layoutId === "uvl15w-legacy-v1") {
+    return Object.freeze({
+      status: "same-layout",
+      layoutId: layoutId as CodeplugLayoutId,
+    })
   }
   // Future validated layouts belong in a registry with explicit pairwise
   // migration adapters. Equal byte lengths or firmware ordering are not proof.
@@ -182,17 +191,34 @@ function validateManifest(value: unknown): CpsFileManifest {
   if (
     typeof value.createdAt !== "string" ||
     value.radioModelId !== TYT_UVL15W.id ||
-    value.supportProfileId !== "tyt-uvl15w-3.07.23" ||
+    typeof value.supportProfileId !== "string" ||
     !isRecord(value.layout) ||
-    value.layout.id !== CODEPLUG_LAYOUT_3_07_23.id ||
-    value.layout.firmwareVersion !== CODEPLUG_LAYOUT_3_07_23.firmwareVersion ||
-    value.layout.byteLength !== CODEPLUG_LAYOUT_3_07_23.byteLength ||
+    typeof value.layout.id !== "string" ||
+    typeof value.layout.firmwareVersion !== "string" ||
+    typeof value.layout.byteLength !== "number" ||
     !isSourceRadio(value.sourceRadio)
   ) {
     throw new CpsFileError("The CPS File manifest metadata is invalid")
   }
   const baseline = validateMemberManifest(value.baseline, "baseline.bin")
   const working = validateMemberManifest(value.working, "working.bin")
+  const compatibility = evaluateCpsFileCompatibility(value.layout.id)
+  if (compatibility.status !== "same-layout") {
+    throw new CpsFileError("The CPS File Codeplug layout is not supported")
+  }
+  const profile = evaluateFirmwareSupport(
+    TYT_UVL15W.id,
+    (value.sourceRadio as SourceRadio).firmwareVersion
+  )
+  if (
+    profile.id !== value.supportProfileId ||
+    profile.codeplugLayoutId !== compatibility.layoutId ||
+    value.layout.firmwareVersion !== profile.version ||
+    value.layout.byteLength !==
+      getCodeplugLayout(compatibility.layoutId).byteLength
+  ) {
+    throw new CpsFileError("The CPS File support profile is inconsistent")
+  }
   return Object.freeze({
     format: CPS_FILE_FORMAT,
     schemaVersion: CPS_FILE_SCHEMA_VERSION,
@@ -200,7 +226,7 @@ function validateManifest(value: unknown): CpsFileManifest {
     radioModelId: value.radioModelId,
     supportProfileId: value.supportProfileId,
     layout: Object.freeze({
-      id: value.layout.id as CodeplugLayoutId,
+      id: compatibility.layoutId,
       firmwareVersion: value.layout.firmwareVersion,
       byteLength: value.layout.byteLength,
     }),
@@ -251,7 +277,7 @@ function isSourceRadio(value: unknown) {
   return (
     value.model === "UVL-15W" &&
     typeof value.subModel === "number" &&
-    value.firmwareVersion === CODEPLUG_LAYOUT_3_07_23.firmwareVersion &&
+    typeof value.firmwareVersion === "string" &&
     typeof value.imageResourceVersion === "string" &&
     typeof value.cpuId === "string" &&
     typeof value.bootloaderModel === "string" &&

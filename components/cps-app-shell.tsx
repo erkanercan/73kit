@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 import { AppSidebar } from "@/components/app-sidebar"
 import { DocumentHistoryControls } from "@/components/document-history-controls"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { CodeplugFileActions } from "@/components/codeplug-file-actions"
 import { RadioReadButton } from "@/components/radio-read-button"
 import { useRadioModel } from "@/components/radio-model-provider"
 import { RadioWriteDialog } from "@/components/radio-write/radio-write-dialog"
@@ -28,7 +29,10 @@ import {
 } from "@/components/ui/sidebar"
 import { usePathname } from "@/i18n/navigation"
 import { formatPercent } from "@/lib/format-percent"
-import { radioCpsPath } from "@/modules/radio-support/index"
+import {
+  evaluateFirmwareSupport,
+  radioCpsPath,
+} from "@/modules/radio-support/index"
 
 function CpsAppShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations()
@@ -107,6 +111,7 @@ function AppHeader() {
       <div className="ml-auto flex items-center gap-2">
         <DocumentHistoryControls />
         <LanguageSwitcher />
+        <CodeplugFileActions />
         <RadioReadButton
           size="sm"
           busy={busy}
@@ -125,13 +130,25 @@ function WorkspaceStatusBar() {
   const { changes, completedRead, phase, progress, sourceRadio } =
     useCpsWorkspace()
   const t = useTranslations()
+  const radioModel = useRadioModel()
+  const supportProfile = sourceRadio
+    ? evaluateFirmwareSupport(radioModel.id, sourceRadio.firmwareVersion)
+    : null
   const radioStatus =
     phase === "connecting"
       ? t("footerRadioConnecting")
       : phase === "reading"
         ? t("footerRadioReading", { progress: formatPercent(progress) })
         : sourceRadio
-          ? t("footerRadioReady", { model: sourceRadio.model })
+          ? t(
+              supportProfile?.status === "beta"
+                ? "footerRadioReadyBeta"
+                : "footerRadioReady",
+              {
+                model: sourceRadio.model,
+                version: sourceRadio.firmwareVersion,
+              }
+            )
           : t("footerRadioDisconnected")
 
   return (

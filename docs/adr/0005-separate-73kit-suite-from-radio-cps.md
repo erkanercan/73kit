@@ -75,7 +75,8 @@ choice could authorize an incompatible layout.
 ### Automatically use the closest known firmware profile
 
 Rejected because binary compatibility is not semantic-version compatibility.
-The exact 102,400-byte fact belongs only to UVL-15W firmware `3.07.23`.
+Several exact official profiles share the 102,400-byte range, so byte length
+still cannot select a firmware profile or storage layout.
 
 ### Keep `.uvl15cps` backward compatibility
 

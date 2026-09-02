@@ -284,6 +284,30 @@ test("rejects a different Radio before E3 and retains the reviewed operation", a
   transport.assertComplete()
 })
 
+test("rejects the same Radio when its exact firmware profile changed", async () => {
+  const baselineBytes = radioBytes()
+  const transport = new ScriptedTransport([
+    ...readSessionSteps(baselineBytes, { firmwareVersion: "3.05.26" }),
+    handshakeStep({ firmwareVersion: "2.07.03" }),
+  ])
+  const store = new InMemoryRadioWriteStore()
+  const workspace = createCpsWorkspace(transport, {
+    responseTimeoutMs: 100,
+    radioWriteStore: store,
+  })
+
+  await workspace.connect()
+  const completedRead = await workspace.read()
+  await workspace.prepareRadioWrite(changedWorkingCodeplug(completedRead))
+
+  await assert.rejects(
+    workspace.executePreparedRadioWrite(),
+    /firmware profile changed/
+  )
+  assert.equal((await store.load())?.recovery.phase, "review-required")
+  transport.assertComplete()
+})
+
 test("restores only an interrupted data transfer as Write Outcome Unknown", async () => {
   const baselineBytes = radioBytes()
   const setupTransport = new ScriptedTransport([
@@ -426,8 +450,11 @@ function changedWorkingCodeplug(completedRead: CompletedRadioRead) {
   }
 }
 
-function readSessionSteps(bytes: Uint8Array) {
-  const steps: ScriptStep[] = [handshakeStep(), beginReadStep()]
+function readSessionSteps(
+  bytes: Uint8Array,
+  options: { readonly firmwareVersion?: string } = {}
+) {
+  const steps: ScriptStep[] = [handshakeStep(options), beginReadStep()]
 
   for (let offset = 0; offset < bytes.byteLength; offset += 128) {
     const address = CODEPLUG_START_ADDRESS + offset
@@ -486,7 +513,10 @@ function writeSessionSteps(bytes: Uint8Array) {
 }
 
 function handshakeStep(
-  options: { readonly serialNumber?: string } = {}
+  options: {
+    readonly serialNumber?: string
+    readonly firmwareVersion?: string
+  } = {}
 ): ScriptStep {
   return {
     expectedWrite: encodeRequestFrame(0xe0, encoder.encode("UVL-15W")),
@@ -545,14 +575,17 @@ function writeAcknowledgementPayload(address: number, length: number) {
 }
 
 function deviceInformationPayload(
-  options: { readonly serialNumber?: string } = {}
+  options: {
+    readonly serialNumber?: string
+    readonly firmwareVersion?: string
+  } = {}
 ) {
   const payload = new Uint8Array(81)
   writeAscii(payload, 0, "UVL-15W")
   payload[7] = 0x5f
   payload[8] = 1
   payload[9] = 0x5f
-  writeAscii(payload, 12, "V3.07.23")
+  writeAscii(payload, 12, options.firmwareVersion ?? "V3.07.23")
   payload[20] = 0x5f
   payload.set(Uint8Array.of(1, 2, 3), 21)
   payload.set(

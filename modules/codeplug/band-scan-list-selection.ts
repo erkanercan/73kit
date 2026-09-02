@@ -1,9 +1,7 @@
-import {
-  BAND_A_SCAN_LIST_SELECTION_OFFSET,
-  BAND_B_SCAN_LIST_SELECTION_OFFSET,
-  MEMBERSHIP_GROUP_COUNT,
-} from "./memory-map.ts"
+import { MEMBERSHIP_GROUP_COUNT } from "./memory-map.ts"
 import type { RadioBand } from "./band-zone-selection.ts"
+import { CODEPLUG_MEMORY_MAP_3_07_23 } from "./layout.ts"
+import type { CodeplugMemoryMap } from "./layout.ts"
 
 interface BandScanListSelections {
   readonly A: readonly number[]
@@ -13,11 +11,12 @@ interface BandScanListSelections {
 const LOWER_SCAN_LIST_BITS_MASK = 0x0000ffff
 
 function decodeBandScanListSelections(
-  bytes: Uint8Array
+  bytes: Uint8Array,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
 ): BandScanListSelections {
   return Object.freeze({
-    A: decodeSelection(bytes, BAND_A_SCAN_LIST_SELECTION_OFFSET),
-    B: decodeSelection(bytes, BAND_B_SCAN_LIST_SELECTION_OFFSET),
+    A: decodeSelection(bytes, memoryMap.bandAScanListSelectionOffset),
+    B: decodeSelection(bytes, memoryMap.bandBScanListSelectionOffset),
   })
 }
 
@@ -39,10 +38,11 @@ function decodeSelection(bytes: Uint8Array, offset: number) {
 function editBandScanListSelectionBytes(
   source: Uint8Array,
   band: RadioBand,
-  scanListNumbers: readonly number[]
+  scanListNumbers: readonly number[],
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
 ) {
   const result = source.slice()
-  const offset = bandOffset(band)
+  const offset = bandOffset(band, memoryMap)
   const view = new DataView(result.buffer, result.byteOffset, result.byteLength)
   const current = view.getUint32(offset, true)
   const selectedMask = encodeSelection(scanListNumbers)
@@ -78,9 +78,9 @@ function encodeSelection(scanListNumbers: readonly number[]) {
   return mask & LOWER_SCAN_LIST_BITS_MASK
 }
 
-function bandOffset(band: RadioBand) {
-  if (band === "A") return BAND_A_SCAN_LIST_SELECTION_OFFSET
-  if (band === "B") return BAND_B_SCAN_LIST_SELECTION_OFFSET
+function bandOffset(band: RadioBand, memoryMap: CodeplugMemoryMap) {
+  if (band === "A") return memoryMap.bandAScanListSelectionOffset
+  if (band === "B") return memoryMap.bandBScanListSelectionOffset
   throw new RangeError("Radio band must be A or B")
 }
 

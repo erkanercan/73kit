@@ -5,6 +5,7 @@ import { LoaderCircleIcon, UploadIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { useCpsWorkspace } from "@/components/cps-workspace-provider"
+import { useRadioModel } from "@/components/radio-model-provider"
 import { RadioWriteWorkflow } from "@/components/radio-write/radio-write-workflow"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +20,7 @@ import { WorkspaceErrorAlert } from "@/components/workspace-error-alert"
 import { useUpdateCoordinator } from "@/components/update-coordinator-provider"
 import { createRadioWriteReview } from "@/modules/cps-workspace/index"
 import { canPrepareRadioWrite } from "@/modules/cps-workspace/codeplug-document"
+import { evaluateFirmwareSupport } from "@/modules/radio-support/index"
 
 const ACTIVE_WRITE_PHASES = new Set([
   "checking-radio",
@@ -28,6 +30,7 @@ const ACTIVE_WRITE_PHASES = new Set([
 
 function RadioWriteDialog() {
   const t = useTranslations()
+  const radioModel = useRadioModel()
   const [open, setOpen] = React.useState(false)
   const [writeAttempted, setWriteAttempted] = React.useState(false)
   const {
@@ -47,6 +50,12 @@ function RadioWriteDialog() {
   const writeActive =
     radioWriteSnapshot !== null &&
     ACTIVE_WRITE_PHASES.has(radioWriteSnapshot.phase)
+  const firmwareProfile = completedRead?.sourceRadio
+    ? evaluateFirmwareSupport(
+        radioModel.id,
+        completedRead.sourceRadio.firmwareVersion
+      )
+    : null
   const visibleReview =
     radioWriteReview.length > 0
       ? radioWriteReview
@@ -114,6 +123,9 @@ function RadioWriteDialog() {
           snapshot={radioWriteSnapshot}
           review={visibleReview}
           busy={busy}
+          betaFirmwareVersion={
+            firmwareProfile?.status === "beta" ? firmwareProfile.version : null
+          }
           onPrepare={() => {
             setWriteAttempted(true)
             void prepareRadioWrite()

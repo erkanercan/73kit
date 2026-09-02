@@ -55,6 +55,7 @@ interface RadioWriteWorkflowProps {
   readonly snapshot: RadioWriteOperationSnapshot | null
   readonly review: readonly RadioWriteReviewItem[]
   readonly busy: boolean
+  readonly betaFirmwareVersion?: string | null
   onPrepare(): void
   onConfirm(): void
   onDiscardStatus(): void
@@ -68,6 +69,7 @@ function RadioWriteWorkflow({
   snapshot,
   review,
   busy,
+  betaFirmwareVersion = null,
   onPrepare,
   onConfirm,
   onDiscardStatus,
@@ -116,6 +118,21 @@ function RadioWriteWorkflow({
             </AlertDescription>
           </Alert>
         )}
+
+        {released &&
+          hasWorkingCodeplug &&
+          betaFirmwareVersion &&
+          !outcomeUnknown && (
+            <Alert>
+              <AlertTriangleIcon aria-hidden="true" />
+              <AlertTitle>
+                {t("radioWriteBetaTitle", { version: betaFirmwareVersion })}
+              </AlertTitle>
+              <AlertDescription>
+                {t("radioWriteBetaDescription")}
+              </AlertDescription>
+            </Alert>
+          )}
 
         {released &&
           hasWorkingCodeplug &&

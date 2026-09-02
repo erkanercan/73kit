@@ -1,6 +1,23 @@
 import { menuVisibilityMessagesEn } from "./menu-visibility.ts"
 
 const en = {
+  fileOpen: "Open",
+  fileSave: "Save",
+  fileSavePf: "TYT PF file",
+  fileSaveBin: "Raw backup (.bin)",
+  fileSave73Kit: "73Kit CPS File",
+  fileOpenReplaceTitle: "Open another Codeplug?",
+  fileOpenUnsavedTitle: "Unsaved changes",
+  fileOpenReplaceDescription:
+    "The current Working Codeplug has unsaved changes. Opening another file will discard those changes.",
+  fileOpenReplaceAction: "Discard changes and open",
+  beta: "Beta",
+  updatesLegacyPlanTitle: "Firmware {version} detected",
+  updatesLegacyPlanDescription:
+    "Recommended order: install the official Language 1.01.05 + Image 1.01.00 Flash Data package, then install firmware 3.07.23. Read the Radio again after each update.",
+  updatesReadFirstTitle: "Read the Radio first",
+  updatesReadFirstDescription:
+    "Radio Read creates the safety backup and lets 73Kit show the recommended update order for the detected firmware.",
   historyControlsLabel: "Working Codeplug history",
   undo: "Undo",
   redo: "Redo",
@@ -10,6 +27,9 @@ const en = {
   redoShortcut: "Ctrl Y or Ctrl/Command Shift Z",
   serialPortSelectionRequired: "Select the Source Radio port to continue.",
   radioWriteTitle: "Radio Write",
+  radioWriteBetaTitle: "Firmware {version} · Beta Radio Write",
+  radioWriteBetaDescription:
+    "This exact firmware profile is supported from official TYT data but has less physical-radio evidence than 3.07.23. Keep the automatic backup and verify the Radio after writing.",
   radioWriteDescription:
     "Select the Source Radio, review the Change Set, and write the complete Codeplug.",
   radioWriteControlled: "Available",
@@ -973,23 +993,26 @@ const en = {
   savedWorkingNotFound: "The saved Working Codeplug no longer exists.",
   loading: "Loading…",
   cpsFileOpen: "Open CPS File",
-  rawImportAction: "Import Raw Backup",
-  rawImportReviewTitle: "Review Raw Backup import",
+  rawImportAction: "Open PF or Raw Backup",
+  rawImportReviewTitle: "Review Codeplug file",
   rawImportReviewDescription:
-    "This importer currently accepts only the validated firmware 3.07.23 layout: a .bin file containing exactly 102,400 bytes.",
+    "Open an official TYT PF file or a complete 102,400-byte raw backup for offline inspection and editing.",
   rawImportReviewSafety:
     "The file will open as an Unbound Codeplug with no Source Radio identity. Radio Write, restore preparation, CPS File export, and named browser snapshots stay unavailable.",
   rawImportConfirm: "Open Unbound Codeplug",
-  rawImportFailed: "Raw Backup could not be imported",
-  rawImportReady: "Raw Backup open",
+  rawImportFailed: "Codeplug file could not be opened",
+  rawImportReady: "Codeplug file open",
   rawImportUnboundTitle: "Unbound Codeplug",
   rawImportUnboundDescription:
-    "This Codeplug is not bound to a Source Radio. You can inspect and edit it, then download the edited raw .bin; it cannot be used for Radio Write or restore.",
+    "This Codeplug is not bound to a Source Radio. You can inspect, edit, and save it; it cannot be used directly for Radio Write or restore.",
   rawImportNoRadioTitle: "No Source Radio identity",
   rawImportFile: "Imported file",
-  rawImportLayout: "Validated layout",
+  rawImportLayout: "Detected format",
+  pfGenerationCurrent: "TYT PF · 3.07 generation",
+  pfGenerationLegacy: "TYT PF · Legacy generation · Beta",
+  rawCurrentLayout: "Raw backup · Current layout",
   rawImportSize: "File size",
-  rawWorkingExport: "Download Edited Raw Codeplug",
+  rawWorkingExport: "Save Edited Codeplug",
   bytes: "bytes",
   cpsFileExport: "Export CPS File",
   cpsFileOpenReady: "CPS File open",
@@ -1131,7 +1154,8 @@ const en = {
   footerRadioDisconnected: "Not connected",
   footerRadioConnecting: "Connecting…",
   footerRadioReading: "Reading… {progress}",
-  footerRadioReady: "{model} · Read complete",
+  footerRadioReady: "{model} · firmware {version} · Read complete",
+  footerRadioReadyBeta: "{model} · firmware {version} · Beta support",
   footerCodeplugReady: "Ready",
   footerCodeplugUnavailable: "Not loaded",
   footerNoPendingChanges: "None",

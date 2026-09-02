@@ -1,10 +1,12 @@
 import {
   CODEPLUG_LAYOUT_3_07_23,
   CODEPLUG_SIZE,
+  getCodeplugLayout,
   type Codeplug,
   type CodeplugWriteImage,
   createCodeplug,
 } from "../codeplug/index.ts"
+import { evaluateFirmwareSupport } from "../radio-support/index.ts"
 import {
   ResponseFrameDecoder,
   encodeRequestFrame,
@@ -373,7 +375,17 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
       )
       expectAsciiPayload(completeResponse, REBOOT)
 
-      const codeplug = createCodeplug(bytes)
+      const supportProfile = evaluateFirmwareSupport(
+        "tyt-uvl15w",
+        sourceRadio.firmwareVersion
+      )
+      if (!supportProfile.codeplugLayoutId) {
+        throw new Uvl15wRadioError(
+          "unsupported-firmware",
+          `No Codeplug layout is available for firmware ${sourceRadio.firmwareVersion}`
+        )
+      }
+      const codeplug = createCodeplug(bytes, supportProfile.codeplugLayoutId)
       this.#connection = undefined
       this.#sourceRadio = undefined
       await connection.close().catch(() => undefined)
@@ -406,14 +418,22 @@ class Uvl15wRadioImplementation implements Uvl15wRadio {
       )
     }
 
+    const supportProfile = evaluateFirmwareSupport(
+      "tyt-uvl15w",
+      sourceRadio.firmwareVersion
+    )
+    const expectedLayout = supportProfile.codeplugLayoutId
+      ? getCodeplugLayout(supportProfile.codeplugLayoutId)
+      : null
     if (
-      image.layoutId !== CODEPLUG_LAYOUT_3_07_23.id ||
-      image.byteLength !== CODEPLUG_LAYOUT_3_07_23.byteLength ||
-      bytes.byteLength !== CODEPLUG_LAYOUT_3_07_23.byteLength
+      !expectedLayout ||
+      image.layoutId !== expectedLayout.id ||
+      image.byteLength !== expectedLayout.byteLength ||
+      bytes.byteLength !== expectedLayout.byteLength
     ) {
       throw new Uvl15wRadioError(
         "protocol",
-        `Radio Write requires a complete ${CODEPLUG_LAYOUT_3_07_23.id} image`
+        `Radio Write requires a complete ${expectedLayout?.id ?? "supported"} image`
       )
     }
 

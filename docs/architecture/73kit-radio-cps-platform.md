@@ -109,12 +109,14 @@ by a layout profile, not a model-wide discriminator.
 
 Current registry:
 
-| Model ID     | Display name                 | Alias policy          | Validated profile    |
-| ------------ | ---------------------------- | --------------------- | -------------------- |
-| `tyt-uvl15w` | TYT UVL-15W / Tekser TR-UV15 | one model, one driver | `tyt-uvl15w-3.07.23` |
+| Model ID     | Display name                 | Alias policy          | Support profiles                                |
+| ------------ | ---------------------------- | --------------------- | ----------------------------------------------- |
+| `tyt-uvl15w` | TYT UVL-15W / Tekser TR-UV15 | one model, one driver | 2.07.03 through 3.07.15 Beta; 3.07.23 validated |
 
-The current `3.07.23` layout is exactly 102,400 bytes. No other firmware is
-authorized by that fact.
+All observed official profiles use the same complete 102,400-byte Codeplug
+range. Versions through 3.05.26 use the legacy-v1 metadata layout; 3.07.15 and
+3.07.23 use the current layout. Exact profile matching, not size alone,
+authorizes interpretation or Radio Write.
 
 ## Capability policy
 
@@ -209,9 +211,11 @@ must use the shared versioned opener and preserve existing object stores.
 ### Raw `.bin`
 
 Raw files carry no Source Radio identity, model, profile, or hash manifest.
-They create an Unbound Codeplug and cannot authorize Radio Write. When multiple
-validated profiles exist, raw import must require the operator to choose a
-model/profile and must validate exact byte length before parsing.
+They create an Unbound Codeplug and cannot authorize Radio Write. Raw `.bin`
+uses the current layout because it contains no version marker. TYT `.PF` uses
+strict record validation and positive structural markers to select the legacy
+or 3.07 generation. Known markerless TYT factory defaults are recognized by
+decoded hash; any other ambiguous PF fails closed. PF imports remain Unbound.
 
 ## Updater placement and separation
 
@@ -256,7 +260,8 @@ alias.
 9. Add exact updater packages only after updater-specific validation.
 10. Update the support table and production-readiness evidence.
 
-Do not infer a profile from the 102,400-byte `3.07.23` image.
+Do not infer an exact firmware version from a 102,400-byte image. A PF layout
+generation is not an exact Source Radio identity.
 
 ## Adding a Radio Model
 

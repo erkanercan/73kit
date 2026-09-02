@@ -182,33 +182,44 @@ test("accepts the validated firmware with or without its V prefix", async () => 
 })
 
 test("evaluates arbitrary firmware values without opening a Radio connection", () => {
+  const supportedVersions = [
+    "2.07.03",
+    "2.11.18",
+    "2.12.27",
+    "3.03.16",
+    "3.03.18",
+    "3.03.31",
+    "3.05.26",
+    "3.07.15",
+    "3.07.23",
+  ]
   assert.deepEqual(evaluateFirmwareCompatibility("V3.07.23"), {
     status: "supported",
     detectedVersion: "V3.07.23",
     normalizedVersion: "3.07.23",
-    validatedVersions: ["3.07.23"],
+    validatedVersions: supportedVersions,
   })
   assert.equal(evaluateFirmwareCompatibility("3.07.9").status, "unsupported")
   assert.deepEqual(evaluateFirmwareCompatibility("3.08.00"), {
     status: "unsupported",
     detectedVersion: "3.08.00",
     normalizedVersion: "3.08.00",
-    validatedVersions: ["3.07.23"],
+    validatedVersions: supportedVersions,
     reason: "newer-unvalidated",
   })
   assert.deepEqual(evaluateFirmwareCompatibility("FW1.0"), {
     status: "unsupported",
     detectedVersion: "FW1.0",
     normalizedVersion: null,
-    validatedVersions: ["3.07.23"],
+    validatedVersions: supportedVersions,
     reason: "unrecognized",
   })
 })
 
 test("rejects firmware that is not validated before a Radio Read can start", async (context) => {
   const cases = [
-    { version: "3.07.22", reason: "older" },
-    { version: "3.07.9", reason: "older" },
+    { version: "3.07.22", reason: "unvalidated" },
+    { version: "3.07.9", reason: "unvalidated" },
     { version: "3.08.00", reason: "newer-unvalidated" },
     { version: "", reason: "unrecognized" },
     { version: "FW1.0", reason: "unrecognized" },

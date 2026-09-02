@@ -1,8 +1,6 @@
-import {
-  BAND_A_ZONE_SELECTION_OFFSET,
-  BAND_B_ZONE_SELECTION_OFFSET,
-  MEMBERSHIP_GROUP_COUNT,
-} from "./memory-map.ts"
+import { MEMBERSHIP_GROUP_COUNT } from "./memory-map.ts"
+import { CODEPLUG_MEMORY_MAP_3_07_23 } from "./layout.ts"
+import type { CodeplugMemoryMap } from "./layout.ts"
 
 type RadioBand = "A" | "B"
 
@@ -13,10 +11,13 @@ interface BandZoneSelections {
 
 const LOWER_ZONE_BITS_MASK = 0x0000ffff
 
-function decodeBandZoneSelections(bytes: Uint8Array): BandZoneSelections {
+function decodeBandZoneSelections(
+  bytes: Uint8Array,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
+): BandZoneSelections {
   return Object.freeze({
-    A: decodeSelection(bytes, BAND_A_ZONE_SELECTION_OFFSET),
-    B: decodeSelection(bytes, BAND_B_ZONE_SELECTION_OFFSET),
+    A: decodeSelection(bytes, memoryMap.bandAZoneSelectionOffset),
+    B: decodeSelection(bytes, memoryMap.bandBZoneSelectionOffset),
   })
 }
 
@@ -38,10 +39,11 @@ function decodeSelection(bytes: Uint8Array, offset: number) {
 function editBandZoneSelectionBytes(
   source: Uint8Array,
   band: RadioBand,
-  zoneNumbers: readonly number[]
+  zoneNumbers: readonly number[],
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
 ) {
   const result = source.slice()
-  const offset = bandOffset(band)
+  const offset = bandOffset(band, memoryMap)
   const view = new DataView(result.buffer, result.byteOffset, result.byteLength)
   const current = view.getUint32(offset, true)
   const selectedMask = encodeSelection(zoneNumbers)
@@ -77,9 +79,9 @@ function encodeSelection(zoneNumbers: readonly number[]) {
   return mask & LOWER_ZONE_BITS_MASK
 }
 
-function bandOffset(band: RadioBand) {
-  if (band === "A") return BAND_A_ZONE_SELECTION_OFFSET
-  if (band === "B") return BAND_B_ZONE_SELECTION_OFFSET
+function bandOffset(band: RadioBand, memoryMap: CodeplugMemoryMap) {
+  if (band === "A") return memoryMap.bandAZoneSelectionOffset
+  if (band === "B") return memoryMap.bandBZoneSelectionOffset
   throw new RangeError("Radio band must be A or B")
 }
 

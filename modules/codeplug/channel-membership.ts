@@ -9,10 +9,10 @@ import {
   MEMBERSHIP_GROUP_COUNT,
   MEMBERSHIP_NAME_SIZE,
   SCAN_LIST_MEMBER_LISTS_OFFSET,
-  SCAN_LIST_NAMES_OFFSET,
   ZONE_MEMBER_LISTS_OFFSET,
-  ZONE_NAMES_OFFSET,
 } from "./memory-map.ts"
+import { CODEPLUG_MEMORY_MAP_3_07_23 } from "./layout.ts"
+import type { CodeplugMemoryMap } from "./layout.ts"
 
 type MembershipCollectionKind = "zone" | "scan-list"
 
@@ -73,26 +73,35 @@ interface CollectionStorage {
   readonly namesOffset: number
 }
 
-const ZONE_STORAGE: CollectionStorage = {
-  kind: "zone",
-  memberListsOffset: ZONE_MEMBER_LISTS_OFFSET,
-  membershipOffset: CHANNEL_ZONE_MEMBERSHIP_OFFSET,
-  namesOffset: ZONE_NAMES_OFFSET,
+function collectionStorages(memoryMap: CodeplugMemoryMap) {
+  return {
+    zone: {
+      kind: "zone",
+      memberListsOffset: ZONE_MEMBER_LISTS_OFFSET,
+      membershipOffset: CHANNEL_ZONE_MEMBERSHIP_OFFSET,
+      namesOffset: memoryMap.zoneNamesOffset,
+    } satisfies CollectionStorage,
+    scanList: {
+      kind: "scan-list",
+      memberListsOffset: SCAN_LIST_MEMBER_LISTS_OFFSET,
+      membershipOffset: CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET,
+      namesOffset: memoryMap.scanListNamesOffset,
+    } satisfies CollectionStorage,
+  }
 }
 
-const SCAN_LIST_STORAGE: CollectionStorage = {
-  kind: "scan-list",
-  memberListsOffset: SCAN_LIST_MEMBER_LISTS_OFFSET,
-  membershipOffset: CHANNEL_SCAN_LIST_MEMBERSHIP_OFFSET,
-  namesOffset: SCAN_LIST_NAMES_OFFSET,
+function decodeZones(
+  bytes: Uint8Array,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
+): readonly Zone[] {
+  return decodeCollections(bytes, collectionStorages(memoryMap).zone)
 }
 
-function decodeZones(bytes: Uint8Array): readonly Zone[] {
-  return decodeCollections(bytes, ZONE_STORAGE)
-}
-
-function decodeScanLists(bytes: Uint8Array): readonly ScanList[] {
-  return decodeCollections(bytes, SCAN_LIST_STORAGE)
+function decodeScanLists(
+  bytes: Uint8Array,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
+): readonly ScanList[] {
+  return decodeCollections(bytes, collectionStorages(memoryMap).scanList)
 }
 
 function decodeCollections(bytes: Uint8Array, storage: CollectionStorage) {
@@ -136,28 +145,56 @@ function decodeChannelMembershipNames(
   return Object.freeze(names)
 }
 
-function decodeChannelZoneNames(bytes: Uint8Array, channelIndex: number) {
-  return decodeChannelMembershipNames(bytes, channelIndex, ZONE_STORAGE)
+function decodeChannelZoneNames(
+  bytes: Uint8Array,
+  channelIndex: number,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
+) {
+  return decodeChannelMembershipNames(
+    bytes,
+    channelIndex,
+    collectionStorages(memoryMap).zone
+  )
 }
 
-function decodeChannelScanListNames(bytes: Uint8Array, channelIndex: number) {
-  return decodeChannelMembershipNames(bytes, channelIndex, SCAN_LIST_STORAGE)
+function decodeChannelScanListNames(
+  bytes: Uint8Array,
+  channelIndex: number,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
+) {
+  return decodeChannelMembershipNames(
+    bytes,
+    channelIndex,
+    collectionStorages(memoryMap).scanList
+  )
 }
 
 function editZoneBytes(
   source: Uint8Array,
   number: number,
-  patch: ChannelCollectionPatch
+  patch: ChannelCollectionPatch,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
 ) {
-  return editCollectionBytes(source, ZONE_STORAGE, number, patch)
+  return editCollectionBytes(
+    source,
+    collectionStorages(memoryMap).zone,
+    number,
+    patch
+  )
 }
 
 function editScanListBytes(
   source: Uint8Array,
   number: number,
-  patch: ChannelCollectionPatch
+  patch: ChannelCollectionPatch,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
 ) {
-  return editCollectionBytes(source, SCAN_LIST_STORAGE, number, patch)
+  return editCollectionBytes(
+    source,
+    collectionStorages(memoryMap).scanList,
+    number,
+    patch
+  )
 }
 
 function editCollectionBytes(
@@ -199,7 +236,8 @@ function editCollectionBytes(
 function editChannelMembershipsBytes(
   source: Uint8Array,
   channelNumber: number,
-  patch: ChannelMembershipPatch
+  patch: ChannelMembershipPatch,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
 ) {
   const channelIndex = assertChannelNumber(channelNumber)
   const result = source.slice()
@@ -207,7 +245,7 @@ function editChannelMembershipsBytes(
   if (patch.zoneNumbers !== undefined) {
     updateChannelMemberships(
       result,
-      ZONE_STORAGE,
+      collectionStorages(memoryMap).zone,
       channelIndex,
       validateCollectionNumbers(patch.zoneNumbers)
     )
@@ -215,7 +253,7 @@ function editChannelMembershipsBytes(
   if (patch.scanListNumbers !== undefined) {
     updateChannelMemberships(
       result,
-      SCAN_LIST_STORAGE,
+      collectionStorages(memoryMap).scanList,
       channelIndex,
       validateCollectionNumbers(patch.scanListNumbers)
     )
@@ -299,11 +337,13 @@ function appendOrderedMember(
 }
 
 function validateMembershipConsistency(
-  bytes: Uint8Array
+  bytes: Uint8Array,
+  memoryMap: CodeplugMemoryMap = CODEPLUG_MEMORY_MAP_3_07_23
 ): readonly MembershipConsistencyIssue[] {
+  const storages = collectionStorages(memoryMap)
   return Object.freeze([
-    ...validateCollectionConsistency(bytes, ZONE_STORAGE),
-    ...validateCollectionConsistency(bytes, SCAN_LIST_STORAGE),
+    ...validateCollectionConsistency(bytes, storages.zone),
+    ...validateCollectionConsistency(bytes, storages.scanList),
   ])
 }
 

@@ -1,7 +1,11 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import { CODEPLUG_SIZE, createCodeplug } from "../modules/codeplug/index.ts"
+import {
+  CODEPLUG_SIZE,
+  createCodeplug,
+  type CodeplugLayoutId,
+} from "../modules/codeplug/index.ts"
 import {
   DOCUMENT_HISTORY_LIMIT,
   REDO_DOCUMENT_EDIT,
@@ -22,10 +26,11 @@ import type { ActiveCodeplugDocument } from "../modules/cps-workspace/codeplug-d
 function documentState(
   value: number,
   id = "baseline-a",
-  changes: readonly WorkspaceChange[] = Object.freeze([])
+  changes: readonly WorkspaceChange[] = Object.freeze([]),
+  layoutId: CodeplugLayoutId = "uvl15w-3.07.23"
 ): EditableCodeplugDocumentState {
   const baselineBytes = new Uint8Array(CODEPLUG_SIZE)
-  const baselineCodeplug = createCodeplug(baselineBytes)
+  const baselineCodeplug = createCodeplug(baselineBytes, layoutId)
   const baselineBackup = Object.freeze({
     id,
     sha256: id,
@@ -42,7 +47,7 @@ function documentState(
     workingCodeplug: Object.freeze({
       sourceRadio: null,
       baselineBackup,
-      codeplug: createCodeplug(bytes),
+      codeplug: createCodeplug(bytes, layoutId),
     }),
     backupHistory: Object.freeze([]),
     rawImport: Object.freeze({
@@ -50,7 +55,7 @@ function documentState(
       importedAt: new Date("2026-09-01T00:00:00.000Z"),
       byteLength: CODEPLUG_SIZE,
       sha256: id,
-      layoutId: "uvl15w-3.07.23",
+      layoutId,
     }),
   })
 
@@ -111,6 +116,26 @@ test("a new edit after undo discards the redo branch", () => {
 
   assert.equal(valueOf(history.present), 9)
   assert.equal(canRedoDocumentEdit(history), false)
+})
+
+test("undo and redo preserve a legacy Codeplug layout", () => {
+  let history = createDocumentHistory(
+    documentState(0, "legacy", [], "uvl15w-legacy-v1")
+  )
+  history = commitDocumentEdit(history, () =>
+    documentState(1, "legacy", [], "uvl15w-legacy-v1")
+  )
+
+  history = undoDocumentEdit(history)
+  assert.equal(
+    history.present.completedRead?.workingCodeplug.codeplug.layoutId,
+    "uvl15w-legacy-v1"
+  )
+  history = redoDocumentEdit(history)
+  assert.equal(
+    history.present.completedRead?.workingCodeplug.codeplug.layoutId,
+    "uvl15w-legacy-v1"
+  )
 })
 
 test("the controller reducer accepts document updates and history commands", () => {

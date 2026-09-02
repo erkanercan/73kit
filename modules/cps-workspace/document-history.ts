@@ -157,7 +157,10 @@ function restoreRevision(
       ...document,
       workingCodeplug: Object.freeze({
         ...document.workingCodeplug,
-        codeplug: createCodeplug(revision.workingCodeplugBytes),
+        codeplug: createCodeplug(
+          revision.workingCodeplugBytes,
+          document.workingCodeplug.codeplug.layoutId
+        ),
       }),
     }),
     changes: revision.changes,

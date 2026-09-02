@@ -2,7 +2,10 @@ import {
   CODEPLUG_LAYOUT_3_07_23,
   CODEPLUG_SIZE,
   createCodeplug,
+  parsePfFile,
   type Codeplug,
+  type CodeplugLayoutId,
+  type PfGeneration,
 } from "../codeplug/index.ts"
 import type {
   CodeplugBackup,
@@ -47,7 +50,9 @@ interface ActiveCodeplugDocument {
     readonly importedAt: Date
     readonly byteLength: number
     readonly sha256: string
-    readonly layoutId: typeof CODEPLUG_LAYOUT_3_07_23.id
+    readonly layoutId: CodeplugLayoutId
+    readonly format?: "bin" | "pf"
+    readonly pfGeneration?: PfGeneration
   }
 }
 
@@ -127,13 +132,19 @@ async function importRawCodeplugFile(
   file: RawCodeplugFile,
   importedAt = new Date()
 ): Promise<UnboundCodeplugDocument> {
-  if (!file.name.toLocaleLowerCase("en-US").endsWith(".bin")) {
+  const lowerName = file.name.toLocaleLowerCase("en-US")
+  const format = lowerName.endsWith(".pf")
+    ? "pf"
+    : lowerName.endsWith(".bin")
+      ? "bin"
+      : null
+  if (!format) {
     throw new RawCodeplugImportError(
       "invalid-extension",
-      "Choose a raw Codeplug file with a .bin extension"
+      "Choose a UVL-15W Codeplug file with a .PF or .bin extension"
     )
   }
-  if (file.size !== RAW_CODEPLUG_IMPORT_LAYOUT.byteLength) {
+  if (format === "bin" && file.size !== RAW_CODEPLUG_IMPORT_LAYOUT.byteLength) {
     throw new RawCodeplugImportError(
       "invalid-size",
       `A firmware ${RAW_CODEPLUG_IMPORT_LAYOUT.firmwareVersion} raw Codeplug must contain exactly ${RAW_CODEPLUG_IMPORT_LAYOUT.byteLength.toLocaleString("en-US")} bytes; selected file contains ${file.size.toLocaleString("en-US")}`
@@ -150,20 +161,28 @@ async function importRawCodeplugFile(
       { cause }
     )
   }
-  if (buffer.byteLength !== RAW_CODEPLUG_IMPORT_LAYOUT.byteLength) {
+  if (
+    format === "bin" &&
+    buffer.byteLength !== RAW_CODEPLUG_IMPORT_LAYOUT.byteLength
+  ) {
     throw new RawCodeplugImportError(
       "size-changed",
       "The raw Codeplug file changed while it was being read"
     )
   }
 
-  const bytes = new Uint8Array(buffer).slice()
+  const parsedPf =
+    format === "pf"
+      ? await parsePfFile(new TextDecoder().decode(new Uint8Array(buffer)))
+      : null
+  const bytes = parsedPf?.bytes ?? new Uint8Array(buffer).slice()
+  const layoutId = parsedPf?.layoutId ?? CODEPLUG_LAYOUT_3_07_23.id
   const sha256 = await digestBytes(bytes)
   const baselineBackup: DocumentCodeplugBackup = Object.freeze({
     id: `raw-import-${sha256.slice(0, 16)}`,
     sha256,
     sourceRadio: null,
-    codeplug: createCodeplug(bytes),
+    codeplug: createCodeplug(bytes, layoutId),
     createdAt: new Date(importedAt),
   })
 
@@ -174,7 +193,7 @@ async function importRawCodeplugFile(
     workingCodeplug: Object.freeze({
       sourceRadio: null,
       baselineBackup,
-      codeplug: createCodeplug(bytes),
+      codeplug: createCodeplug(bytes, layoutId),
     }),
     backupHistory: Object.freeze([] as DocumentCodeplugBackup[]),
     rawImport: Object.freeze({
@@ -182,7 +201,9 @@ async function importRawCodeplugFile(
       importedAt: new Date(importedAt),
       byteLength: bytes.byteLength,
       sha256,
-      layoutId: CODEPLUG_LAYOUT_3_07_23.id,
+      layoutId,
+      format,
+      ...(parsedPf ? { pfGeneration: parsedPf.generation } : {}),
     }),
   })
 }

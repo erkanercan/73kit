@@ -139,14 +139,25 @@ import type {
   FmBroadcastSettings,
   FmBroadcastSettingsPatch,
 } from "./fm-broadcast.ts"
-import { CODEPLUG_LAYOUT_3_07_23 } from "./layout.ts"
-import type { CodeplugLayoutId } from "./layout.ts"
+import {
+  CODEPLUG_LAYOUT_3_07_23,
+  CODEPLUG_LAYOUT_LEGACY,
+  getCodeplugLayout,
+  getCodeplugMemoryMap,
+} from "./layout.ts"
+import type {
+  CodeplugLayout,
+  CodeplugLayoutId,
+  CodeplugMemoryMap,
+} from "./layout.ts"
 import { materializeCodeplugWriteImage } from "./write-image.ts"
 
 const CODEPLUG_SIZE = CODEPLUG_LAYOUT_3_07_23.byteLength
 
 class Codeplug {
   readonly #bytes: Uint8Array
+  readonly #layout: CodeplugLayout
+  readonly #memoryMap: CodeplugMemoryMap
   readonly #channels: readonly Channel[]
   readonly #vfoChannels: readonly SpecialChannel[]
   readonly #callChannels: readonly SpecialChannel[]
@@ -171,7 +182,11 @@ class Codeplug {
   readonly #fmBroadcastChannels: readonly FmBroadcastChannel[]
   readonly #fmBroadcastSettings: FmBroadcastSettings
 
-  constructor(bytes: Uint8Array) {
+  constructor(
+    bytes: Uint8Array,
+    layoutId: CodeplugLayoutId = CODEPLUG_LAYOUT_3_07_23.id
+  ) {
+    const layout = getCodeplugLayout(layoutId)
     if (bytes.byteLength !== CODEPLUG_SIZE) {
       throw new RangeError(
         `A Codeplug must contain exactly ${CODEPLUG_SIZE} bytes; received ${bytes.byteLength}`
@@ -179,20 +194,31 @@ class Codeplug {
     }
 
     this.#bytes = bytes.slice()
-    this.#channels = decodeChannels(this.#bytes)
+    this.#layout = layout
+    this.#memoryMap = getCodeplugMemoryMap(layout.id)
+    this.#channels = decodeChannels(this.#bytes, this.#memoryMap)
     this.#vfoChannels = decodeVfoChannels(this.#bytes)
     this.#callChannels = decodeCallChannels(this.#bytes)
-    this.#zones = decodeZones(this.#bytes)
-    this.#scanLists = decodeScanLists(this.#bytes)
-    this.#bandZoneSelections = decodeBandZoneSelections(this.#bytes)
-    this.#bandScanListSelections = decodeBandScanListSelections(this.#bytes)
+    this.#zones = decodeZones(this.#bytes, this.#memoryMap)
+    this.#scanLists = decodeScanLists(this.#bytes, this.#memoryMap)
+    this.#bandZoneSelections = decodeBandZoneSelections(
+      this.#bytes,
+      this.#memoryMap
+    )
+    this.#bandScanListSelections = decodeBandScanListSelections(
+      this.#bytes,
+      this.#memoryMap
+    )
     this.#functionSettings = decodeFunctionSettings(this.#bytes)
     this.#displaySettings = decodeDisplaySettings(this.#bytes)
     this.#soundSettings = decodeSoundSettings(this.#bytes)
     this.#keyboardSettings = decodeKeyboardSettings(this.#bytes)
     this.#menuVisibility = decodeMenuVisibility(this.#bytes)
-    this.#vfoScanEdges = decodeVfoScanEdges(this.#bytes)
-    this.#vfoScanEdgeSelections = decodeVfoScanEdgeSelections(this.#bytes)
+    this.#vfoScanEdges = decodeVfoScanEdges(this.#bytes, this.#memoryMap)
+    this.#vfoScanEdgeSelections = decodeVfoScanEdgeSelections(
+      this.#bytes,
+      this.#memoryMap
+    )
     this.#aprsSettings = decodeAprsSettings(this.#bytes)
     this.#gpsSettings = decodeGpsSettings(this.#bytes)
     this.#bluetoothSettings = decodeBluetoothSettings(this.#bytes)
@@ -209,11 +235,24 @@ class Codeplug {
     return this.#bytes.byteLength
   }
 
+  get layoutId() {
+    return this.#layout.id
+  }
+
+  #withBytes(bytes: Uint8Array) {
+    return new Codeplug(bytes, this.#layout.id)
+  }
+
   toBytes() {
     return this.#bytes.slice()
   }
 
   materializeWriteImage(layoutId: CodeplugLayoutId) {
+    if (layoutId !== this.#layout.id) {
+      throw new RangeError(
+        `Codeplug layout ${this.#layout.id} cannot be written as ${layoutId}`
+      )
+    }
     return materializeCodeplugWriteImage(this.#bytes, layoutId)
   }
 
@@ -310,30 +349,37 @@ class Codeplug {
   }
 
   moveMemoryChannel(fromNumber: number, toNumber: number) {
-    return new Codeplug(
+    return this.#withBytes(
       moveMemoryChannelBytes(this.#bytes, fromNumber, toNumber)
     )
   }
 
   editMemoryChannel(number: number, patch: MemoryChannelPatch) {
-    return new Codeplug(editMemoryChannelBytes(this.#bytes, number, patch))
+    return this.#withBytes(editMemoryChannelBytes(this.#bytes, number, patch))
   }
 
   editVfoChannel(slot: "A" | "B", patch: VfoChannelPatch) {
-    return new Codeplug(editVfoChannelBytes(this.#bytes, slot, patch))
+    return this.#withBytes(editVfoChannelBytes(this.#bytes, slot, patch))
   }
 
   editCallChannel(slot: 1 | 2, patch: CallChannelPatch) {
-    return new Codeplug(editCallChannelBytes(this.#bytes, slot, patch))
+    return this.#withBytes(editCallChannelBytes(this.#bytes, slot, patch))
   }
 
   editZone(number: number, patch: ChannelCollectionPatch) {
-    return new Codeplug(editZoneBytes(this.#bytes, number, patch))
+    return this.#withBytes(
+      editZoneBytes(this.#bytes, number, patch, this.#memoryMap)
+    )
   }
 
   editBandZoneSelection(band: RadioBand, zoneNumbers: readonly number[]) {
-    return new Codeplug(
-      editBandZoneSelectionBytes(this.#bytes, band, zoneNumbers)
+    return this.#withBytes(
+      editBandZoneSelectionBytes(
+        this.#bytes,
+        band,
+        zoneNumbers,
+        this.#memoryMap
+      )
     )
   }
 
@@ -341,99 +387,114 @@ class Codeplug {
     band: RadioBand,
     scanListNumbers: readonly number[]
   ) {
-    return new Codeplug(
-      editBandScanListSelectionBytes(this.#bytes, band, scanListNumbers)
+    return this.#withBytes(
+      editBandScanListSelectionBytes(
+        this.#bytes,
+        band,
+        scanListNumbers,
+        this.#memoryMap
+      )
     )
   }
 
   editVfoScanEdge(number: number, patch: VfoScanEdgePatch) {
-    return new Codeplug(editVfoScanEdgeBytes(this.#bytes, number, patch))
+    return this.#withBytes(
+      editVfoScanEdgeBytes(this.#bytes, number, patch, this.#memoryMap)
+    )
   }
 
   editVfoScanEdgeSelection(band: RadioBand, numbers: readonly number[]) {
-    return new Codeplug(
-      editVfoScanEdgeSelectionBytes(this.#bytes, band, numbers)
+    return this.#withBytes(
+      editVfoScanEdgeSelectionBytes(this.#bytes, band, numbers, this.#memoryMap)
     )
   }
 
   editScanList(number: number, patch: ChannelCollectionPatch) {
-    return new Codeplug(editScanListBytes(this.#bytes, number, patch))
+    return this.#withBytes(
+      editScanListBytes(this.#bytes, number, patch, this.#memoryMap)
+    )
   }
 
   editFunctionSettings(patch: FunctionSettingsPatch) {
-    return new Codeplug(editFunctionSettingsBytes(this.#bytes, patch))
+    return this.#withBytes(editFunctionSettingsBytes(this.#bytes, patch))
   }
 
   editDisplaySettings(patch: DisplaySettingsPatch) {
-    return new Codeplug(editDisplaySettingsBytes(this.#bytes, patch))
+    return this.#withBytes(editDisplaySettingsBytes(this.#bytes, patch))
   }
 
   editSoundSettings(patch: SoundSettingsPatch) {
-    return new Codeplug(editSoundSettingsBytes(this.#bytes, patch))
+    return this.#withBytes(editSoundSettingsBytes(this.#bytes, patch))
   }
 
   editKeyboardSettings(patch: KeyboardSettingsPatch) {
-    return new Codeplug(editKeyboardSettingsBytes(this.#bytes, patch))
+    return this.#withBytes(editKeyboardSettingsBytes(this.#bytes, patch))
   }
 
   setMenuVisibility(id: MenuVisibilityItemId, visible: boolean) {
-    return new Codeplug(editMenuVisibilityBytes(this.#bytes, id, visible))
+    return this.#withBytes(editMenuVisibilityBytes(this.#bytes, id, visible))
   }
 
   editAprsSettings(patch: AprsSettingsPatch) {
-    return new Codeplug(editAprsSettingsBytes(this.#bytes, patch))
+    return this.#withBytes(editAprsSettingsBytes(this.#bytes, patch))
   }
 
   editGpsSettings(patch: GpsSettingsPatch) {
-    return new Codeplug(editGpsSettingsBytes(this.#bytes, patch))
+    return this.#withBytes(editGpsSettingsBytes(this.#bytes, patch))
   }
 
   editBluetoothSettings(patch: BluetoothSettingsPatch) {
-    return new Codeplug(editBluetoothSettingsBytes(this.#bytes, patch))
+    return this.#withBytes(editBluetoothSettingsBytes(this.#bytes, patch))
   }
 
   editSpectrumSettings(patch: SpectrumSettingsPatch) {
-    return new Codeplug(editSpectrumSettingsBytes(this.#bytes, patch))
+    return this.#withBytes(editSpectrumSettingsBytes(this.#bytes, patch))
   }
 
   editDtmfSettings(patch: DtmfSettingsPatch) {
-    return new Codeplug(editDtmfSettingsBytes(this.#bytes, patch))
+    return this.#withBytes(editDtmfSettingsBytes(this.#bytes, patch))
   }
 
   editTwoToneSettings(patch: TwoToneSettingsPatch) {
-    return new Codeplug(editTwoToneSettingsBytes(this.#bytes, patch))
+    return this.#withBytes(editTwoToneSettingsBytes(this.#bytes, patch))
   }
 
   editFiveToneSettings(patch: FiveToneSettingsPatch) {
-    return new Codeplug(editFiveToneSettingsBytes(this.#bytes, patch))
+    return this.#withBytes(editFiveToneSettingsBytes(this.#bytes, patch))
   }
 
   editFmBroadcastChannel(number: number, patch: FmBroadcastChannelPatch) {
-    return new Codeplug(editFmBroadcastChannelBytes(this.#bytes, number, patch))
+    return this.#withBytes(
+      editFmBroadcastChannelBytes(this.#bytes, number, patch)
+    )
   }
 
   editFmBroadcastSettings(patch: FmBroadcastSettingsPatch) {
-    return new Codeplug(editFmBroadcastSettingsBytes(this.#bytes, patch))
+    return this.#withBytes(editFmBroadcastSettingsBytes(this.#bytes, patch))
   }
 
   editChannelMemberships(number: number, patch: ChannelMembershipPatch) {
-    return new Codeplug(editChannelMembershipsBytes(this.#bytes, number, patch))
+    return this.#withBytes(
+      editChannelMembershipsBytes(this.#bytes, number, patch, this.#memoryMap)
+    )
   }
 
   validateMembershipConsistency(): readonly MembershipConsistencyIssue[] {
-    return validateMembershipConsistency(this.#bytes)
+    return validateMembershipConsistency(this.#bytes, this.#memoryMap)
   }
 
   addMemoryChannel() {
-    return new Codeplug(addDefaultMemoryChannelBytes(this.#bytes))
+    return this.#withBytes(addDefaultMemoryChannelBytes(this.#bytes))
   }
 
   deleteMemoryChannel(number: number) {
-    return new Codeplug(deleteMemoryChannelBytes(this.#bytes, number))
+    return this.#withBytes(deleteMemoryChannelBytes(this.#bytes, number))
   }
 
   duplicateMemoryChannel(number: number) {
-    return new Codeplug(duplicateMemoryChannelBytes(this.#bytes, number))
+    return this.#withBytes(
+      duplicateMemoryChannelBytes(this.#bytes, number, this.#memoryMap)
+    )
   }
 
   equals(other: Codeplug) {
@@ -443,12 +504,18 @@ class Codeplug {
   }
 }
 
-function createCodeplug(bytes: Uint8Array) {
-  return new Codeplug(bytes)
+function createCodeplug(
+  bytes: Uint8Array,
+  layoutId: CodeplugLayoutId = CODEPLUG_LAYOUT_3_07_23.id
+) {
+  return new Codeplug(bytes, layoutId)
 }
 
 export {
   CODEPLUG_LAYOUT_3_07_23,
+  CODEPLUG_LAYOUT_LEGACY,
+  getCodeplugLayout,
+  getCodeplugMemoryMap,
   CODEPLUG_SIZE,
   CTCSS_FREQUENCIES_HZ,
   DCS_CODES,
@@ -456,6 +523,8 @@ export {
   createCodeplug,
 }
 export type { CodeplugLayout, CodeplugLayoutId } from "./layout.ts"
+export { PfFileError, parsePfFile, serializePfFile } from "./pf-file.ts"
+export type { ParsedPfFile, PfGeneration } from "./pf-file.ts"
 export type {
   CodeplugWriteDerivedChange,
   CodeplugWriteImage,

@@ -65,6 +65,7 @@ import type { BackupHistoryEntry } from "@/modules/cps-workspace/index"
 import { createCpsFile } from "@/modules/cps-workspace/cps-file"
 import { canExportCpsFile } from "@/modules/cps-workspace/codeplug-document"
 import { createCodeplug } from "@/modules/codeplug/index"
+import { evaluateFirmwareSupport } from "@/modules/radio-support/index"
 
 const backupHistoryStore = createIndexedDbBackupHistoryStore()
 
@@ -76,6 +77,7 @@ function BackupsWorkspace() {
     capability,
     completedRead,
     downloadCpsFile,
+    downloadPfFile,
     downloadRawBackup,
     error,
     importedCpsFile,
@@ -194,7 +196,7 @@ function BackupsWorkspace() {
             ref={rawFileInputRef}
             hidden
             type="file"
-            accept=".bin,application/octet-stream"
+            accept=".PF,.pf,.bin,application/octet-stream,text/plain"
             onChange={selectRawFile}
           />
           <Button
@@ -265,7 +267,15 @@ function BackupsWorkspace() {
               </CardAction>
             ) : rawImport ? (
               <CardAction>
-                <Button size="sm" disabled={busy} onClick={downloadRawBackup}>
+                <Button
+                  size="sm"
+                  disabled={busy}
+                  onClick={
+                    rawImport.format === "pf"
+                      ? downloadPfFile
+                      : downloadRawBackup
+                  }
+                >
                   <DownloadIcon data-icon="inline-start" />
                   {t("rawWorkingExport")}
                 </Button>
@@ -315,8 +325,14 @@ function BackupsWorkspace() {
                     <div className="text-muted-foreground">
                       {t("rawImportLayout")}
                     </div>
-                    <div className="font-mono text-xs">
-                      {rawImport.layoutId}
+                    <div className="font-medium">
+                      {rawImport.format === "pf"
+                        ? t(
+                            rawImport.pfGeneration === "3.07"
+                              ? "pfGenerationCurrent"
+                              : "pfGenerationLegacy"
+                          )
+                        : t("rawCurrentLayout")}
                     </div>
                   </div>
                   <div>
@@ -619,7 +635,14 @@ async function downloadBackup(entry: BackupHistoryEntry) {
   const serial = safeFilename(
     entry.sourceRadio.serialNumber || entry.sourceRadio.model
   )
-  const codeplug = createCodeplug(entry.bytes)
+  const profile = evaluateFirmwareSupport(
+    "tyt-uvl15w",
+    entry.sourceRadio.firmwareVersion
+  )
+  if (!profile.codeplugLayoutId) {
+    throw new Error("The saved backup has no supported Codeplug layout")
+  }
+  const codeplug = createCodeplug(entry.bytes, profile.codeplugLayoutId)
   const bytes = await createCpsFile({
     sourceRadio: entry.sourceRadio,
     baseline: codeplug,

@@ -5,6 +5,7 @@ import {
   type DisplaySettingsPatch,
 } from "../codeplug/index.ts"
 import type { SourceRadio } from "../uvl15w-radio/index.ts"
+import { evaluateFirmwareSupport } from "../radio-support/index.ts"
 import type { BackupHistoryEntry } from "./backup-history.ts"
 import {
   reconcileDisplaySettingChanges,
@@ -47,6 +48,15 @@ async function restoreTargetFromBackup(
       "Restore blocked: the saved backup failed its integrity check."
     )
   }
+  const profile = evaluateFirmwareSupport(
+    "tyt-uvl15w",
+    entry.sourceRadio.firmwareVersion
+  )
+  if (!profile.codeplugLayoutId) {
+    throw new Error(
+      "Restore blocked: the saved backup has no supported Codeplug layout."
+    )
+  }
 
   return Object.freeze({
     source: Object.freeze({
@@ -54,7 +64,7 @@ async function restoreTargetFromBackup(
       sourceRadio: entry.sourceRadio,
       workingSha256: entry.sha256,
     }),
-    target: createCodeplug(entry.bytes),
+    target: createCodeplug(entry.bytes, profile.codeplugLayoutId),
   })
 }
 
@@ -71,6 +81,12 @@ function prepareRestoreDocument(
       "Restore blocked: the selected Radio is not the Source Radio recorded with this saved Codeplug."
     )
   }
+  const freshLayoutId = freshRead.baselineBackup.codeplug.layoutId
+  if (target.layoutId !== freshLayoutId) {
+    throw new Error(
+      "Restore blocked: the saved Codeplug uses a different layout and no migration is available."
+    )
+  }
 
   const currentRadioBytes = freshRead.baselineBackup.codeplug.toBytes()
   const restoreTargetBytes = materializeRestoreTarget(
@@ -83,7 +99,7 @@ function prepareRestoreDocument(
     workingCodeplug: Object.freeze({
       sourceRadio: freshRead.sourceRadio,
       baselineBackup: freshRead.baselineBackup,
-      codeplug: createCodeplug(restoreTargetBytes),
+      codeplug: createCodeplug(restoreTargetBytes, freshLayoutId),
     }),
   })
   const result: RestorePreparationResult =

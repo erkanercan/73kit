@@ -833,6 +833,8 @@ const preparedWrite: PreparedRadioWrite = Object.freeze({
     cpuId: "SIMULATED-CPU",
     serialNumber: "SIMULATED-RADIO",
   },
+  supportProfileId: "tyt-uvl15w-3.07.23",
+  firmwareVersion: "3.07.23",
   layout: CODEPLUG_LAYOUT_3_07_23,
   baselineBackup: artifact,
   recoveryBackup: artifact,
