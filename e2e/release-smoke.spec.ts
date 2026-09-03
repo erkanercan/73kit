@@ -7,9 +7,9 @@ test("renders the released English and Turkish shells without console errors", a
 }) => {
   const errors = captureConsoleErrors(page)
 
-  await page.goto("/en")
+  await page.goto("/en/cps/tyt-uvl15w")
   await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible()
-  await page.goto("/tr")
+  await page.goto("/tr/cps/tyt-uvl15w")
   await expect(page.getByRole("heading", { name: "Genel Bakış" })).toBeVisible()
 
   expect(errors).toEqual([])
@@ -18,7 +18,7 @@ test("renders the released English and Turkish shells without console errors", a
 test("keeps the Updates route behind its beta acknowledgement", async ({
   page,
 }) => {
-  await page.goto("/en/updates")
+  await page.goto("/en/cps/tyt-uvl15w/updates")
 
   await expect(
     page.getByRole("heading", { name: "Beta updater" })
@@ -38,7 +38,7 @@ test("shows a direct Backup History restore failure", async ({ page }) => {
       },
     })
   })
-  await page.goto("/tr/backups")
+  await page.goto("/tr/cps/tyt-uvl15w/backups")
   await seedBackupHistory(page)
   await page.reload()
 
@@ -70,7 +70,7 @@ async function seedBackupHistory(page: Page) {
   await page.evaluate(
     async ({ expectedByteLength, expectedSha256 }) => {
       const database = await new Promise<IDBDatabase>((resolve, reject) => {
-        const request = indexedDB.open("tyt-uvl15-web-cps", 2)
+        const request = indexedDB.open("tyt-uvl15-web-cps")
         request.addEventListener("upgradeneeded", () => {
           if (
             !request.result.objectStoreNames.contains("radio-write-operations")

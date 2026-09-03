@@ -210,6 +210,9 @@ function MemoryChannelsCard({
   })
   const rows = table.getRowModel().rows
   const scrollElement = React.useRef<HTMLDivElement>(null)
+  const [pendingKeyboardFocus, setPendingKeyboardFocus] = React.useState<
+    number | null
+  >(null)
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollElement.current,
@@ -221,11 +224,25 @@ function MemoryChannelsCard({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
 
+  React.useEffect(() => {
+    if (pendingKeyboardFocus === null) return
+    scrollElement.current
+      ?.querySelector<HTMLButtonElement>(
+        `[data-channel-drag-handle="${pendingKeyboardFocus}"]`
+      )
+      ?.focus()
+    setPendingKeyboardFocus(null)
+  }, [pendingKeyboardFocus, rows])
+
   function handleDragEnd(event: DragEndEvent) {
     if (!event.over || event.active.id === event.over.id || normalizedSearch) {
       return
     }
-    onMove(Number(event.active.id), Number(event.over.id))
+    const destinationNumber = Number(event.over.id)
+    onMove(Number(event.active.id), destinationNumber)
+    if (event.activatorEvent instanceof KeyboardEvent) {
+      setPendingKeyboardFocus(destinationNumber)
+    }
   }
 
   function showBasicColumns() {

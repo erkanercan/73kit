@@ -64,6 +64,7 @@ function SortableChannelRow({
     attributes,
     isDragging,
     listeners,
+    setActivatorNodeRef,
     setNodeRef,
     transform,
     transition,
@@ -77,7 +78,8 @@ function SortableChannelRow({
       className="absolute flex w-full"
       style={{
         height: virtualRow.size,
-        transform: `translateY(${virtualRow.start}px)${dragTransform ? ` ${dragTransform}` : ""}`,
+        top: virtualRow.start,
+        transform: dragTransform,
         transition,
       }}
       onDoubleClick={onInspect}
@@ -93,6 +95,8 @@ function SortableChannelRow({
         >
           {cell.column.id === "move" ? (
             <Button
+              ref={setActivatorNodeRef}
+              data-channel-drag-handle={row.original.number}
               variant="ghost"
               size="icon-sm"
               disabled={reorderDisabled}
