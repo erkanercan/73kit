@@ -1,7 +1,11 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import { CODEPLUG_SIZE, createCodeplug } from "../modules/codeplug/index.ts"
+import {
+  CODEPLUG_SIZE,
+  createCodeplug,
+  resolveChannelFrequencyPatch,
+} from "../modules/codeplug/index.ts"
 import {
   reconcileMemoryChannelEditChanges,
   reconcileMemoryChannelStructureChange,
@@ -360,6 +364,78 @@ test("copies a Memory Channel directly below it with its fields and memberships"
     [0, 1]
   )
   assert.deepEqual(createCodeplug(bytes).getChannels()[0].name, "Alpha")
+})
+
+test("updates a copied repeater TX frequency when its RX frequency changes", () => {
+  const bytes = new Uint8Array(CODEPLUG_SIZE)
+  const view = new DataView(bytes.buffer)
+
+  writeChannel(bytes, 0, "Repeater", 145_600_000)
+  view.setUint32(0x04, 145_000_000, false)
+  view.setUint32(0x20, 600_000, false)
+  bytes[0x24] = 1
+  bytes[VALIDITY_BITMAP_OFFSET] = 1
+  clearMembershipStorage(bytes)
+
+  const copied = createCodeplug(bytes).duplicateMemoryChannel(1)
+  const copiedChannel = copied.getChannels()[1]
+  const patch = resolveChannelFrequencyPatch(copiedChannel, {
+    receiveFrequencyHz: 146_000_000,
+  })
+  const editedChannel = copied.editMemoryChannel(2, patch).getChannels()[1]
+
+  assert.equal(editedChannel.receiveFrequencyHz, 146_000_000)
+  assert.equal(editedChannel.transmitFrequencyHz, 145_400_000)
+})
+
+test("derives TX frequency from RX, offset, and duplex edits", () => {
+  const channel = {
+    receiveFrequencyHz: 145_600_000,
+    transmitFrequencyHz: 145_000_000,
+    offsetFrequencyHz: 600_000,
+    duplex: "negative" as const,
+  }
+
+  assert.deepEqual(
+    resolveChannelFrequencyPatch(channel, {
+      offsetFrequencyHz: 500_000,
+    }),
+    { offsetFrequencyHz: 500_000, transmitFrequencyHz: 145_100_000 }
+  )
+  assert.deepEqual(
+    resolveChannelFrequencyPatch(channel, {
+      duplex: "positive",
+    }),
+    { duplex: "positive", transmitFrequencyHz: 146_200_000 }
+  )
+  assert.deepEqual(
+    resolveChannelFrequencyPatch(channel, {
+      duplex: "off",
+      receiveFrequencyHz: 146_000_000,
+    }),
+    {
+      duplex: "off",
+      receiveFrequencyHz: 146_000_000,
+      transmitFrequencyHz: 146_000_000,
+    }
+  )
+  assert.deepEqual(
+    resolveChannelFrequencyPatch(
+      { ...channel, duplex: "split" },
+      { receiveFrequencyHz: 146_000_000 }
+    ),
+    { receiveFrequencyHz: 146_000_000 }
+  )
+  assert.deepEqual(
+    resolveChannelFrequencyPatch(channel, {
+      receiveFrequencyHz: 146_000_000,
+      transmitFrequencyHz: 147_000_000,
+    }),
+    {
+      receiveFrequencyHz: 146_000_000,
+      transmitFrequencyHz: 147_000_000,
+    }
+  )
 })
 
 test("keeps a copied Memory Channel name within the UTF-8 byte limit", () => {

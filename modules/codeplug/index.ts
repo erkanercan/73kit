@@ -540,6 +540,7 @@ export type {
   ScanList,
   Zone,
 } from "./channel-membership.ts"
+export { resolveChannelFrequencyPatch } from "./channel-edit.ts"
 export type {
   CallChannelPatch,
   MemoryChannelPatch,

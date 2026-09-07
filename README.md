@@ -96,6 +96,28 @@ Official update packages can be checked against the catalog with:
 pnpm updates:verify-packages -- '<firmware.Fir>' '<resource.DAT>'
 ```
 
+## Deployment
+
+Pushes to `main` are verified and then deployed to the existing Cloudflare
+Worker by [`.github/workflows/verify.yml`](.github/workflows/verify.yml). Pull
+requests run verification without receiving deployment credentials or deploying.
+
+Configure these GitHub Actions secrets in the repository's `production`
+environment:
+
+- `CLOUDFLARE_API_TOKEN`: a scoped token that can deploy the Worker and manage
+  its custom domain;
+- `CLOUDFLARE_ACCOUNT_ID`: the Cloudflare account containing the `73kit` Worker.
+
+The workflow runs the vinext Cloudflare build and deploys the generated Worker
+configuration from `dist/server/wrangler.json`. The existing manual deployment
+remains available with:
+
+```bash
+pnpm build:vinext
+pnpm deploy:vinext
+```
+
 ## License
 
 Copyright (C) 2026 Erkan Ercan

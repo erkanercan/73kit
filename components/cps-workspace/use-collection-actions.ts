@@ -12,6 +12,7 @@ import {
   reconcileZoneEditChanges,
 } from "@/modules/cps-workspace/change-set"
 import type { DocumentHistoryAction } from "@/modules/cps-workspace/document-history"
+import { resolveChannelFrequencyPatch } from "@/modules/codeplug/index"
 import type {
   CallChannelPatch,
   ChannelCollectionPatch,
@@ -25,8 +26,7 @@ function useCollectionActions(
 ) {
   const editVfoChannel = React.useCallback(
     (slot: "A" | "B", patch: VfoChannelPatch) => {
-      const fields = Object.keys(patch) as (keyof VfoChannelPatch)[]
-      if (fields.length === 0) {
+      if (Object.keys(patch).length === 0) {
         return
       }
 
@@ -35,8 +35,16 @@ function useCollectionActions(
           return current
         }
         const completedRead = current.completedRead
-        const nextCodeplug =
-          completedRead.workingCodeplug.codeplug.editVfoChannel(slot, patch)
+        const currentCodeplug = completedRead.workingCodeplug.codeplug
+        const channel = currentCodeplug
+          .getVfoChannels()
+          .find((candidate) => candidate.slot === slot)
+        if (!channel) {
+          return current
+        }
+        const resolvedPatch = resolveChannelFrequencyPatch(channel, patch)
+        const fields = Object.keys(resolvedPatch) as (keyof VfoChannelPatch)[]
+        const nextCodeplug = currentCodeplug.editVfoChannel(slot, resolvedPatch)
 
         return Object.freeze({
           completedRead: Object.freeze({
@@ -60,8 +68,7 @@ function useCollectionActions(
 
   const editCallChannel = React.useCallback(
     (slot: 1 | 2, patch: CallChannelPatch) => {
-      const fields = Object.keys(patch) as (keyof CallChannelPatch)[]
-      if (fields.length === 0) {
+      if (Object.keys(patch).length === 0) {
         return
       }
 
@@ -70,8 +77,19 @@ function useCollectionActions(
           return current
         }
         const completedRead = current.completedRead
-        const nextCodeplug =
-          completedRead.workingCodeplug.codeplug.editCallChannel(slot, patch)
+        const currentCodeplug = completedRead.workingCodeplug.codeplug
+        const channel = currentCodeplug
+          .getCallChannels()
+          .find((candidate) => candidate.slot === slot)
+        if (!channel) {
+          return current
+        }
+        const resolvedPatch = resolveChannelFrequencyPatch(channel, patch)
+        const fields = Object.keys(resolvedPatch) as (keyof CallChannelPatch)[]
+        const nextCodeplug = currentCodeplug.editCallChannel(
+          slot,
+          resolvedPatch
+        )
 
         return Object.freeze({
           completedRead: Object.freeze({

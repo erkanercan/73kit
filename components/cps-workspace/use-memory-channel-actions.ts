@@ -8,6 +8,7 @@ import {
   reconcileMemoryChannelStructureChange,
 } from "@/modules/cps-workspace/change-set"
 import type { DocumentHistoryAction } from "@/modules/cps-workspace/document-history"
+import { resolveChannelFrequencyPatch } from "@/modules/codeplug/index"
 import type {
   ChannelMembershipPatch,
   MemoryChannelPatch,
@@ -62,8 +63,7 @@ function useMemoryChannelActions(
 
   const editMemoryChannel = React.useCallback(
     (number: number, patch: MemoryChannelPatch) => {
-      const fields = Object.keys(patch) as (keyof MemoryChannelPatch)[]
-      if (fields.length === 0) {
+      if (Object.keys(patch).length === 0) {
         return
       }
 
@@ -73,11 +73,19 @@ function useMemoryChannelActions(
         }
 
         const completedRead = current.completedRead
-        const nextCodeplug =
-          completedRead.workingCodeplug.codeplug.editMemoryChannel(
-            number,
-            patch
-          )
+        const currentCodeplug = completedRead.workingCodeplug.codeplug
+        const channel = currentCodeplug.getChannels()[number - 1]
+        if (!channel) {
+          return current
+        }
+        const resolvedPatch = resolveChannelFrequencyPatch(channel, patch)
+        const fields = Object.keys(
+          resolvedPatch
+        ) as (keyof MemoryChannelPatch)[]
+        const nextCodeplug = currentCodeplug.editMemoryChannel(
+          number,
+          resolvedPatch
+        )
 
         return Object.freeze({
           completedRead: Object.freeze({

@@ -56,6 +56,42 @@ type MemoryChannelPatch = ChannelRecordPatch &
   Partial<Pick<Channel, "valid" | "scan">>
 type VfoChannelPatch = Omit<ChannelRecordPatch, "name">
 type CallChannelPatch = ChannelRecordPatch
+type ChannelFrequencyState = Pick<
+  Channel,
+  "receiveFrequencyHz" | "transmitFrequencyHz" | "offsetFrequencyHz" | "duplex"
+>
+
+function resolveChannelFrequencyPatch<Patch extends ChannelRecordPatch>(
+  channel: ChannelFrequencyState,
+  patch: Patch
+): Patch & ChannelRecordPatch {
+  if (
+    patch.transmitFrequencyHz !== undefined ||
+    (patch.receiveFrequencyHz === undefined &&
+      patch.offsetFrequencyHz === undefined &&
+      patch.duplex === undefined)
+  ) {
+    return patch
+  }
+
+  const receiveFrequencyHz =
+    patch.receiveFrequencyHz ?? channel.receiveFrequencyHz
+  const offsetFrequencyHz = patch.offsetFrequencyHz ?? channel.offsetFrequencyHz
+  const duplex = patch.duplex ?? channel.duplex
+
+  if (duplex === "split") {
+    return patch
+  }
+
+  const transmitFrequencyHz =
+    duplex === "negative"
+      ? receiveFrequencyHz - offsetFrequencyHz
+      : duplex === "positive"
+        ? receiveFrequencyHz + offsetFrequencyHz
+        : receiveFrequencyHz
+
+  return { ...patch, transmitFrequencyHz }
+}
 
 function editMemoryChannelBytes(
   source: Uint8Array,
@@ -340,5 +376,10 @@ function assertChannelNumber(number: number) {
   }
 }
 
-export { editCallChannelBytes, editMemoryChannelBytes, editVfoChannelBytes }
+export {
+  editCallChannelBytes,
+  editMemoryChannelBytes,
+  editVfoChannelBytes,
+  resolveChannelFrequencyPatch,
+}
 export type { CallChannelPatch, MemoryChannelPatch, VfoChannelPatch }
