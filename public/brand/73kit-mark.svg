@@ -1,17 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 128" role="img" aria-labelledby="title">
-  <title id="title">73Kit</title>
-  <defs>
-    <linearGradient id="path" x1="12" y1="90" x2="172" y2="72" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#3B2AC7"/>
-      <stop offset="1" stop-color="#211A82"/>
-    </linearGradient>
-    <linearGradient id="signal" x1="96" y1="10" x2="155" y2="72" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2ED8D4"/>
-      <stop offset="1" stop-color="#1AA8AE"/>
-    </linearGradient>
-  </defs>
-  <circle cx="18" cy="86" r="10" fill="url(#path)"/>
-  <path d="M18 86h29c13 0 16-10 20-25 4-14 11-22 21-22 14 0 18 13 23 31l6 22c4 14 11 21 21 21 9 0 16-7 24-15l10-10" fill="none" stroke="url(#path)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M151 88h21v21" fill="none" stroke="url(#path)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M100 42c20 0 36 16 36 36M100 16c34 0 62 28 62 62" fill="none" stroke="url(#signal)" stroke-width="12" stroke-linecap="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" aria-labelledby="title" role="img" viewBox="0 0 180 128"><title id="title">73Kit</title><defs><linearGradient id="path" x1="12" x2="172" y1="90" y2="72" gradientUnits="userSpaceOnUse"><stop stop-color="#3B2AC7"/><stop offset="1" stop-color="#211A82"/></linearGradient><linearGradient id="signal" x1="96" x2="155" y1="10" y2="72" gradientUnits="userSpaceOnUse"><stop stop-color="#2ED8D4"/><stop offset="1" stop-color="#1AA8AE"/></linearGradient></defs><circle cx="18" cy="86" r="10" fill="url(#path)"/><path fill="none" stroke="url(#path)" stroke-linecap="round" stroke-linejoin="round" stroke-width="13" d="M18 86h29c13 0 16-10 20-25 4-14 11-22 21-22 14 0 18 13 23 31l6 22c4 14 11 21 21 21 9 0 16-7 24-15l10-10"/><path fill="none" stroke="url(#path)" stroke-linecap="round" stroke-linejoin="round" stroke-width="13" d="M151 88h21v21"/><path fill="none" stroke="url(#signal)" stroke-linecap="round" stroke-width="12" d="M100 42c20 0 36 16 36 36M100 16c34 0 62 28 62 62"/></svg>
