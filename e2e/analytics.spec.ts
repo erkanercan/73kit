@@ -157,6 +157,7 @@ test("English and Turkish privacy controls are keyboard accessible", async ({
           ? "Allow anonymous analytics"
           : "Anonim kullanım analitiğine izin ver",
     })
+    await expect(allow).toBeEnabled()
     await allow.focus()
     await expect(allow).toBeFocused()
     await page.keyboard.press("Tab")
