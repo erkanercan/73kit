@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google"
 import { getLocale } from "next-intl/server"
 
 import "./globals.css"
+import { AnalyticsProvider } from "@/components/analytics/analytics-provider"
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SITE_DESCRIPTIONS, SITE_NAME, SITE_ORIGIN } from "@/lib/site"
@@ -50,7 +51,9 @@ export default async function RootLayout({
     >
       <body className="h-full overflow-hidden">
         <ServiceWorkerRegistration />
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <AnalyticsProvider>{children}</AnalyticsProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

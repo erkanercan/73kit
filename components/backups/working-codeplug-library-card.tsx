@@ -55,6 +55,8 @@ import {
 } from "@/components/ui/table"
 import { createCpsFile, parseCpsFile } from "@/modules/cps-workspace/cps-file"
 import { canExportCpsFile } from "@/modules/cps-workspace/codeplug-document"
+import { trackAnalytics } from "@/lib/analytics/index"
+import { useRadioModel } from "@/components/radio-model-provider"
 import {
   WORKING_CODEPLUG_NAME_MAX_LENGTH,
   createSavedWorkingCodeplug,
@@ -70,6 +72,7 @@ function WorkingCodeplugLibraryCard() {
   const t = useTranslations()
   const locale = useLocale()
   const { busy, completedRead, openCpsFile } = useCpsWorkspace()
+  const radioModel = useRadioModel()
   const [entries, setEntries] = React.useState<readonly SavedWorkingCodeplug[]>(
     []
   )
@@ -131,6 +134,10 @@ function WorkingCodeplugLibraryCard() {
       await refresh()
       setName("")
       setSaveOpen(false)
+      trackAnalytics("working_codeplug_saved", {
+        radio_model: radioModel.id,
+        binding: "source_radio",
+      })
     } catch (cause) {
       setError(errorMessage(cause))
     } finally {

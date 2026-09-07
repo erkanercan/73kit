@@ -14,7 +14,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { usePathname } from "@/i18n/navigation"
+import { Link, usePathname } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
 
 function KitAppShell({ children }: { children: React.ReactNode }) {
@@ -37,12 +37,18 @@ function KitAppShell({ children }: { children: React.ReactNode }) {
           {children}
         </div>
         <Separator />
-        <footer className="flex min-h-10 items-center justify-end px-4 py-2 text-xs text-muted-foreground">
+        <footer className="flex min-h-10 items-center gap-4 px-4 py-2 text-xs text-muted-foreground">
+          <Link
+            href="/privacy"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            {t("navPrivacy")}
+          </Link>
           <a
             href="https://erkan.dev"
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 font-medium text-foreground underline-offset-4 hover:underline"
+            className="ml-auto shrink-0 font-medium text-foreground underline-offset-4 hover:underline"
           >
             {t("footerMadeBy")} TA4EN - erkan.dev
           </a>
@@ -62,7 +68,9 @@ function KitHeader() {
         ? t("navDiagnostics")
         : pathname === "/about"
           ? t("navAbout")
-          : t("kitHomeTitle")
+          : pathname === "/privacy"
+            ? t("navPrivacy")
+            : t("kitHomeTitle")
 
   return (
     <header className="sticky top-0 flex h-14 shrink-0 items-center gap-2 bg-background px-3 sm:px-4">

@@ -2,6 +2,53 @@ import type { Messages } from "@/dictionaries/en"
 import { menuVisibilityMessagesTr } from "./menu-visibility.ts"
 
 const tr = {
+  navPrivacy: "Gizlilik",
+  privacyTitle: "Gizlilik",
+  analyticsNoticeTitle: "Anonim kullanım analitiği",
+  analyticsNoticeOptOutDescription:
+    "73Kit'in hangi özelliklerinin kullanıldığını ve işlemlerin nerede sorunla karşılaştığını anlayabilmek için çerez kullanmayan anonim kullanım analitiği etkindir. Codeplug içeriği veya telsize ait kimlik bilgileri gönderilmez.",
+  analyticsNoticeOptInDescription:
+    "73Kit'in hangi özelliklerinin kullanıldığını ve işlemlerin nerede sorunla karşılaştığını anlayabilmemiz için çerez kullanmayan anonim kullanım analitiğine izin verebilirsiniz. Siz izin verene kadar Umami'ye hiçbir istek gönderilmez.",
+  analyticsContinue: "Devam et",
+  analyticsTurnOff: "Kullanım analitiğini kapat",
+  analyticsAllow: "Anonim kullanım analitiğine izin ver",
+  analyticsContinueWithout: "Kullanım analitiği olmadan devam et",
+  analyticsPrivacyDetails: "Gizlilik ayrıntıları",
+  privacyReviewTitle: "Hizmetin işleyişi",
+  privacyReviewDescription:
+    "Anonim kullanım analitiği, Umami Cloud'un AB veri bölgesinde çalışır. Mevcut Hobby planında analitik verileri altı ay saklanır. Umami'nin yayımlanmış bir Veri İşleme Sözleşmesi vardır; geçerli hukuki dayanak ve yurt dışı aktarım güvenceleri için veri sorumlusuyla iletişime geçebilirsiniz.",
+  privacyControllerTitle: "Veri sorumlusu ve iletişim",
+  privacyControllerDescription:
+    "Veri sorumlusu Erkan Ercan'dır. Gizlilik taleplerinizi erkanercandev@gmail.com adresine gönderin.",
+  privacyAnalyticsTitle: "Anonim kullanım analitiği tercihiniz",
+  privacyAnalyticsDescription:
+    "Umami; sorgu dizesi veya sayfa içi bağlantı içermeyen sayfa yollarını, başka bir siteden geldiyseniz kaynak sitenin yalnızca kök adresini ve aşağıda listelenen sabit kategorili olayları alır. Bu bilgiler güvenilirliği ve özellik kullanımını ölçmek için kullanılır.",
+  privacyProcessorPlaceholder:
+    "Veri işleyen: Umami Software, Inc. Yapılandırılan hizmet çerez kullanmaz, Umami'nin AB veri bölgesinde çalışır ve mevcut plan kapsamında analitik verilerini altı ay saklar.",
+  privacySessionDescription:
+    "Umami, ağ ve tarayıcı bilgilerinden anonim bir oturum değeri oluşturabilir. 73Kit kullanıcı kimliği oluşturmaz, kimlik bilgisi göndermez ve analitik çerezi bırakmaz.",
+  privacySignalsDescription:
+    "Tarayıcınızdaki Do Not Track veya Global Privacy Control açıksa kullanım analitiği her zaman kapalı kalır. Kapatma tercihiniz de Umami betiğinin yüklenmesini engeller.",
+  privacyAnalyticsStatus: "Mevcut durum: {status}",
+  privacyStatusBrowserDisabled: "tarayıcı gizlilik sinyaliyle devre dışı",
+  privacyStatusEnabled: "etkin",
+  privacyStatusDisabled: "devre dışı",
+  privacyCollectedTitle: "Toplanan olaylar ve kesinlikle gönderilmeyen veriler",
+  privacyCollectedDescription:
+    "Otomatik sayfa görüntülemelerine ek olarak yalnızca aşağıdaki olaylar ve karşılarında gösterilen sabit değerler gönderilebilir:",
+  privacyProhibitedDescription:
+    "73Kit; telsizin bildirdiği adları ve sürüm bilgilerini, seri veya CPU kimliklerini, Bluetooth adlarını, frekansları, Kanal, Bölge ve Tarama Listesi adlarını, çağrı işaretlerini, DMR kimliklerini, APRS ve GPS değerlerini, Codeplug veya paket baytlarını, karma değerlerini (hash), dosya adlarını, form alanlarını, tam adresleri, tanılama raporlarının içeriğini, zaman damgalarını ve serbest metin hata iletilerini hiçbir zaman göndermez.",
+  privacyLocalFirstTitle: "Verileriniz cihazınızda kalır",
+  privacyLocalFirstDescription:
+    "Codeplug'lar, yedekler, tanılama verileri ve güncelleme kurtarma durumu tarayıcınızda kalır. Kullanım analitiği bunların içeriğini yüklemez; telsiz işlemleri, düzenleme, sayfalar arasında gezinme veya uygulamanın çalışması için gerekli değildir.",
+  privacyStorageTitle: "Tarayıcı depolama envanteri",
+  privacyStorageCookies: "Çerezler: dil ve kenar çubuğu tercihleri.",
+  privacyStorageLocal:
+    "localStorage: tema ve 73kit.analytics.v1 kullanım analitiği tercihi.",
+  privacyStorageRecovery: "localStorage: güncelleme kurtarma durumu.",
+  privacyStorageIndexedDb:
+    "IndexedDB: Çalışma Codeplug'ı, yedek geçmişi ve tanılama verileri.",
+  privacyNoticeVersion: "Kullanım analitiği bildirimi sürümü: {version}.",
   fileOpen: "Aç",
   fileSave: "Kaydet",
   fileSavePf: "TYT PF dosyası",

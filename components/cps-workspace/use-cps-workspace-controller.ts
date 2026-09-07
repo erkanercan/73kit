@@ -2,6 +2,7 @@
 
 import * as React from "react"
 
+import { useAnalytics } from "@/components/analytics/analytics-provider"
 import { useCollectionActions } from "@/components/cps-workspace/use-collection-actions"
 import { useMemoryChannelActions } from "@/components/cps-workspace/use-memory-channel-actions"
 import { useSettingsActions } from "@/components/cps-workspace/use-settings-actions"
@@ -41,6 +42,7 @@ import {
   type RadioWriteReviewItem,
 } from "@/modules/cps-workspace/index"
 import { createCpsWorkspaceForRadioModel } from "@/modules/radio-support/cps-workspace"
+import { evaluateFirmwareSupport } from "@/modules/radio-support/index"
 import {
   createCpsFile,
   parseCpsFile,
@@ -62,6 +64,7 @@ import {
   canUndoDocumentEdit,
   createDocumentHistory,
   updateDocumentHistory,
+  type DocumentHistoryAction,
 } from "@/modules/cps-workspace/document-history"
 import { isRadioWriteReleased } from "@/modules/cps-workspace/radio-write-release"
 import {
@@ -75,12 +78,33 @@ import {
 } from "@/modules/cps-workspace/restore-workflow"
 import { createCodeplug, serializePfFile } from "@/modules/codeplug/index"
 import type { RadioDebugEvent, SourceRadio } from "@/modules/uvl15w-radio/index"
+import {
+  analyticsSection,
+  changeCountBucket,
+  durationBucket,
+  errorCategory,
+  trackAnalytics,
+  type AnalyticsBinding,
+} from "@/lib/analytics/index"
 
 const RADIO_WRITE_RELEASED = isRadioWriteReleased({
   emergencyDisabled: process.env.NEXT_PUBLIC_DISABLE_RADIO_WRITE === "1",
 })
 
+function analyticsBinding(
+  binding: "source-radio" | "cps-file" | "unbound"
+): AnalyticsBinding {
+  switch (binding) {
+    case "source-radio":
+    case "cps-file":
+      return "source_radio"
+    case "unbound":
+      return "unbound"
+  }
+}
+
 function useCpsWorkspaceController() {
+  const analytics = useAnalytics()
   const radioModel = useRadioModel()
   const workspace = React.useRef<CpsWorkspace | null>(null)
   const radioTransport = React.useRef<WebSerialTransport | null>(null)
@@ -89,6 +113,8 @@ function useCpsWorkspaceController() {
   const radioDebugEvents = React.useRef<RadioDebugEvent[]>([])
   const radioDiagnosticOperation = React.useRef("radio-operation")
   const importedCpsFileRef = React.useRef<CpsFileManifest | null>(null)
+  const editTracked = React.useRef(false)
+  const capabilityTracked = React.useRef(false)
   const [capability, setCapability] = React.useState<
     RadioCapability | "checking"
   >("checking")
@@ -113,6 +139,20 @@ function useCpsWorkspaceController() {
   const [externalOperationBusy, setExternalOperationBusy] =
     React.useState(false)
   const { completedRead, changes } = documentHistory.present
+  const setEditedDocumentState = React.useCallback(
+    (action: DocumentHistoryAction) => {
+      if (completedRead && !editTracked.current) {
+        editTracked.current = true
+        trackAnalytics("codeplug_edit_started", {
+          radio_model: radioModel.id,
+          section: analyticsSection(window.location.pathname),
+          binding: analyticsBinding(completedRead.binding),
+        })
+      }
+      setDocumentState(action)
+    },
+    [completedRead, radioModel.id]
+  )
 
   const radioWriteBusy =
     radioWriteSnapshot !== null &&
@@ -203,6 +243,11 @@ function useCpsWorkspaceController() {
     setError(null)
     setProgress(0)
     setPhase("connecting")
+    const startedAt = performance.now()
+    trackAnalytics("radio_read_started", {
+      radio_model: radioModel.id,
+      intent: "read",
+    })
 
     try {
       await workspace.current?.disconnect().catch(() => undefined)
@@ -248,6 +293,7 @@ function useCpsWorkspaceController() {
       setImportedCpsFile(null)
       setImportedRestoreResult(null)
       setDocumentState({ completedRead: bindRadioRead(result), changes: [] })
+      editTracked.current = false
       setProgress(100)
       setPhase("ready")
       recordRadioDiagnostic({
@@ -256,6 +302,15 @@ function useCpsWorkspaceController() {
         phase: "ready",
         errorCode: null,
         radio: result.sourceRadio,
+      })
+      const support = evaluateFirmwareSupport(
+        radioModel.id,
+        result.sourceRadio.firmwareVersion
+      )
+      trackAnalytics("radio_read_completed", {
+        radio_model: radioModel.id,
+        compatibility_status: support.status === "beta" ? "beta" : "validated",
+        duration_bucket: durationBucket(performance.now() - startedAt),
       })
     } catch (cause) {
       if (!mounted.current) {
@@ -271,6 +326,10 @@ function useCpsWorkspaceController() {
         phase: "idle",
         errorCode: "key" in nextError ? nextError.key : "operation-error",
         radio: previousRead?.sourceRadio,
+      })
+      trackAnalytics("radio_read_failed", {
+        radio_model: radioModel.id,
+        error_category: errorCategory(cause),
       })
     } finally {
       operationInProgress.current = false
@@ -310,6 +369,10 @@ function useCpsWorkspaceController() {
       })
       setRadioWriteSnapshot(workspace.current.getRadioWriteSnapshot())
       setRadioWriteReview(workspace.current.getRadioWriteReview())
+      trackAnalytics("radio_write_review_opened", {
+        radio_model: radioModel.id,
+        change_count_bucket: changeCountBucket(changes.length),
+      })
     } catch (cause) {
       const nextError = workspaceError(cause)
       setError(nextError)
@@ -323,7 +386,7 @@ function useCpsWorkspaceController() {
     } finally {
       operationInProgress.current = false
     }
-  }, [busy, changes, completedRead, recordRadioDiagnostic])
+  }, [busy, changes, completedRead, radioModel.id, recordRadioDiagnostic])
 
   const confirmRadioWrite = React.useCallback(async () => {
     if (
@@ -338,6 +401,8 @@ function useCpsWorkspaceController() {
     operationInProgress.current = true
     radioDiagnosticOperation.current = "radio-write"
     setError(null)
+    const startedAt = performance.now()
+    trackAnalytics("radio_write_started", { radio_model: radioModel.id })
     try {
       const result = await workspace.current.executePreparedRadioWrite({
         onProgress: (snapshot) => setRadioWriteSnapshot(snapshot),
@@ -351,6 +416,10 @@ function useCpsWorkspaceController() {
         phase: "completed",
         errorCode: null,
         radio: result.sourceRadio,
+      })
+      trackAnalytics("radio_write_completed", {
+        radio_model: radioModel.id,
+        duration_bucket: durationBucket(performance.now() - startedAt),
       })
     } catch (cause) {
       const nextError = workspaceError(cause)
@@ -366,11 +435,18 @@ function useCpsWorkspaceController() {
         phase: snapshot?.phase ?? "write",
         errorCode: "key" in nextError ? nextError.key : "operation-error",
       })
+      trackAnalytics(
+        snapshot?.phase === "write-outcome-unknown"
+          ? "radio_write_outcome_unknown"
+          : "radio_write_failed",
+        { radio_model: radioModel.id, error_category: errorCategory(cause) }
+      )
     } finally {
       operationInProgress.current = false
     }
   }, [
     busy,
+    radioModel.id,
     radioDiagnosticOperation,
     radioWriteSnapshot,
     recordRadioDiagnostic,
@@ -406,6 +482,10 @@ function useCpsWorkspaceController() {
       : `${safeFilename(completedRead.sourceRadio?.serialNumber || "codeplug")}-codeplug-backup.bin`
     anchor.click()
     setTimeout(() => URL.revokeObjectURL(url), 0)
+    trackAnalytics("codeplug_exported", {
+      file_kind: "raw_bin",
+      binding: analyticsBinding(completedRead.binding),
+    })
   }, [completedRead])
 
   const downloadPfFile = React.useCallback(() => {
@@ -419,6 +499,10 @@ function useCpsWorkspaceController() {
       serializePfFile(completedRead.workingCodeplug.codeplug.toBytes()),
       "text/plain;charset=utf-8"
     )
+    trackAnalytics("codeplug_exported", {
+      file_kind: "tyt_pf",
+      binding: analyticsBinding(completedRead.binding),
+    })
   }, [completedRead])
 
   const downloadCpsFile = React.useCallback(async () => {
@@ -433,6 +517,10 @@ function useCpsWorkspaceController() {
       bytes,
       "application/vnd.73kit.cps+zip"
     )
+    trackAnalytics("codeplug_exported", {
+      file_kind: "cps_file",
+      binding: analyticsBinding(completedRead.binding),
+    })
   }, [completedRead])
 
   const openCpsFile = React.useCallback(
@@ -468,6 +556,12 @@ function useCpsWorkspaceController() {
         })
         setSourceRadio(null)
         setPhase("ready")
+        editTracked.current = false
+        trackAnalytics("codeplug_open_completed", {
+          radio_model: radioModel.id,
+          file_kind: "cps_file",
+          binding: "source_radio",
+        })
       } catch (cause) {
         setError({
           message:
@@ -475,12 +569,16 @@ function useCpsWorkspaceController() {
               ? cause.message
               : "The CPS File could not be opened",
         })
+        trackAnalytics("codeplug_open_failed", {
+          file_kind: "cps_file",
+          error_category: errorCategory(cause),
+        })
         throw cause
       } finally {
         operationInProgress.current = false
       }
     },
-    [busy]
+    [busy, radioModel.id]
   )
 
   const openRawCodeplug = React.useCallback(
@@ -496,6 +594,14 @@ function useCpsWorkspaceController() {
         setDocumentState({ completedRead: nextDocument, changes: [] })
         setSourceRadio(null)
         setPhase("ready")
+        editTracked.current = false
+        trackAnalytics("codeplug_open_completed", {
+          radio_model: radioModel.id,
+          file_kind: file.name.toLocaleLowerCase("en-US").endsWith(".pf")
+            ? "tyt_pf"
+            : "raw_bin",
+          binding: "unbound",
+        })
       } catch (cause) {
         setError({
           message:
@@ -503,18 +609,25 @@ function useCpsWorkspaceController() {
               ? cause.message
               : "The raw Codeplug file could not be opened",
         })
+        trackAnalytics("codeplug_open_failed", {
+          file_kind: file.name.toLocaleLowerCase("en-US").endsWith(".pf")
+            ? "tyt_pf"
+            : "raw_bin",
+          error_category: errorCategory(cause),
+        })
         throw cause
       } finally {
         operationInProgress.current = false
       }
     },
-    [busy]
+    [busy, radioModel.id]
   )
 
   const prepareRestore = React.useCallback(
     async (
       restoreSource: RestoreSource,
-      target: ReturnType<typeof createCodeplug>
+      target: ReturnType<typeof createCodeplug>,
+      analyticsRestoreSource: "cps_file" | "backup_history"
     ) => {
       if (capability !== "available" || busy || operationInProgress.current)
         return
@@ -523,6 +636,11 @@ function useCpsWorkspaceController() {
       setError(null)
       setProgress(0)
       setPhase("connecting")
+      const startedAt = performance.now()
+      trackAnalytics("radio_read_started", {
+        radio_model: radioModel.id,
+        intent: "restore",
+      })
       try {
         await workspace.current?.disconnect().catch(() => undefined)
         const nextTransport = createWebSerialTransport({
@@ -562,6 +680,21 @@ function useCpsWorkspaceController() {
         })
         setProgress(100)
         setPhase("ready")
+        const support = evaluateFirmwareSupport(
+          radioModel.id,
+          freshRead.sourceRadio.firmwareVersion
+        )
+        trackAnalytics("radio_read_completed", {
+          radio_model: radioModel.id,
+          compatibility_status:
+            support.status === "beta" ? "beta" : "validated",
+          duration_bucket: durationBucket(performance.now() - startedAt),
+        })
+        trackAnalytics("restore_prepared", {
+          radio_model: radioModel.id,
+          restore_source: analyticsRestoreSource,
+          outcome: "success",
+        })
         recordRadioDiagnostic({
           operation: "restore-preparation",
           outcome: "success",
@@ -582,6 +715,15 @@ function useCpsWorkspaceController() {
           outcome: "failed",
           phase: "ready",
           errorCode: "operation-error",
+        })
+        trackAnalytics("radio_read_failed", {
+          radio_model: radioModel.id,
+          error_category: errorCategory(cause),
+        })
+        trackAnalytics("restore_prepared", {
+          radio_model: radioModel.id,
+          restore_source: analyticsRestoreSource,
+          outcome: "failed",
         })
         throw cause
       } finally {
@@ -608,7 +750,8 @@ function useCpsWorkspaceController() {
         sourceRadio: manifest.sourceRadio,
         workingSha256: manifest.working.sha256,
       },
-      target
+      target,
+      "cps_file"
     )
   }, [completedRead, prepareRestore])
 
@@ -618,7 +761,11 @@ function useCpsWorkspaceController() {
       setError(null)
       try {
         const restoreTarget = await restoreTargetFromBackup(entry)
-        await prepareRestore(restoreTarget.source, restoreTarget.target)
+        await prepareRestore(
+          restoreTarget.source,
+          restoreTarget.target,
+          "backup_history"
+        )
       } catch (cause) {
         setError({
           message:
@@ -647,7 +794,16 @@ function useCpsWorkspaceController() {
       events: radioDebugEvents.current,
     })
     downloadText(report.fileName, report.content, report.mimeType)
-  }, [completedRead, error, phase, sourceRadio])
+    trackAnalytics("diagnostic_report_exported", {
+      source: "radio",
+      outcome:
+        radioWriteSnapshot?.phase === "write-outcome-unknown"
+          ? "outcome_unknown"
+          : error
+            ? "failed"
+            : "success",
+    })
+  }, [completedRead, error, phase, radioWriteSnapshot, sourceRadio])
 
   const {
     addMemoryChannel,
@@ -657,7 +813,7 @@ function useCpsWorkspaceController() {
     editMemoryChannel,
     moveMemoryChannel,
     resetWorkingCodeplug,
-  } = useMemoryChannelActions(setDocumentState)
+  } = useMemoryChannelActions(setEditedDocumentState)
   const {
     editBandScanListSelection,
     editBandZoneSelection,
@@ -667,7 +823,7 @@ function useCpsWorkspaceController() {
     editVfoScanEdge,
     editVfoScanEdgeSelection,
     editZone,
-  } = useCollectionActions(setDocumentState)
+  } = useCollectionActions(setEditedDocumentState)
   const {
     editAprsSettings,
     editBluetoothSettings,
@@ -683,7 +839,7 @@ function useCpsWorkspaceController() {
     editSpectrumSettings,
     editTwoToneSettings,
     setMenuVisibility,
-  } = useSettingsActions(setDocumentState)
+  } = useSettingsActions(setEditedDocumentState)
 
   React.useEffect(() => {
     mounted.current = true
@@ -716,7 +872,8 @@ function useCpsWorkspaceController() {
         if (mounted.current) setError(workspaceError(cause))
       })
     const capabilityCheck = window.setTimeout(() => {
-      setCapability(getRadioCapability())
+      const nextCapability = getRadioCapability()
+      setCapability(nextCapability)
     }, 0)
 
     return () => {
@@ -725,6 +882,20 @@ function useCpsWorkspaceController() {
       void workspace.current?.disconnect().catch(() => undefined)
     }
   }, [radioModel.id, recordRadioDebugEvent])
+
+  React.useEffect(() => {
+    if (
+      capability === "checking" ||
+      !analytics.trackerReady ||
+      capabilityTracked.current
+    )
+      return
+    capabilityTracked.current = true
+    trackAnalytics("serial_capability_checked", {
+      radio_model: radioModel.id,
+      supported: capability === "available",
+    })
+  }, [analytics.trackerReady, capability, radioModel.id])
 
   React.useEffect(() => {
     const destructive =

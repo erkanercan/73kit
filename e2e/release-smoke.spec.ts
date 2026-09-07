@@ -23,7 +23,9 @@ test("keeps the Updates route behind its beta acknowledgement", async ({
   await expect(
     page.getByRole("heading", { name: "Beta updater" })
   ).toBeVisible()
-  await expect(page.getByRole("button", { name: "Continue" })).toBeVisible()
+  await expect(
+    page.getByRole("button", { name: "I understand the risks - continue" })
+  ).toBeVisible()
 })
 
 test("shows a direct Backup History restore failure", async ({ page }) => {

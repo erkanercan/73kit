@@ -38,15 +38,17 @@ test("robots allows discovery and advertises the canonical sitemap", () => {
   })
 })
 
-test("sitemap contains the localized 73Kit and Radio CPS entry URLs", () => {
+test("sitemap contains the localized 73Kit, privacy, and Radio CPS entry URLs", () => {
   const entries = sitemap()
 
-  assert.equal(entries.length, 6)
+  assert.equal(entries.length, 8)
   assert.deepEqual(
     entries.map(({ url }) => url),
     [
       "https://73kit.erkan.dev/tr",
       "https://73kit.erkan.dev/en",
+      "https://73kit.erkan.dev/tr/privacy",
+      "https://73kit.erkan.dev/en/privacy",
       "https://73kit.erkan.dev/tr/cps",
       "https://73kit.erkan.dev/en/cps",
       "https://73kit.erkan.dev/tr/cps/tyt-uvl15w",

@@ -8,6 +8,7 @@ import {
 } from "next-intl/server"
 
 import { ApplicationShell } from "@/components/application-shell"
+import { AnalyticsNotice } from "@/components/analytics/analytics-notice"
 import { DocumentLocale } from "@/components/document-locale"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { isLocale, routing } from "@/i18n/routing"
@@ -56,6 +57,7 @@ export default async function LocaleLayout({
       <DocumentLocale locale={locale} />
       <TooltipProvider>
         <ApplicationShell>{children}</ApplicationShell>
+        <AnalyticsNotice />
       </TooltipProvider>
     </NextIntlClientProvider>
   )

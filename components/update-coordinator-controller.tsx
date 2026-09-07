@@ -2,6 +2,12 @@
 
 import * as React from "react"
 
+import {
+  durationBucket,
+  errorCategory,
+  trackAnalytics,
+} from "@/lib/analytics/index"
+
 import { findCatalogPackageBySha256 } from "@/modules/update-catalog/index"
 import { createUpdateDiagnosticReport } from "@/modules/update-diagnostics/index"
 import { browserDiagnosticEnvironment } from "@/components/diagnostics/browser-diagnostics"
@@ -137,6 +143,7 @@ function useUpdateCoordinatorController() {
     React.useState(false)
   const diagnosticEventsRef = React.useRef<UpdateDebugEvent[]>([])
   const recordedDiagnosticKeyRef = React.useRef("")
+  const updateStartedAtRef = React.useRef<number | null>(null)
 
   const recordDiagnosticEvent = React.useCallback((event: UpdateDebugEvent) => {
     diagnosticEventsRef.current = [...diagnosticEventsRef.current, event].slice(
@@ -311,6 +318,12 @@ function useUpdateCoordinatorController() {
         setTotalBlocks(updatePackage.blockCount)
         setLastAcknowledgedAddress(undefined)
         setPhase("ready")
+        if (updatePackage.releaseStatus !== "disabled") {
+          trackAnalytics("update_package_validated", {
+            package_kind: updatePackage.kind,
+            release_status: updatePackage.releaseStatus,
+          })
+        }
       } catch (cause) {
         packageRef.current = null
         setSelectedPackage(null)
@@ -362,6 +375,11 @@ function useUpdateCoordinatorController() {
       setTransferResult(null)
       clearDiagnosticEvents()
       setPhase("connecting")
+      updateStartedAtRef.current = performance.now()
+      trackAnalytics("update_started", {
+        package_kind: updatePackage.kind,
+        recovery: recoveryRetryPrepared,
+      })
       const updater = createUvl15wUpdater(
         createWebSerialTransport({
           baudRate: POC_VERIFIED_BAUD_RATE,
@@ -451,6 +469,16 @@ function useUpdateCoordinatorController() {
         } else {
           setPhase("failed")
         }
+        const outcomeUnknown =
+          (cause instanceof Uvl15wUpdaterError && cause.outcomeUnknown) ||
+          (recoveryRetryPrepared && recoveryRecord !== null)
+        trackAnalytics(
+          outcomeUnknown ? "update_outcome_unknown" : "update_failed",
+          {
+            package_kind: updatePackage.kind,
+            error_category: errorCategory(code),
+          }
+        )
       } finally {
         releaseExternalRadioOperation()
       }
@@ -516,6 +544,13 @@ function useUpdateCoordinatorController() {
         setRecoveryRetryPrepared(false)
         setProgress(100)
         setPhase("complete")
+        trackAnalytics("update_completed", {
+          package_kind: transferResult.kind,
+          duration_bucket: durationBucket(
+            performance.now() -
+              (updateStartedAtRef.current ?? performance.now())
+          ),
+        })
       } catch (cause) {
         await radio.disconnect().catch(() => undefined)
         const code =
@@ -541,6 +576,10 @@ function useUpdateCoordinatorController() {
         setRecoveryRecord(record)
         setRecoveryRetryPrepared(false)
         setPhase("outcome-unknown")
+        trackAnalytics("update_outcome_unknown", {
+          package_kind: transferResult.kind,
+          error_category: errorCategory(code),
+        })
       } finally {
         releaseExternalRadioOperation()
       }
@@ -685,7 +724,11 @@ function useUpdateCoordinatorController() {
     link.click()
     link.remove()
     window.setTimeout(() => URL.revokeObjectURL(url), 0)
-  }, [createCurrentDiagnosticReport, diagnosticReportAvailable])
+    trackAnalytics("diagnostic_report_exported", {
+      source: "update",
+      outcome: phase === "outcome-unknown" ? "outcome_unknown" : "failed",
+    })
+  }, [createCurrentDiagnosticReport, diagnosticReportAvailable, phase])
 
   const value = React.useMemo<UpdateCoordinatorContextValue>(
     () => ({

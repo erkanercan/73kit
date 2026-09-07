@@ -1,6 +1,53 @@
 import { menuVisibilityMessagesEn } from "./menu-visibility.ts"
 
 const en = {
+  navPrivacy: "Privacy",
+  privacyTitle: "Privacy",
+  analyticsNoticeTitle: "Anonymous analytics",
+  analyticsNoticeOptOutDescription:
+    "Anonymous, cookieless analytics is on. It helps us understand which 73Kit workflows work, without sending Codeplug contents or Radio identifiers.",
+  analyticsNoticeOptInDescription:
+    "You can allow anonymous, cookieless analytics to help us understand which 73Kit workflows work. No analytics request is sent before you allow it.",
+  analyticsContinue: "Continue",
+  analyticsTurnOff: "Turn off analytics",
+  analyticsAllow: "Allow anonymous analytics",
+  analyticsContinueWithout: "Continue without analytics",
+  analyticsPrivacyDetails: "Privacy details",
+  privacyReviewTitle: "How this service is operated",
+  privacyReviewDescription:
+    "Anonymous analytics is provided by Umami Cloud in its EU data region. The current Hobby plan retains analytics data for six months. Umami publishes a Data Processing Agreement; contact the controller about the applicable legal basis and international-transfer safeguards.",
+  privacyControllerTitle: "Controller and contact",
+  privacyControllerDescription:
+    "The data controller is Erkan Ercan. Send privacy requests to erkanercandev@gmail.com.",
+  privacyAnalyticsTitle: "Anonymous analytics and your choice",
+  privacyAnalyticsDescription:
+    "Umami receives page paths without query strings or fragments, the origin of an external referring site, and only the fixed categorical events listed below. We use this information to measure reliability and feature adoption.",
+  privacyProcessorPlaceholder:
+    "Processor: Umami Software, Inc. The configured service is cookieless, uses Umami's EU data region, and retains analytics data for six months under the current plan.",
+  privacySessionDescription:
+    "Umami may derive an anonymous session from network and browser metadata. 73Kit does not identify users or set analytics cookies.",
+  privacySignalsDescription:
+    "Do Not Track and Global Privacy Control always disable analytics. Your stored opt-out also prevents the tracker from loading.",
+  privacyAnalyticsStatus: "Current status: {status}",
+  privacyStatusBrowserDisabled: "disabled by browser privacy signal",
+  privacyStatusEnabled: "enabled",
+  privacyStatusDisabled: "disabled",
+  privacyCollectedTitle: "Event allowlist and prohibited data",
+  privacyCollectedDescription:
+    "Automatic pageviews and these workflow events may be sent with fixed categories such as Radio model, supported status, outcome, section, binding, package or file kind, error category, duration bucket, and change-count bucket:",
+  privacyProhibitedDescription:
+    "73Kit never sends Radio-reported names or versions, serial or CPU IDs, Bluetooth names, frequencies, Channel, Zone or Scan List names, callsigns, DMR IDs, APRS or GPS values, Codeplug or package bytes, hashes, filenames, form values, full URLs, diagnostic contents, timestamps, or free-form errors.",
+  privacyLocalFirstTitle: "Local-first boundary",
+  privacyLocalFirstDescription:
+    "Codeplugs, backups, diagnostics, and update recovery state remain in your browser. Analytics does not upload their contents and is not required for Radio operations, editing, navigation, or rendering.",
+  privacyStorageTitle: "Browser storage inventory",
+  privacyStorageCookies: "Cookies: locale and sidebar preferences.",
+  privacyStorageLocal:
+    "localStorage: theme and the 73kit.analytics.v1 analytics preference.",
+  privacyStorageRecovery: "localStorage: update recovery state.",
+  privacyStorageIndexedDb:
+    "IndexedDB: Working Codeplug, backup history, and diagnostic data.",
+  privacyNoticeVersion: "Analytics notice version {version}.",
   fileOpen: "Open",
   fileSave: "Save",
   fileSavePf: "TYT PF file",

@@ -27,7 +27,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { usePathname } from "@/i18n/navigation"
+import { Link, usePathname } from "@/i18n/navigation"
 import { formatPercent } from "@/lib/format-percent"
 import {
   evaluateFirmwareSupport,
@@ -182,6 +182,12 @@ function WorkspaceStatusBar() {
             />
           )}
         </dl>
+        <Link
+          href="/privacy"
+          className="font-medium text-foreground underline-offset-4 hover:underline"
+        >
+          {t("navPrivacy")}
+        </Link>
         <a
           href="https://erkan.dev"
           target="_blank"
